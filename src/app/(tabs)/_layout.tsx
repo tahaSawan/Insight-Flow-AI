@@ -1,11 +1,17 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { useColorScheme } from 'react-native';
 import React from 'react';
 import { LayoutDashboard, UploadCloud, BrainCircuit, BarChart3 } from 'lucide-react-native';
+import { useAppContext } from '@/context/AppContext';
 
 export default function TabsLayout() {
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
+  const { uploadedText, analysisResults } = useAppContext();
+  const router = useRouter();
+
+  const hasUpload = uploadedText.trim().length > 0;
+  const hasResults = analysisResults !== null;
 
   return (
     <Tabs
@@ -15,8 +21,8 @@ export default function TabsLayout() {
           backgroundColor: isDark ? '#12121A' : '#ffffff',
           borderTopColor: isDark ? '#1F1F2E' : '#e2e8f0',
         },
-        tabBarActiveTintColor: '#6366F1', // primary
-        tabBarInactiveTintColor: '#8A8D98', // textSecondary
+        tabBarActiveTintColor: '#6366F1',
+        tabBarInactiveTintColor: '#8A8D98',
       }}
     >
       <Tabs.Screen
@@ -37,14 +43,36 @@ export default function TabsLayout() {
         name="analysis"
         options={{
           title: 'Analysis',
+          href: hasUpload ? '/analysis' : null,
           tabBarIcon: ({ color, size }) => <BrainCircuit color={color} size={size} />,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            if (!hasUpload) {
+              e.preventDefault();
+              router.push('/upload');
+            }
+          },
         }}
       />
       <Tabs.Screen
         name="results"
         options={{
           title: 'Results',
+          href: hasResults ? '/results' : null,
           tabBarIcon: ({ color, size }) => <BarChart3 color={color} size={size} />,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            if (!hasResults) {
+              e.preventDefault();
+              if (hasUpload) {
+                router.push('/analysis');
+              } else {
+                router.push('/upload');
+              }
+            }
+          },
         }}
       />
     </Tabs>

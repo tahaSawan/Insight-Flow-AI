@@ -1,12 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { MIN_CONTENT_LENGTH } from '@/constants/sampleReport';
 
-// Initialize the Gemini API client
-// Ensure EXPO_PUBLIC_GEMINI_API_KEY is defined in .env
 const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
-
-console.log('[GEMINI SDK] Initializing...');
-console.log('[GEMINI SDK] API Key detected:', apiKey ? 'YES (length: ' + apiKey.length + ')' : 'NO');
-
 const genAI = new GoogleGenerativeAI(apiKey);
 
 export interface GeminiAnalysisResponse {
@@ -40,59 +35,70 @@ The JSON object must have exactly the following keys and data types:
 Text to analyze:
 `;
 
-export async function analyzeContent(text: string): Promise<GeminiAnalysisResponse> {
-  console.log('[GEMINI SDK] analyzeContent called');
-  try {
-    if (!apiKey) {
-      console.error('[GEMINI SDK] ERROR: API key is missing or undefined in process.env');
-      throw new Error('Gemini API key is missing. Check your .env file.');
-    }
-
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    
-    // Provide fallback context if text is empty or too short
-    const contentToAnalyze = text.trim().length > 10 
-      ? text 
-      : "The company recently experienced a 15% drop in enterprise client renewals due to support delays and increasing software bugs in the latest Q3 release.";
-
-    const prompt = `${SYSTEM_PROMPT}\n\n"${contentToAnalyze}"`;
-    
-    console.log('[GEMINI SDK] Sending request to Gemini...', { 
-      textLength: contentToAnalyze.length,
-      model: 'gemini-1.5-flash'
-    });
-
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-      }
-    });
-
-    const response = await result.response;
-    const responseText = response.text();
-    
-    console.log('[GEMINI SDK] Raw Response received:', responseText.substring(0, 100) + '...');
-
-    const parsedData = JSON.parse(responseText.trim());
-    
-    console.log('[GEMINI SDK] Successfully parsed JSON data');
-
-    // Validate minimal structure
-    return {
-      riskScore: parsedData.riskScore || 50,
-      confidence: parsedData.confidence || 80,
-      priorityLevel: parsedData.priorityLevel || 'Medium',
-      estimatedImpact: parsedData.estimatedImpact || 'Analysis completed successfully',
-      keyFindings: Array.isArray(parsedData.keyFindings) ? parsedData.keyFindings : ['Insight generation completed'],
-      riskAssessment: Array.isArray(parsedData.riskAssessment) ? parsedData.riskAssessment : ['Risk profile evaluated'],
-      recommendedActions: Array.isArray(parsedData.recommendedActions) ? parsedData.recommendedActions : ['Monitor situation closely'],
-      beforeChurn: parsedData.beforeChurn || '10.0%',
-      afterChurn: parsedData.afterChurn || '8.0%'
-    };
-
-  } catch (error) {
-    console.error('[GEMINI SDK] ERROR in analyzeContent:', error);
-    throw error;
+export function getGeminiConfigError(): string | null {
+  if (!apiKey.trim()) {
+    return 'Gemini API key is missing. Add EXPO_PUBLIC_GEMINI_API_KEY to your .env file and restart Expo.';
   }
+  return null;
+}
+
+export function validateAnalysisInput(text: string): string | null {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return 'Please paste a report or load the sample report before analyzing.';
+  }
+  if (trimmed.length < MIN_CONTENT_LENGTH) {
+    return `Please provide at least ${MIN_CONTENT_LENGTH} characters of content for meaningful analysis.`;
+  }
+  return null;
+}
+
+export async function analyzeContent(text: string): Promise<GeminiAnalysisResponse> {
+  const configError = getGeminiConfigError();
+  if (configError) {
+    throw new Error(configError);
+  }
+
+  const inputError = validateAnalysisInput(text);
+  if (inputError) {
+    throw new Error(inputError);
+  }
+
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const prompt = `${SYSTEM_PROMPT}\n\n"${text.trim()}"`;
+
+  const result = await model.generateContent({
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    generationConfig: {
+      responseMimeType: 'application/json',
+    },
+  });
+
+  const response = await result.response;
+  const responseText = response.text();
+
+  let parsedData: Record<string, unknown>;
+  try {
+    parsedData = JSON.parse(responseText.trim());
+  } catch {
+    throw new Error('AI returned an invalid response. Please try again.');
+  }
+
+  return {
+    riskScore: Number(parsedData.riskScore) || 50,
+    confidence: Number(parsedData.confidence) || 80,
+    priorityLevel: String(parsedData.priorityLevel || 'Medium'),
+    estimatedImpact: String(parsedData.estimatedImpact || 'Analysis completed successfully'),
+    keyFindings: Array.isArray(parsedData.keyFindings)
+      ? parsedData.keyFindings.map(String)
+      : ['Insight generation completed'],
+    riskAssessment: Array.isArray(parsedData.riskAssessment)
+      ? parsedData.riskAssessment.map(String)
+      : ['Risk profile evaluated'],
+    recommendedActions: Array.isArray(parsedData.recommendedActions)
+      ? parsedData.recommendedActions.map(String)
+      : ['Monitor situation closely'],
+    beforeChurn: String(parsedData.beforeChurn || '10.0%'),
+    afterChurn: String(parsedData.afterChurn || '8.0%'),
+  };
 }

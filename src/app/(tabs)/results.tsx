@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -9,8 +9,33 @@ import { useAppContext } from '@/context/AppContext';
 
 export default function ResultsScreen() {
   const router = useRouter();
-  const { analysisResults } = useAppContext();
+  const { analysisResults, uploadedText } = useAppContext();
   const [exportMessage, setExportMessage] = useState('');
+
+  useEffect(() => {
+    if (!analysisResults) {
+      if (uploadedText.trim()) {
+        router.replace('/analysis');
+      } else {
+        router.replace('/upload');
+      }
+    }
+  }, [analysisResults, uploadedText, router]);
+
+  if (!analysisResults) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+        <View style={styles.emptyState}>
+          <Typography variant="h2">No results yet</Typography>
+          <Typography variant="body" style={styles.subtitle}>
+            Run an analysis from Upload to see your AI decision report.
+          </Typography>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const results = analysisResults;
 
   const handleExport = () => {
     setExportMessage('Report exported successfully');
@@ -30,31 +55,6 @@ export default function ResultsScreen() {
       </View>
     </View>
   );
-
-  // Fallback data if context is empty
-  const results = analysisResults || {
-    riskScore: 82,
-    confidence: 94,
-    priorityLevel: 'High',
-    estimatedImpact: 'Significant operational improvement possible',
-    keyFindings: [
-      'Revenue anomaly detected',
-      'Customer dissatisfaction trend',
-      'Regional performance decline'
-    ],
-    riskAssessment: [
-      'Compliance exposure',
-      'High churn probability',
-      'Escalation risk'
-    ],
-    recommendedActions: [
-      'Notify leadership team',
-      'Launch retention campaign',
-      'Schedule policy audit'
-    ],
-    beforeChurn: '14.2%',
-    afterChurn: '8.5%'
-  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
@@ -234,7 +234,14 @@ export default function ResultsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0A0A0F'
+    backgroundColor: '#0A0A0F',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    gap: 12,
   },
   scrollContent: {
     paddingHorizontal: 24,

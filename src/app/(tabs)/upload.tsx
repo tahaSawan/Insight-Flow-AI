@@ -1,63 +1,40 @@
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, ActivityIndicator, ScrollView, Alert } from 'react-native';
+import { View, TextInput, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import * as DocumentPicker from 'expo-document-picker';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { useAppContext } from '@/context/AppContext';
+import { SAMPLE_REPORT, MIN_CONTENT_LENGTH } from '@/constants/sampleReport';
+import { validateAnalysisInput } from '@/services/gemini';
 
 export default function UploadScreen() {
   const router = useRouter();
-  const { setUploadedText } = useAppContext();
-  
+  const { setUploadedText, setAnalysisResults } = useAppContext();
+
   const [textInput, setTextInput] = useState('');
-  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
-  const [pdfMessage, setPdfMessage] = useState('');
   const [validationError, setValidationError] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
-  const handlePdfUpload = async () => {
-    try {
-      setIsUploadingPdf(true);
-      setPdfMessage('');
-      
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/pdf'],
-        copyToCacheDirectory: true,
-      });
+  const charCount = textInput.trim().length;
+  const canSubmit = charCount >= MIN_CONTENT_LENGTH;
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setSelectedFile(result.assets[0]);
-        setPdfMessage('PDF uploaded successfully');
-        setValidationError('');
-      }
-    } catch (error) {
-      console.error('Error selecting file:', error);
-      Alert.alert('Error', 'Failed to pick a document');
-    } finally {
-      setIsUploadingPdf(false);
-    }
+  const handleLoadSample = () => {
+    setTextInput(SAMPLE_REPORT);
+    setValidationError('');
   };
 
   const handleSubmit = () => {
-    if (!textInput.trim() && !selectedFile) {
-      setValidationError('Please enter content first');
+    const error = validateAnalysisInput(textInput);
+    if (error) {
+      setValidationError(error);
       return;
     }
 
     setValidationError('');
-    setIsAnalyzing(true);
-    
-    // Save to global context
-    setUploadedText(textInput.trim() || (selectedFile ? `File: ${selectedFile.name}` : ''));
-
-    setTimeout(() => {
-      setIsAnalyzing(false);
-      router.push('/analysis');
-    }, 2000);
+    setAnalysisResults(null);
+    setUploadedText(textInput.trim());
+    router.push('/analysis');
   };
 
   return (
@@ -66,11 +43,23 @@ export default function UploadScreen() {
         <View style={styles.header}>
           <Typography variant="h1" style={styles.title}>Upload Content</Typography>
           <Typography variant="body" style={styles.subtitle}>
-            Paste reports, articles, or upload files for AI analysis.
+            Paste reports, articles, or business updates for AI analysis. PDF upload is coming soon — use text for now.
           </Typography>
         </View>
 
         <Card style={styles.card}>
+          <View style={styles.toolbar}>
+            <Button
+              title="Load sample report"
+              variant="outline"
+              onPress={handleLoadSample}
+              style={styles.sampleBtn}
+            />
+            <Typography variant="caption" style={styles.charCount}>
+              {charCount} / {MIN_CONTENT_LENGTH}+ chars
+            </Typography>
+          </View>
+
           <TextInput
             style={styles.textInput}
             placeholder="Paste your content here..."
@@ -80,40 +69,21 @@ export default function UploadScreen() {
             value={textInput}
             onChangeText={(text) => {
               setTextInput(text);
-              if (text.trim()) setValidationError('');
+              if (validationError && text.trim().length >= MIN_CONTENT_LENGTH) {
+                setValidationError('');
+              }
             }}
           />
-
-          <View style={styles.uploadRow}>
-            <Button 
-              title="Upload PDF"
-              variant="outline"
-              onPress={handlePdfUpload}
-              disabled={isUploadingPdf || isAnalyzing}
-              isLoading={isUploadingPdf}
-              style={styles.uploadBtn}
-            />
-            
-            <View style={styles.fileInfo}>
-              {selectedFile ? (
-                <Typography variant="body" style={styles.fileName} numberOfLines={1} ellipsizeMode="middle">
-                  {selectedFile.name}
-                </Typography>
-              ) : null}
-              {pdfMessage ? <Typography variant="caption" style={styles.successMessage}>{pdfMessage}</Typography> : null}
-            </View>
-          </View>
 
           {validationError ? (
             <Typography variant="body" style={styles.errorText}>{validationError}</Typography>
           ) : null}
 
-          <Button 
-            title={isAnalyzing ? "Analyzing..." : "Start AI Analysis"}
+          <Button
+            title="Start AI Analysis"
             onPress={handleSubmit}
-            disabled={isAnalyzing}
-            isLoading={isAnalyzing}
-            style={styles.submitBtn}
+            disabled={!canSubmit}
+            style={[styles.submitBtn, !canSubmit && styles.submitBtnDisabled]}
           />
         </Card>
       </ScrollView>
@@ -147,6 +117,21 @@ const styles = StyleSheet.create({
   card: {
     padding: 24,
   },
+  toolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    gap: 12,
+  },
+  sampleBtn: {
+    flexShrink: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  charCount: {
+    color: '#64748B',
+  },
   textInput: {
     backgroundColor: '#0A0A0F',
     borderColor: 'rgba(100, 116, 139, 0.5)',
@@ -155,30 +140,8 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     padding: 16,
     fontSize: 16,
-    minHeight: 180,
-    marginBottom: 24,
-  },
-  uploadRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  uploadBtn: {
-    marginRight: 16,
-    minWidth: 120,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  fileInfo: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  fileName: {
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  successMessage: {
-    color: '#10B981',
+    minHeight: 220,
+    marginBottom: 16,
   },
   errorText: {
     color: '#EF4444',
@@ -190,5 +153,8 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 16,
     marginTop: 8,
-  }
+  },
+  submitBtnDisabled: {
+    opacity: 0.45,
+  },
 });
