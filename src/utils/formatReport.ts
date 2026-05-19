@@ -26,6 +26,13 @@ export function formatReportAsText(results: AnalysisResult): string {
     '── PROJECTED IMPACT ──',
     `${results.impactMetricLabel}: ${results.beforeMetric} → ${results.afterMetric}`,
     '',
+    '── AGENT DECISION TRACE ──',
+    ...(results.agentTrace?.length
+      ? results.agentTrace.map(
+          (a) => `[${a.status.toUpperCase()}] ${a.agentName}: ${a.reasoning} → ${a.outputSummary}`,
+        )
+      : ['(No agent trace recorded)']),
+    '',
     '── AUTOMATED ACTIONS EXECUTED ──',
     ...results.simulatedActions.map((a) => `✓ ${a.title}: ${a.description}`),
     '',

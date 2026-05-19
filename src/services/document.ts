@@ -1,5 +1,6 @@
 import * as DocumentPicker from 'expo-document-picker';
-import { File } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
+import { Platform } from 'react-native';
 import { extractTextFromPdf } from '@/services/gemini';
 
 const TEXT_MIME_TYPES = ['text/plain', 'text/markdown', 'application/json'];
@@ -18,10 +19,47 @@ function isTextFile(name: string, mimeType?: string | null): boolean {
 }
 
 function isPdfFile(name: string, mimeType?: string | null): boolean {
-  return (
-    name.toLowerCase().endsWith('.pdf') ||
-    mimeType === 'application/pdf'
-  );
+  return name.toLowerCase().endsWith('.pdf') || mimeType === 'application/pdf';
+}
+
+/** Read file URI as UTF-8 text (works on native + web). */
+async function readUriAsText(uri: string): Promise<string> {
+  if (Platform.OS === 'web') {
+    const response = await fetch(uri);
+    if (!response.ok) {
+      throw new Error('Could not read the selected file.');
+    }
+    return await response.text();
+  }
+
+  return FileSystem.readAsStringAsync(uri, {
+    encoding: FileSystem.EncodingType.UTF8,
+  });
+}
+
+/** Read file URI as base64 (for PDF → Gemini). */
+async function readUriAsBase64(uri: string): Promise<string> {
+  if (Platform.OS === 'web') {
+    const response = await fetch(uri);
+    if (!response.ok) {
+      throw new Error('Could not read the selected file.');
+    }
+    const blob = await response.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+        resolve(base64);
+      };
+      reader.onerror = () => reject(new Error('Failed to read PDF data.'));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  return FileSystem.readAsStringAsync(uri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
 }
 
 export async function pickAndExtractDocument(): Promise<PickedDocument> {
@@ -37,10 +75,14 @@ export async function pickAndExtractDocument(): Promise<PickedDocument> {
   const asset = result.assets[0];
   const name = asset.name || 'document';
   const mimeType = asset.mimeType;
+  const uri = asset.uri;
+
+  if (!uri) {
+    throw new Error('Could not access the selected file.');
+  }
 
   if (isTextFile(name, mimeType)) {
-    const file = new File(asset.uri);
-    const text = await file.text();
+    const text = await readUriAsText(uri);
     if (text.trim().length < 20) {
       throw new Error('The text file appears empty or too short.');
     }
@@ -48,8 +90,7 @@ export async function pickAndExtractDocument(): Promise<PickedDocument> {
   }
 
   if (isPdfFile(name, mimeType)) {
-    const file = new File(asset.uri);
-    const base64 = await file.base64();
+    const base64 = await readUriAsBase64(uri);
     const text = await extractTextFromPdf(base64);
     return { name, text };
   }

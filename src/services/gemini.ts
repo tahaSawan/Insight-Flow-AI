@@ -6,9 +6,47 @@ const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 
 const GEMINI_MODEL =
-  process.env.EXPO_PUBLIC_GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
+  process.env.EXPO_PUBLIC_GEMINI_MODEL?.trim() || 'gemini-2.0-flash';
 
-const FALLBACK_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest'];
+/** Ordered by reliability when API traffic is high (503). */
+const MODEL_POOL = [
+  'gemini-2.0-flash',
+  'gemini-2.5-flash',
+  'gemini-flash-latest',
+  'gemini-2.0-flash-lite',
+];
+
+const MAX_RETRIES_PER_MODEL = 3;
+
+const RETRYABLE_HINTS = [
+  '503',
+  '429',
+  '500',
+  '502',
+  '504',
+  'high demand',
+  'overloaded',
+  'rate limit',
+  'resource exhausted',
+  'try again',
+  'unavailable',
+];
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function isRetryableGeminiError(error: unknown): boolean {
+  const message = (error instanceof Error ? error.message : String(error)).toLowerCase();
+  return RETRYABLE_HINTS.some((hint) => message.includes(hint));
+}
+
+export function toFriendlyGeminiError(error: unknown): string {
+  if (isRetryableGeminiError(error)) {
+    return 'Gemini is temporarily busy (high demand). Tap Retry — we auto-switch models and retry.';
+  }
+  return error instanceof Error ? error.message : 'Analysis failed. Please try again.';
+}
 
 const INDUSTRY_CONTEXT: Record<IndustryType, string> = {
   general: 'Analyze from a general business leadership perspective.',
@@ -42,32 +80,57 @@ Required JSON keys:
 Base insights on the actual content provided. Do not invent unrelated metrics.
 `;
 
+export async function generateJson<T>(prompt: string): Promise<T> {
+  const text = await generateWithGemini(prompt, true);
+  try {
+    return JSON.parse(text.trim()) as T;
+  } catch {
+    throw new Error('AI returned an invalid response. Please try again.');
+  }
+}
+
 async function generateWithGemini(prompt: string, jsonMode = true): Promise<string> {
-  const modelsToTry = [GEMINI_MODEL, ...FALLBACK_MODELS.filter((m) => m !== GEMINI_MODEL)];
+  const modelsToTry = [
+    GEMINI_MODEL,
+    ...MODEL_POOL.filter((m) => m !== GEMINI_MODEL),
+  ];
   let lastError: unknown;
 
   for (const modelName of modelsToTry) {
-    try {
-      const model = genAI.getGenerativeModel({ model: modelName });
-      const result = await model.generateContent({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        ...(jsonMode
-          ? { generationConfig: { responseMimeType: 'application/json' } }
-          : {}),
-      });
-      return (await result.response).text();
-    } catch (error) {
-      lastError = error;
-      const message = error instanceof Error ? error.message : String(error);
-      if (!message.includes('404') && !message.includes('not found')) {
+    for (let attempt = 0; attempt < MAX_RETRIES_PER_MODEL; attempt++) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          ...(jsonMode
+            ? { generationConfig: { responseMimeType: 'application/json' } }
+            : {}),
+        });
+        return (await result.response).text();
+      } catch (error) {
+        lastError = error;
+        const message = error instanceof Error ? error.message : String(error);
+        const is404 = message.includes('404') || message.includes('not found');
+
+        if (is404) {
+          break;
+        }
+
+        if (isRetryableGeminiError(error) && attempt < MAX_RETRIES_PER_MODEL - 1) {
+          await sleep(1200 * 2 ** attempt);
+          continue;
+        }
+
+        if (isRetryableGeminiError(error)) {
+          break;
+        }
+
         throw error;
       }
     }
   }
 
-  throw new Error(
-    lastError instanceof Error ? lastError.message : 'All Gemini models failed.',
-  );
+  throw new Error(toFriendlyGeminiError(lastError));
 }
 
 function parseSimulatedActions(raw: unknown): SimulatedAction[] {
@@ -134,6 +197,7 @@ function parseAnalysisResponse(parsedData: Record<string, unknown>): AnalysisRes
     afterMetric: String(parsedData.afterMetric || parsedData.afterChurn || 'N/A'),
     simulatedActions: actions,
     executionLog: executionLog.slice(0, 8),
+    agentTrace: [],
   };
 }
 
@@ -155,7 +219,24 @@ export function validateAnalysisInput(text: string): string | null {
   return null;
 }
 
-export async function analyzeContent(
+function buildFastModeTrace(): import('@/types/agents').AgentTraceEntry[] {
+  const completedAt = new Date().toISOString();
+  return [
+    {
+      agentId: 'ingestion',
+      agentName: 'Fast Analysis Engine',
+      status: 'complete',
+      startedAt: completedAt,
+      completedAt,
+      reasoning:
+        'Fast mode: one unified Gemini pass covering ingestion, insights, risk assessment, actions, and execution simulation.',
+      outputSummary: 'All pipeline stages completed in a single optimized request.',
+    },
+  ];
+}
+
+/** Single API call — faster, fewer 503 failures. Same report structure as full mode. */
+export async function analyzeContentFast(
   text: string,
   industry: IndustryType = 'general',
 ): Promise<AnalysisResult> {
@@ -168,7 +249,6 @@ export async function analyzeContent(
   const prompt = `${ANALYSIS_PROMPT}\n\nIndustry context: ${INDUSTRY_CONTEXT[industry]}\n\nDocument:\n"""${text.trim()}"""`;
 
   const responseText = await generateWithGemini(prompt, true);
-
   let parsedData: Record<string, unknown>;
   try {
     parsedData = JSON.parse(responseText.trim());
@@ -176,49 +256,63 @@ export async function analyzeContent(
     throw new Error('AI returned an invalid response. Please try again.');
   }
 
-  return parseAnalysisResponse(parsedData);
+  const result = parseAnalysisResponse(parsedData);
+  result.agentTrace = buildFastModeTrace();
+  return result;
+}
+
+export async function analyzeContent(
+  text: string,
+  industry: IndustryType = 'general',
+): Promise<AnalysisResult> {
+  const { runAgentOrchestration } = await import('@/services/agentOrchestrator');
+  return runAgentOrchestration(text, industry);
 }
 
 export async function extractTextFromPdf(base64Pdf: string): Promise<string> {
   const configError = getGeminiConfigError();
   if (configError) throw new Error(configError);
 
-  const modelsToTry = [GEMINI_MODEL, ...FALLBACK_MODELS.filter((m) => m !== GEMINI_MODEL)];
+  const modelsToTry = [GEMINI_MODEL, ...MODEL_POOL.filter((m) => m !== GEMINI_MODEL)];
   let lastError: unknown;
 
   for (const modelName of modelsToTry) {
-    try {
-      const model = genAI.getGenerativeModel({ model: modelName });
-      const result = await model.generateContent({
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { inlineData: { mimeType: 'application/pdf', data: base64Pdf } },
-              {
-                text: 'Extract ALL readable text from this PDF. Return only the extracted text with paragraph breaks. No commentary.',
-              },
-            ],
-          },
-        ],
-      });
-      const text = (await result.response).text().trim();
-      if (text.length < 50) {
-        throw new Error('Could not extract enough text from this PDF.');
-      }
-      return text;
-    } catch (error) {
-      lastError = error;
-      const message = error instanceof Error ? error.message : String(error);
-      if (!message.includes('404') && !message.includes('not found')) {
+    for (let attempt = 0; attempt < MAX_RETRIES_PER_MODEL; attempt++) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                { inlineData: { mimeType: 'application/pdf', data: base64Pdf } },
+                {
+                  text: 'Extract ALL readable text from this PDF. Return only the extracted text with paragraph breaks. No commentary.',
+                },
+              ],
+            },
+          ],
+        });
+        const extracted = (await result.response).text().trim();
+        if (extracted.length < 50) {
+          throw new Error('Could not extract enough text from this PDF.');
+        }
+        return extracted;
+      } catch (error) {
+        lastError = error;
+        const message = error instanceof Error ? error.message : String(error);
+        if (message.includes('404') || message.includes('not found')) break;
+        if (isRetryableGeminiError(error) && attempt < MAX_RETRIES_PER_MODEL - 1) {
+          await sleep(1200 * 2 ** attempt);
+          continue;
+        }
+        if (isRetryableGeminiError(error)) break;
         throw error;
       }
     }
   }
 
-  throw new Error(
-    lastError instanceof Error ? lastError.message : 'PDF extraction failed.',
-  );
+  throw new Error(toFriendlyGeminiError(lastError));
 }
 
 export async function explainInsight(

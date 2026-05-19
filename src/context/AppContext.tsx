@@ -6,7 +6,12 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
-import type { AnalysisResult, HistoryEntry, IndustryType } from '@/types/analysis';
+import type {
+  AnalysisResult,
+  HistoryEntry,
+  IndustryType,
+  AnalysisMode,
+} from '@/types/analysis';
 import {
   loadHistory,
   saveHistoryEntry,
@@ -21,6 +26,8 @@ interface AppContextType {
   setSourceFileName: (name: string | null) => void;
   industry: IndustryType;
   setIndustry: (industry: IndustryType) => void;
+  analysisMode: AnalysisMode;
+  setAnalysisMode: (mode: AnalysisMode) => void;
   analysisResults: AnalysisResult | null;
   setAnalysisResults: (results: AnalysisResult | null) => void;
   isAnalyzing: boolean;
@@ -40,6 +47,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [uploadedText, setUploadedText] = useState('');
   const [sourceFileName, setSourceFileName] = useState<string | null>(null);
   const [industry, setIndustry] = useState<IndustryType>('general');
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('full');
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -60,6 +68,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       id: `${Date.now()}`,
       createdAt: new Date().toISOString(),
       industry,
+      analysisMode,
       title:
         analysisResults.keyFindings[0]?.slice(0, 56) ||
         analysisResults.executiveSummary.slice(0, 56) ||
@@ -72,12 +81,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     await saveHistoryEntry(entry);
     await refreshHistory();
-  }, [analysisResults, uploadedText, industry, sourceFileName, refreshHistory]);
+  }, [analysisResults, uploadedText, industry, analysisMode, sourceFileName, refreshHistory]);
 
   const loadHistoryEntry = useCallback((entry: HistoryEntry) => {
     setUploadedText(entry.documentText);
     setSourceFileName(entry.sourceFileName ?? null);
     setIndustry(entry.industry);
+    if (entry.analysisMode) setAnalysisMode(entry.analysisMode);
     setAnalysisResults(entry.results);
     setIsAnalyzing(false);
   }, []);
@@ -111,6 +121,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSourceFileName,
         industry,
         setIndustry,
+        analysisMode,
+        setAnalysisMode,
         analysisResults,
         setAnalysisResults,
         isAnalyzing,

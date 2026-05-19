@@ -8,9 +8,11 @@ Built for hackathon demos with **Expo 55**, **React Native**, and **Google Gemin
 
 | Feature | Description |
 |---------|-------------|
+| **5-Agent pipeline** | Ingestion → Insight → Risk → Action → Execution (sequential Gemini agents) |
+| **Agent decision trace** | Per-agent reasoning + output on Analysis & Results screens |
 | **Upload** | Paste text, upload `.txt` or `.pdf` (PDF extracted via Gemini) |
 | **Industry modes** | General, Finance, Healthcare, Technology |
-| **AI Analysis** | Progress bar, live orchestrator, insight preview before results |
+| **AI Analysis** | Live agent cards, pipeline progress, preview before results |
 | **Decision Report** | Executive summary, risks, findings, actions, impact metrics |
 | **Insight-to-Action** | AI-generated simulated actions + animated execution logs |
 | **Tap to explain** | Tap any finding, risk, or action for AI explanation |

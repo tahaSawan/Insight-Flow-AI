@@ -10,6 +10,7 @@ import { useAppContext } from '@/context/AppContext';
 import { SAMPLE_REPORT, MIN_CONTENT_LENGTH } from '@/constants/sampleReport';
 import { validateAnalysisInput } from '@/services/gemini';
 import { pickAndExtractDocument } from '@/services/document';
+import { AnalysisModePicker } from '@/components/AnalysisModePicker';
 import { INDUSTRY_OPTIONS, type IndustryType } from '@/types/analysis';
 
 export default function UploadScreen() {
@@ -20,6 +21,8 @@ export default function UploadScreen() {
     setSourceFileName,
     industry,
     setIndustry,
+    analysisMode,
+    setAnalysisMode,
   } = useAppContext();
 
   const [textInput, setTextInput] = useState('');
@@ -81,6 +84,8 @@ export default function UploadScreen() {
         </View>
 
         <Card style={styles.card}>
+          <AnalysisModePicker value={analysisMode} onChange={setAnalysisMode} />
+
           <Typography variant="caption" style={styles.industryLabel}>
             Industry focus
           </Typography>

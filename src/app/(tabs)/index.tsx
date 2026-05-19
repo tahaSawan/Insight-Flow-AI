@@ -22,7 +22,7 @@ export default function HomeScreen() {
         <View style={styles.topBar}>
           <View style={styles.badgeRow}>
             <Sparkles size={14} color="#818CF8" />
-            <Typography style={styles.badge}>Insight-to-Action AI</Typography>
+            <Typography style={styles.badge}>5-Agent Insight-to-Action</Typography>
           </View>
           <Pressable onPress={() => router.push('/settings')} style={styles.settingsBtn}>
             <Settings size={22} color="#8A8D98" />
@@ -63,13 +63,13 @@ export default function HomeScreen() {
         <View style={styles.featureRow}>
           <Card style={styles.featureCard}>
             <Zap size={20} color="#F59E0B" />
-            <Typography style={styles.featureTitle}>PDF & Text</Typography>
-            <Typography variant="caption">Upload or paste any report</Typography>
+            <Typography style={styles.featureTitle}>5 AI Agents</Typography>
+            <Typography variant="caption">Ingest → Insight → Risk → Action → Execute</Typography>
           </Card>
           <Card style={styles.featureCard}>
             <ShieldAlert size={20} color="#6366F1" />
-            <Typography style={styles.featureTitle}>Risk & Actions</Typography>
-            <Typography variant="caption">AI-driven decision support</Typography>
+            <Typography style={styles.featureTitle}>Action Simulation</Typography>
+            <Typography variant="caption">Mock execution + before/after impact</Typography>
           </Card>
         </View>
 

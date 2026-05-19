@@ -9,13 +9,17 @@ import { Typography } from '@/components/Typography';
 import { AnimatedExecutionLog } from '@/components/AnimatedExecutionLog';
 import { FollowUpChat } from '@/components/FollowUpChat';
 import { InsightList } from '@/components/InsightList';
+import { AgentTracePanel } from '@/components/AgentTracePanel';
 import { useAppContext } from '@/context/AppContext';
+import { ANALYSIS_MODE_OPTIONS } from '@/types/analysis';
 import { formatReportAsText } from '@/utils/formatReport';
 import { generateExecutiveBrief } from '@/services/gemini';
 
 export default function ResultsScreen() {
   const router = useRouter();
-  const { analysisResults, uploadedText } = useAppContext();
+  const { analysisResults, uploadedText, analysisMode } = useAppContext();
+  const modeLabel =
+    ANALYSIS_MODE_OPTIONS.find((m) => m.id === analysisMode)?.label ?? 'Analysis';
   const [exportMessage, setExportMessage] = useState('');
   const [briefBullets, setBriefBullets] = useState<string[] | null>(null);
   const [briefLoading, setBriefLoading] = useState(false);
@@ -102,6 +106,9 @@ export default function ResultsScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
+          <View style={styles.modeBadge}>
+            <Typography style={styles.modeBadgeText}>{modeLabel}</Typography>
+          </View>
           <Typography variant="h1" style={styles.title}>
             AI Decision Report
           </Typography>
@@ -109,6 +116,8 @@ export default function ResultsScreen() {
             Insight-to-Action pipeline complete — powered by Gemini AI.
           </Typography>
         </View>
+
+        <AgentTracePanel trace={results.agentTrace ?? []} />
 
         <Card style={styles.summaryCard}>
           <Typography variant="h2" style={styles.cardTitle}>
@@ -306,6 +315,17 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 28,
   },
+  modeBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.35)',
+  },
+  modeBadgeText: { color: '#A5B4FC', fontSize: 12, fontWeight: '700' },
   title: {
     fontSize: 32,
     fontWeight: '800',

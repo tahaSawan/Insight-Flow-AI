@@ -1,4 +1,26 @@
+import type { AgentTraceEntry } from '@/types/agents';
+
 export type IndustryType = 'general' | 'finance' | 'healthcare' | 'technology';
+
+/** `full` = 5-agent pipeline (hackathon showcase). `fast` = single Gemini call (~15s). */
+export type AnalysisMode = 'fast' | 'full';
+
+export const ANALYSIS_MODE_OPTIONS: {
+  id: AnalysisMode;
+  label: string;
+  description: string;
+}[] = [
+  {
+    id: 'full',
+    label: 'Full Agents',
+    description: '5 specialized agents · traceable pipeline · ~45–90s',
+  },
+  {
+    id: 'fast',
+    label: 'Fast Mode',
+    description: 'Single AI pass · same report output · ~15–25s',
+  },
+];
 
 export interface SimulatedAction {
   title: string;
@@ -20,6 +42,7 @@ export interface AnalysisResult {
   afterMetric: string;
   simulatedActions: SimulatedAction[];
   executionLog: string[];
+  agentTrace: AgentTraceEntry[];
 }
 
 export const INDUSTRY_OPTIONS: { id: IndustryType; label: string }[] = [
@@ -33,6 +56,7 @@ export interface HistoryEntry {
   id: string;
   createdAt: string;
   industry: IndustryType;
+  analysisMode?: AnalysisMode;
   title: string;
   sourceFileName?: string;
   documentText: string;
