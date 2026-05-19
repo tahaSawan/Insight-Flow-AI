@@ -5,8 +5,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
+import { ProgressBar } from '@/components/ProgressBar';
+import { StatPreviewCard } from '@/components/StatPreviewCard';
 import { useAppContext } from '@/context/AppContext';
 import { analyzeContent } from '@/services/gemini';
+import type { AnalysisResult } from '@/types/analysis';
 
 const STATUS_STEPS = [
   'Parsing uploaded content...',
@@ -19,43 +22,51 @@ const STATUS_STEPS = [
 
 export default function AnalysisScreen() {
   const router = useRouter();
-  const { uploadedText, setAnalysisResults } = useAppContext();
+  const {
+    uploadedText,
+    setAnalysisResults,
+    industry,
+    persistAnalysisToHistory,
+    setIsAnalyzing: setGlobalAnalyzing,
+  } = useAppContext();
 
-  const [statusText, setStatusText] = useState('System standby');
+  const [statusText, setStatusText] = useState('Initializing...');
+  const [stepIndex, setStepIndex] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisComplete, setAnalysisComplete] = useState(false);
+  const [preview, setPreview] = useState<AnalysisResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lastAnalyzedText = useRef('');
+
+  const progress = ((stepIndex + 1) / STATUS_STEPS.length) * 100;
 
   const startAnalysis = useCallback(async () => {
     if (isAnalyzing || !uploadedText) return;
 
     setIsAnalyzing(true);
-    setAnalysisComplete(false);
+    setGlobalAnalyzing(true);
+    setPreview(null);
     setErrorMessage(null);
-
-    let step = 0;
-    setStatusText(STATUS_STEPS[step]);
+    setStepIndex(0);
+    setStatusText(STATUS_STEPS[0]);
 
     const interval = setInterval(() => {
-      if (step < STATUS_STEPS.length - 2) {
-        step += 1;
-        setStatusText(STATUS_STEPS[step]);
-      }
-    }, 1500);
+      setStepIndex((prev) => {
+        const next = Math.min(prev + 1, STATUS_STEPS.length - 2);
+        setStatusText(STATUS_STEPS[next]);
+        return next;
+      });
+    }, 1800);
 
     try {
-      const geminiResults = await analyzeContent(uploadedText);
+      const geminiResults = await analyzeContent(uploadedText, industry);
 
       clearInterval(interval);
+      setStepIndex(STATUS_STEPS.length - 1);
       setStatusText(STATUS_STEPS[STATUS_STEPS.length - 1]);
       setAnalysisResults(geminiResults);
+      setPreview(geminiResults);
       setIsAnalyzing(false);
-      setAnalysisComplete(true);
-
-      setTimeout(() => {
-        router.replace('/results');
-      }, 800);
+      setGlobalAnalyzing(false);
     } catch (error) {
       clearInterval(interval);
       const message =
@@ -63,24 +74,29 @@ export default function AnalysisScreen() {
       setErrorMessage(message);
       setStatusText('Analysis failed');
       setIsAnalyzing(false);
-      setAnalysisComplete(false);
+      setGlobalAnalyzing(false);
     }
-  }, [isAnalyzing, uploadedText, router, setAnalysisResults]);
+  }, [isAnalyzing, uploadedText, industry, setAnalysisResults, setGlobalAnalyzing]);
 
   useEffect(() => {
     if (!uploadedText) {
       router.replace('/upload');
       return;
     }
-    if (lastAnalyzedText.current === uploadedText) {
-      return;
-    }
+    if (lastAnalyzedText.current === uploadedText) return;
     lastAnalyzedText.current = uploadedText;
     startAnalysis();
   }, [uploadedText, router, startAnalysis]);
 
+  const handleViewResults = async () => {
+    await persistAnalysisToHistory();
+    router.replace('/results');
+  };
+
   const handleRetry = () => {
+    lastAnalyzedText.current = '';
     setErrorMessage(null);
+    lastAnalyzedText.current = uploadedText;
     startAnalysis();
   };
 
@@ -88,9 +104,13 @@ export default function AnalysisScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Typography variant="h1" style={styles.title}>AI Insight Engine</Typography>
+          <Typography variant="h1" style={styles.title}>
+            AI Insight Engine
+          </Typography>
           <Typography variant="body" style={styles.subtitle}>
-            Processing your content with Gemini AI. This usually takes 10–30 seconds.
+            {preview
+              ? 'Analysis complete — review the preview below.'
+              : 'Gemini AI is processing your document in real time.'}
           </Typography>
         </View>
 
@@ -103,21 +123,29 @@ export default function AnalysisScreen() {
                   ? styles.statusDotError
                   : isAnalyzing
                     ? styles.statusDotAnalyzing
-                    : analysisComplete
+                    : preview
                       ? styles.statusDotComplete
                       : styles.statusDotStandby,
               ]}
             />
             <Typography variant="h2" style={styles.statusTitle}>
-              {errorMessage ? 'Analysis Error' : 'Orchestrator Status'}
+              {errorMessage ? 'Error' : preview ? 'Complete' : 'Processing'}
             </Typography>
           </View>
+
+          <ProgressBar progress={preview ? 100 : progress} />
+          <Typography variant="caption" style={styles.progressLabel}>
+            {Math.round(preview ? 100 : progress)}% — Step {Math.min(stepIndex + 1, STATUS_STEPS.length)}/
+            {STATUS_STEPS.length}
+          </Typography>
 
           <View style={styles.consoleBox}>
             <Typography style={[styles.consoleText, errorMessage && styles.consoleTextError]}>
               {'> ' + statusText}
             </Typography>
-            {isAnalyzing && <ActivityIndicator size="small" color="#10B981" style={{ marginLeft: 12 }} />}
+            {isAnalyzing && (
+              <ActivityIndicator size="small" color="#10B981" style={{ marginLeft: 12 }} />
+            )}
           </View>
 
           {errorMessage ? (
@@ -125,12 +153,41 @@ export default function AnalysisScreen() {
               <Typography variant="body" style={styles.errorMessage}>
                 {errorMessage}
               </Typography>
-              <Button title="Retry Analysis" onPress={handleRetry} style={styles.retryButton} />
+              <Button title="Retry Analysis" onPress={handleRetry} style={styles.actionBtn} />
               <Button
                 title="Back to Upload"
                 variant="outline"
                 onPress={() => router.replace('/upload')}
-                style={styles.backButton}
+                style={styles.actionBtn}
+              />
+            </View>
+          ) : null}
+
+          {preview ? (
+            <View style={styles.previewSection}>
+              <Typography variant="h3" style={styles.previewTitle}>
+                Insight Preview
+              </Typography>
+              <Typography style={styles.previewSummary} numberOfLines={3}>
+                {preview.executiveSummary}
+              </Typography>
+              <View style={styles.previewRow}>
+                <StatPreviewCard
+                  label="Risk"
+                  value={`${preview.riskScore}`}
+                  accent="#EF4444"
+                />
+                <View style={styles.gap} />
+                <StatPreviewCard
+                  label="Confidence"
+                  value={`${preview.confidence}%`}
+                  accent="#10B981"
+                />
+              </View>
+              <Button
+                title="View Full Decision Report"
+                onPress={handleViewResults}
+                style={styles.viewResultsBtn}
               />
             </View>
           ) : null}
@@ -141,66 +198,25 @@ export default function AnalysisScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#0A0A0F',
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 40,
-  },
-  header: {
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 36,
-    letterSpacing: -0.5,
-    marginBottom: 12,
-  },
-  subtitle: {
-    color: '#8A8D98',
-    lineHeight: 24,
-  },
-  orchestratorCard: {
-    marginBottom: 24,
-    padding: 20,
-  },
-  statusHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
+  safeArea: { flex: 1, backgroundColor: '#0A0A0F' },
+  scrollContent: { paddingHorizontal: 24, paddingTop: 32, paddingBottom: 40 },
+  header: { marginBottom: 28 },
+  title: { fontSize: 36, letterSpacing: -0.5, marginBottom: 12 },
+  subtitle: { color: '#8A8D98', lineHeight: 24 },
+  orchestratorCard: { padding: 20, gap: 12 },
+  statusHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
   statusDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
     marginRight: 12,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 2,
   },
-  statusDotStandby: {
-    backgroundColor: '#334155',
-    shadowOpacity: 0,
-  },
-  statusDotAnalyzing: {
-    backgroundColor: '#F59E0B',
-    shadowColor: '#F59E0B',
-  },
-  statusDotComplete: {
-    backgroundColor: '#10B981',
-    shadowColor: '#10B981',
-  },
-  statusDotError: {
-    backgroundColor: '#EF4444',
-    shadowColor: '#EF4444',
-  },
-  statusTitle: {
-    fontSize: 18,
-    marginBottom: 0,
-  },
+  statusDotStandby: { backgroundColor: '#334155' },
+  statusDotAnalyzing: { backgroundColor: '#F59E0B' },
+  statusDotComplete: { backgroundColor: '#10B981' },
+  statusDotError: { backgroundColor: '#EF4444' },
+  statusTitle: { fontSize: 18, marginBottom: 0 },
+  progressLabel: { color: '#64748B', marginBottom: 4 },
   consoleBox: {
     backgroundColor: '#05050A',
     borderRadius: 12,
@@ -209,7 +225,6 @@ const styles = StyleSheet.create({
     borderColor: '#1A1A24',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     minHeight: 64,
   },
   consoleText: {
@@ -219,24 +234,14 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 20,
   },
-  consoleTextError: {
-    color: '#F87171',
-  },
-  errorBlock: {
-    marginTop: 20,
-    gap: 12,
-  },
-  errorMessage: {
-    color: '#FCA5A5',
-    lineHeight: 22,
-    marginBottom: 4,
-  },
-  retryButton: {
-    width: '100%',
-    paddingVertical: 16,
-  },
-  backButton: {
-    width: '100%',
-    paddingVertical: 16,
-  },
+  consoleTextError: { color: '#F87171' },
+  errorBlock: { marginTop: 8, gap: 10 },
+  errorMessage: { color: '#FCA5A5', lineHeight: 22 },
+  actionBtn: { paddingVertical: 14 },
+  previewSection: { marginTop: 8, gap: 12 },
+  previewTitle: { color: '#818CF8', fontSize: 16 },
+  previewSummary: { color: '#CBD5E1', lineHeight: 22, fontSize: 14 },
+  previewRow: { flexDirection: 'row' },
+  gap: { width: 10 },
+  viewResultsBtn: { marginTop: 4, paddingVertical: 16 },
 });

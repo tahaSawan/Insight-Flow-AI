@@ -1,13 +1,13 @@
 import { Tabs, useRouter } from 'expo-router';
 import { useColorScheme } from 'react-native';
 import React from 'react';
-import { LayoutDashboard, UploadCloud, BrainCircuit, BarChart3 } from 'lucide-react-native';
+import { LayoutDashboard, UploadCloud, BrainCircuit, BarChart3, History } from 'lucide-react-native';
 import { useAppContext } from '@/context/AppContext';
 
 export default function TabsLayout() {
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
-  const { uploadedText, analysisResults } = useAppContext();
+  const { uploadedText, analysisResults, history } = useAppContext();
   const router = useRouter();
 
   const hasUpload = uploadedText.trim().length > 0;
@@ -71,6 +71,22 @@ export default function TabsLayout() {
               } else {
                 router.push('/upload');
               }
+            }
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: 'History',
+          href: history.length > 0 ? '/history' : null,
+          tabBarIcon: ({ color, size }) => <History color={color} size={size} />,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            if (history.length === 0) {
+              e.preventDefault();
+              router.push('/upload');
             }
           },
         }}

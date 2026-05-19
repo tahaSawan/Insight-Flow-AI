@@ -1,60 +1,50 @@
 # InsightFlow AI
 
-Mobile app that turns reports and business text into **AI insights** and **actionable recommendations** using Google Gemini.
+**Mobile AI decision-support app** — transform reports, PDFs, and business text into executive insights, automated actions, and projected impact.
 
-Built with **Expo 55**, **React Native**, and **Expo Router**.
+Built for hackathon demos with **Expo 55**, **React Native**, and **Google Gemini 2.5**.
 
-## Features
+## Core features
 
-- Paste long-form content for analysis
-- Gemini-powered structured output (risks, findings, actions, impact metrics)
-- Insight-to-Action results view (simulated execution logs and outcomes)
-- Dark, mobile-first UI
+| Feature | Description |
+|---------|-------------|
+| **Upload** | Paste text, upload `.txt` or `.pdf` (PDF extracted via Gemini) |
+| **Industry modes** | General, Finance, Healthcare, Technology |
+| **AI Analysis** | Progress bar, live orchestrator, insight preview before results |
+| **Decision Report** | Executive summary, risks, findings, actions, impact metrics |
+| **Insight-to-Action** | AI-generated simulated actions + animated execution logs |
+| **Tap to explain** | Tap any finding, risk, or action for AI explanation |
+| **Follow-up Q&A** | Ask questions grounded in your document |
+| **CEO Brief** | 4-bullet presentation talking points |
+| **History** | Last 20 analyses saved on device |
+| **Export** | Share sheet + copy to clipboard |
 
 ## Setup
 
-1. Install dependencies:
+```bash
+npm install
+cp .env.example .env
+# Add EXPO_PUBLIC_GEMINI_API_KEY from https://aistudio.google.com/apikey
+npx expo start
+```
 
-   ```bash
-   npm install
-   ```
+Open in **Expo Go** on your phone (scan QR).
 
-2. Copy environment template and add your API key from [Google AI Studio](https://aistudio.google.com/apikey):
+## Demo flow (2 minutes)
 
-   ```bash
-   cp .env.example .env
-   ```
-
-   Set in `.env`:
-
-   ```
-   EXPO_PUBLIC_GEMINI_API_KEY=your_key_here
-   ```
-
-3. Start the app:
-
-   ```bash
-   npx expo start
-   ```
-
-4. Open on your phone with **Expo Go** (scan QR) or press `a` / `i` for emulator.
-
-## Demo flow (hackathon)
-
-1. Open **Upload** → tap **Load sample report**
-2. Tap **Start AI Analysis**
-3. Watch **Analysis** process with Gemini
-4. Review **Results** (insights, risks, actions, projected impact)
+1. **Home** → Start Analysis  
+2. **Upload** → Technology → Load sample **or** upload PDF  
+3. **Analysis** → watch progress → **View Full Decision Report**  
+4. **Results** → scroll → tap a finding to explain → **Generate CEO Brief**  
+5. Ask: *"What should we do in the next 48 hours?"*  
+6. **Share Report** → show History tab  
 
 ## Tech stack
 
-| Technology | Purpose |
-|------------|---------|
-| React Native + Expo | Cross-platform mobile |
-| Expo Router | File-based navigation |
-| Gemini API | AI analysis |
-| TypeScript | App logic |
+- React Native + Expo 55 + Expo Router  
+- Google Gemini API (`gemini-2.5-flash`)  
+- AsyncStorage (history), expo-file-system (documents), expo-clipboard  
 
 ## Security
 
-Never commit `.env`. The API key is loaded via `EXPO_PUBLIC_GEMINI_API_KEY` at build time. Rotate your key if it was ever exposed in git history.
+Never commit `.env`. Rotate API keys if exposed.

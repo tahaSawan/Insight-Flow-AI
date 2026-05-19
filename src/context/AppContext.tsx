@@ -1,42 +1,127 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
-
-export interface AnalysisResult {
-  riskScore: number;
-  confidence: number;
-  priorityLevel: string;
-  estimatedImpact: string;
-  keyFindings: string[];
-  riskAssessment: string[];
-  recommendedActions: string[];
-  beforeChurn: string;
-  afterChurn: string;
-}
+import React, {
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useEffect,
+  useCallback,
+} from 'react';
+import type { AnalysisResult, HistoryEntry, IndustryType } from '@/types/analysis';
+import {
+  loadHistory,
+  saveHistoryEntry,
+  clearAllHistory,
+  deleteHistoryEntry,
+} from '@/services/historyStorage';
 
 interface AppContextType {
   uploadedText: string;
   setUploadedText: (text: string) => void;
+  sourceFileName: string | null;
+  setSourceFileName: (name: string | null) => void;
+  industry: IndustryType;
+  setIndustry: (industry: IndustryType) => void;
   analysisResults: AnalysisResult | null;
   setAnalysisResults: (results: AnalysisResult | null) => void;
   isAnalyzing: boolean;
   setIsAnalyzing: (analyzing: boolean) => void;
+  history: HistoryEntry[];
+  refreshHistory: () => Promise<void>;
+  persistAnalysisToHistory: () => Promise<void>;
+  loadHistoryEntry: (entry: HistoryEntry) => void;
+  clearHistory: () => Promise<void>;
+  removeHistoryEntry: (id: string) => Promise<void>;
+  resetSession: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [uploadedText, setUploadedText] = useState('');
+  const [sourceFileName, setSourceFileName] = useState<string | null>(null);
+  const [industry, setIndustry] = useState<IndustryType>('general');
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+
+  const refreshHistory = useCallback(async () => {
+    const entries = await loadHistory();
+    setHistory(entries);
+  }, []);
+
+  useEffect(() => {
+    refreshHistory();
+  }, [refreshHistory]);
+
+  const persistAnalysisToHistory = useCallback(async () => {
+    if (!analysisResults || !uploadedText.trim()) return;
+
+    const entry: HistoryEntry = {
+      id: `${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      industry,
+      title:
+        analysisResults.keyFindings[0]?.slice(0, 56) ||
+        analysisResults.executiveSummary.slice(0, 56) ||
+        'Business Analysis',
+      sourceFileName: sourceFileName ?? undefined,
+      documentText: uploadedText,
+      documentPreview: uploadedText.slice(0, 160).replace(/\s+/g, ' '),
+      results: analysisResults,
+    };
+
+    await saveHistoryEntry(entry);
+    await refreshHistory();
+  }, [analysisResults, uploadedText, industry, sourceFileName, refreshHistory]);
+
+  const loadHistoryEntry = useCallback((entry: HistoryEntry) => {
+    setUploadedText(entry.documentText);
+    setSourceFileName(entry.sourceFileName ?? null);
+    setIndustry(entry.industry);
+    setAnalysisResults(entry.results);
+    setIsAnalyzing(false);
+  }, []);
+
+  const clearHistory = useCallback(async () => {
+    await clearAllHistory();
+    await refreshHistory();
+  }, [refreshHistory]);
+
+  const removeHistoryEntry = useCallback(
+    async (id: string) => {
+      await deleteHistoryEntry(id);
+      await refreshHistory();
+    },
+    [refreshHistory],
+  );
+
+  const resetSession = () => {
+    setUploadedText('');
+    setSourceFileName(null);
+    setAnalysisResults(null);
+    setIsAnalyzing(false);
+  };
 
   return (
-    <AppContext.Provider 
-      value={{ 
-        uploadedText, 
-        setUploadedText, 
-        analysisResults, 
+    <AppContext.Provider
+      value={{
+        uploadedText,
+        setUploadedText,
+        sourceFileName,
+        setSourceFileName,
+        industry,
+        setIndustry,
+        analysisResults,
         setAnalysisResults,
         isAnalyzing,
-        setIsAnalyzing
+        setIsAnalyzing,
+        history,
+        refreshHistory,
+        persistAnalysisToHistory,
+        loadHistoryEntry,
+        clearHistory,
+        removeHistoryEntry,
+        resetSession,
       }}
     >
       {children}
@@ -51,3 +136,5 @@ export function useAppContext() {
   }
   return context;
 }
+
+export type { AnalysisResult, HistoryEntry } from '@/types/analysis';

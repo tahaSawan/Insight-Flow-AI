@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet, Share, ActivityIndicator } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
+import { AnimatedExecutionLog } from '@/components/AnimatedExecutionLog';
+import { FollowUpChat } from '@/components/FollowUpChat';
+import { InsightList } from '@/components/InsightList';
 import { useAppContext } from '@/context/AppContext';
+import { formatReportAsText } from '@/utils/formatReport';
+import { generateExecutiveBrief } from '@/services/gemini';
 
 export default function ResultsScreen() {
   const router = useRouter();
   const { analysisResults, uploadedText } = useAppContext();
   const [exportMessage, setExportMessage] = useState('');
+  const [briefBullets, setBriefBullets] = useState<string[] | null>(null);
+  const [briefLoading, setBriefLoading] = useState(false);
 
   useEffect(() => {
     if (!analysisResults) {
@@ -37,17 +45,51 @@ export default function ResultsScreen() {
 
   const results = analysisResults;
 
-  const handleExport = () => {
-    setExportMessage('Report exported successfully');
-    setTimeout(() => {
-      setExportMessage('');
-    }, 3000);
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: formatReportAsText(results),
+        title: 'InsightFlow AI — Decision Report',
+      });
+      setExportMessage('Report shared');
+    } catch {
+      setExportMessage('Could not open share sheet');
+    }
+    setTimeout(() => setExportMessage(''), 3000);
   };
 
-  const renderMetricBar = (label: string, value: string, percentage: number, colorStyle: any) => (
+  const handleCopy = async () => {
+    await Clipboard.setStringAsync(formatReportAsText(results));
+    setExportMessage('Copied to clipboard');
+    setTimeout(() => setExportMessage(''), 3000);
+  };
+
+  const handleExecutiveBrief = async () => {
+    setBriefLoading(true);
+    setBriefBullets(null);
+    try {
+      const bullets = await generateExecutiveBrief(uploadedText, results);
+      setBriefBullets(bullets);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to generate brief';
+      setExportMessage(msg);
+      setTimeout(() => setExportMessage(''), 4000);
+    } finally {
+      setBriefLoading(false);
+    }
+  };
+
+  const renderMetricBar = (
+    label: string,
+    value: string,
+    percentage: number,
+    colorStyle: object,
+  ) => (
     <View style={styles.metricContainer}>
       <View style={styles.metricHeader}>
-        <Typography variant="caption" style={styles.metricLabel}>{label}</Typography>
+        <Typography variant="caption" style={styles.metricLabel}>
+          {label}
+        </Typography>
         <Typography style={styles.metricValue}>{value}</Typography>
       </View>
       <View style={styles.metricBarBg}>
@@ -60,21 +102,25 @@ export default function ResultsScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Typography variant="h1" style={styles.title}>AI Decision Report</Typography>
+          <Typography variant="h1" style={styles.title}>
+            AI Decision Report
+          </Typography>
           <Typography variant="body" style={styles.subtitle}>
-            Generated insights and recommended actions.
+            Insight-to-Action pipeline complete — powered by Gemini AI.
           </Typography>
         </View>
 
-        {/* Executive Summary */}
         <Card style={styles.summaryCard}>
-          <Typography variant="h2" style={styles.cardTitle}>Executive Summary</Typography>
-          
+          <Typography variant="h2" style={styles.cardTitle}>
+            Executive Summary
+          </Typography>
+          <Typography style={styles.executiveSummary}>{results.executiveSummary}</Typography>
+
           <View style={styles.metricsGroup}>
             {renderMetricBar('Risk Score', `${results.riskScore}/100`, results.riskScore, styles.bgRed)}
             {renderMetricBar('Confidence', `${results.confidence}%`, results.confidence, styles.bgEmerald)}
           </View>
-          
+
           <View style={styles.summaryRow}>
             <Typography variant="caption">Priority Level:</Typography>
             <View style={styles.priorityBadge}>
@@ -88,138 +134,147 @@ export default function ResultsScreen() {
           </View>
         </Card>
 
-        {/* Key Findings */}
+        <Card style={styles.briefCard}>
+          <Typography variant="h3" style={styles.sectionTitleIndigo}>
+            30-Second CEO Brief
+          </Typography>
+          <Typography variant="caption" style={styles.briefHint}>
+            AI-generated talking points for your presentation.
+          </Typography>
+          {briefBullets ? (
+            <View style={styles.briefList}>
+              {briefBullets.map((bullet, index) => (
+                <View key={`brief-${index}`} style={styles.briefItem}>
+                  <Typography style={styles.briefNumber}>{index + 1}</Typography>
+                  <Typography style={styles.briefText}>{bullet}</Typography>
+                </View>
+              ))}
+            </View>
+          ) : null}
+          <Button
+            title={briefLoading ? 'Generating...' : briefBullets ? 'Regenerate Brief' : 'Generate CEO Brief'}
+            variant="outline"
+            onPress={handleExecutiveBrief}
+            disabled={briefLoading}
+            style={styles.briefBtn}
+          />
+          {briefLoading ? (
+            <ActivityIndicator size="small" color="#6366F1" style={{ marginTop: 12 }} />
+          ) : null}
+        </Card>
+
         <Card style={styles.sectionCard}>
-          <Typography variant="h3" style={styles.sectionTitleIndigo}>Key Findings</Typography>
-          {results.keyFindings.map((finding, index) => (
-            <View key={`finding-${index}`} style={styles.listItem}>
-              <View style={styles.bulletIndigo} />
-              <Typography style={styles.listText}>{finding}</Typography>
+          <Typography variant="h3" style={styles.sectionTitleIndigo}>
+            Key Findings
+          </Typography>
+          <InsightList
+            items={results.keyFindings}
+            type="finding"
+            bulletStyle={styles.bulletIndigo}
+            titleColor="#6366F1"
+            documentText={uploadedText}
+            analysis={results}
+          />
+        </Card>
+
+        <Card style={styles.sectionCard}>
+          <Typography variant="h3" style={styles.sectionTitleAmber}>
+            Risk Assessment
+          </Typography>
+          <InsightList
+            items={results.riskAssessment}
+            type="risk"
+            bulletStyle={styles.bulletAmber}
+            titleColor="#F59E0B"
+            documentText={uploadedText}
+            analysis={results}
+          />
+        </Card>
+
+        <Card style={styles.sectionCard}>
+          <Typography variant="h3" style={styles.sectionTitleEmerald}>
+            Recommended Actions
+          </Typography>
+          <InsightList
+            items={results.recommendedActions}
+            type="action"
+            bulletStyle={styles.bulletEmerald}
+            titleColor="#10B981"
+            documentText={uploadedText}
+            analysis={results}
+          />
+        </Card>
+
+        <Card style={styles.sectionCard}>
+          <Typography variant="h3" style={styles.sectionTitlePurple}>
+            Automated Actions Executed
+          </Typography>
+          {results.simulatedActions.map((action, index) => (
+            <View key={`sim-${index}`} style={styles.actionRow}>
+              <View style={styles.actionIconBox}>
+                <Typography style={styles.actionIcon}>{action.icon}</Typography>
+              </View>
+              <View style={styles.actionBody}>
+                <Typography style={styles.actionTitle}>{action.title}</Typography>
+                <Typography variant="caption" style={styles.actionDesc}>
+                  {action.description}
+                </Typography>
+              </View>
+              <View style={styles.actionBadge}>
+                <Typography style={styles.actionBadgeText}>DONE</Typography>
+              </View>
             </View>
           ))}
         </Card>
 
-        {/* Risk Assessment */}
         <Card style={styles.sectionCard}>
-          <Typography variant="h3" style={styles.sectionTitleAmber}>Risk Assessment</Typography>
-          {results.riskAssessment.map((risk, index) => (
-            <View key={`risk-${index}`} style={styles.listItem}>
-              <View style={styles.bulletAmber} />
-              <Typography style={styles.listText}>{risk}</Typography>
-            </View>
-          ))}
-        </Card>
-
-        {/* Recommended Actions */}
-        <Card style={styles.sectionCard}>
-          <Typography variant="h3" style={styles.sectionTitleEmerald}>Recommended Actions</Typography>
-          {results.recommendedActions.map((action, index) => (
-            <View key={`action-${index}`} style={styles.listItem}>
-              <View style={styles.bulletEmerald} />
-              <Typography style={styles.listText}>{action}</Typography>
-            </View>
-          ))}
-        </Card>
-
-        {/* Simulated Actions */}
-        <Card style={styles.sectionCard}>
-          <Typography variant="h3" style={styles.sectionTitlePurple}>Automated Actions Executed</Typography>
-          
-          <View style={styles.actionRow}>
-            <View style={styles.actionIconBox}>
-              <Typography style={styles.actionIcon}>📊</Typography>
-            </View>
-            <View style={styles.actionBody}>
-              <Typography style={styles.actionTitle}>Dashboard Updated</Typography>
-              <Typography variant="caption" style={styles.actionDesc}>Live metrics refreshed</Typography>
-            </View>
-            <View style={styles.actionBadge}>
-              <Typography style={styles.actionBadgeText}>DONE</Typography>
-            </View>
-          </View>
-
-          <View style={styles.actionRow}>
-            <View style={styles.actionIconBox}>
-              <Typography style={styles.actionIcon}>🔔</Typography>
-            </View>
-            <View style={styles.actionBody}>
-              <Typography style={styles.actionTitle}>Alert Triggered</Typography>
-              <Typography variant="caption" style={styles.actionDesc}>Notified operations team</Typography>
-            </View>
-            <View style={styles.actionBadge}>
-              <Typography style={styles.actionBadgeText}>DONE</Typography>
-            </View>
-          </View>
-
-          <View style={styles.actionRow}>
-            <View style={styles.actionIconBox}>
-              <Typography style={styles.actionIcon}>✉️</Typography>
-            </View>
-            <View style={styles.actionBody}>
-              <Typography style={styles.actionTitle}>Email Generated</Typography>
-              <Typography variant="caption" style={styles.actionDesc}>Drafted to stakeholders</Typography>
-            </View>
-            <View style={styles.actionBadge}>
-              <Typography style={styles.actionBadgeText}>DONE</Typography>
-            </View>
-          </View>
-        </Card>
-
-        {/* Before vs After */}
-        <Card style={styles.sectionCard}>
-          <Typography variant="h3" style={styles.sectionTitlePink}>Projected Impact</Typography>
+          <Typography variant="h3" style={styles.sectionTitlePink}>
+            Projected Impact
+          </Typography>
           <View style={styles.impactContainer}>
             <View style={styles.impactBoxBefore}>
-              <Typography variant="caption" style={styles.impactBoxTitle}>Before</Typography>
-              <Typography style={styles.impactBoxValueBefore}>{results.beforeChurn}</Typography>
-              <Typography style={styles.impactBoxDesc}>Churn Rate</Typography>
+              <Typography variant="caption" style={styles.impactBoxTitle}>
+                Before
+              </Typography>
+              <Typography style={styles.impactBoxValueBefore}>{results.beforeMetric}</Typography>
+              <Typography style={styles.impactBoxDesc}>{results.impactMetricLabel}</Typography>
             </View>
             <View style={styles.impactArrow}>
               <Typography style={styles.impactArrowText}>→</Typography>
             </View>
             <View style={styles.impactBoxAfter}>
-              <Typography variant="caption" style={styles.impactBoxTitleAfter}>After</Typography>
-              <Typography style={styles.impactBoxValueAfter}>{results.afterChurn}</Typography>
-              <Typography style={styles.impactBoxDesc}>Projected Churn</Typography>
+              <Typography variant="caption" style={styles.impactBoxTitleAfter}>
+                After
+              </Typography>
+              <Typography style={styles.impactBoxValueAfter}>{results.afterMetric}</Typography>
+              <Typography style={styles.impactBoxDesc}>Projected</Typography>
             </View>
           </View>
         </Card>
 
-        {/* Execution Logs */}
         <Card style={styles.sectionCard}>
-          <Typography variant="h3" style={styles.sectionTitleLog}>System Execution Logs</Typography>
-          <View style={styles.logContainer}>
-            <Typography style={styles.logLine}>
-              <Typography style={styles.logTime}>[10:42:01]</Typography> Analysis initialized
-            </Typography>
-            <Typography style={styles.logLine}>
-              <Typography style={styles.logTime}>[10:42:05]</Typography> Data models loaded successfully
-            </Typography>
-            <Typography style={styles.logLine}>
-              <Typography style={styles.logTime}>[10:42:12]</Typography> Identified {results.riskAssessment.length} critical risk factors
-            </Typography>
-            <Typography style={styles.logLine}>
-              <Typography style={styles.logTime}>[10:42:18]</Typography> Generating mitigation strategies...
-            </Typography>
-            <Typography style={styles.logLine}>
-              <Typography style={styles.logTime}>[10:42:22]</Typography> Actions dispatched to connected systems
-            </Typography>
-            <Typography style={styles.logLine}>
-              <Typography style={styles.logTime}>[10:42:24]</Typography> Process complete.
-            </Typography>
-          </View>
+          <Typography variant="h3" style={styles.sectionTitleLog}>
+            System Execution Logs
+          </Typography>
+          <AnimatedExecutionLog lines={results.executionLog} />
         </Card>
 
-        {/* Actions */}
-        <View style={styles.bottomActions}>
-          <Button 
-            title="Export Report"
-            onPress={handleExport}
-            style={styles.exportBtn}
-          />
-          {exportMessage ? <Typography style={styles.exportMsg}>{exportMessage}</Typography> : null}
+        <FollowUpChat documentText={uploadedText} analysis={results} />
 
-          <Button 
+        <View style={styles.bottomActions}>
+          <Button title="Share Report" onPress={handleShare} style={styles.exportBtn} />
+          <Button title="Copy Report" variant="outline" onPress={handleCopy} style={styles.exportBtn} />
+          {exportMessage ? (
+            <Typography style={styles.exportMsg}>{exportMessage}</Typography>
+          ) : null}
+
+          <Button
+            title="New Analysis"
+            variant="outline"
+            onPress={() => router.push('/upload')}
+            style={styles.backBtn}
+          />
+          <Button
             title="Back to Home"
             variant="outline"
             onPress={() => router.push('/')}
@@ -246,68 +301,74 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 32,
-    paddingBottom: 40
+    paddingBottom: 48,
   },
   header: {
-    marginBottom: 32
+    marginBottom: 28,
   },
   title: {
     fontSize: 32,
     fontWeight: '800',
     letterSpacing: -0.5,
-    marginBottom: 8
+    marginBottom: 8,
   },
   subtitle: {
     color: '#8A8D98',
-    lineHeight: 24
+    lineHeight: 24,
   },
   summaryCard: {
-    marginBottom: 24,
+    marginBottom: 16,
     padding: 24,
     shadowColor: '#6366F1',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
-    elevation: 8
+    elevation: 8,
   },
   cardTitle: {
     fontSize: 20,
-    marginBottom: 20
+    marginBottom: 12,
+  },
+  executiveSummary: {
+    color: '#CBD5E1',
+    fontSize: 15,
+    lineHeight: 24,
+    marginBottom: 20,
   },
   metricsGroup: {
-    marginBottom: 20
+    marginBottom: 16,
   },
   metricContainer: {
-    marginBottom: 16
+    marginBottom: 16,
   },
   metricHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8
+    marginBottom: 8,
   },
   metricLabel: {
     fontWeight: '500',
-    color: '#94A3B8'
+    color: '#94A3B8',
   },
   metricValue: {
     color: '#FFFFFF',
-    fontWeight: '700'
+    fontWeight: '700',
   },
   metricBarBg: {
     height: 8,
     backgroundColor: '#1F1F2E',
     borderRadius: 4,
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   metricBarFill: {
     height: '100%',
-    borderRadius: 4
+    borderRadius: 4,
   },
   bgRed: {
-    backgroundColor: '#EF4444'
+    backgroundColor: '#EF4444',
   },
   bgEmerald: {
-    backgroundColor: '#10B981'
+    backgroundColor: '#10B981',
   },
   summaryRow: {
     flexDirection: 'row',
@@ -315,7 +376,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: '#1F1F2E'
+    borderTopColor: '#1F1F2E',
   },
   priorityBadge: {
     backgroundColor: 'rgba(239, 68, 68, 0.15)',
@@ -323,86 +384,120 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)'
+    borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   priorityText: {
     color: '#EF4444',
     fontSize: 12,
     fontWeight: '700',
-    textTransform: 'uppercase'
+    textTransform: 'uppercase',
   },
   impactText: {
     fontWeight: '500',
     textAlign: 'right',
     flex: 1,
     marginLeft: 16,
-    fontSize: 14
+    fontSize: 14,
+  },
+  briefCard: {
+    marginBottom: 16,
+    padding: 20,
+  },
+  briefHint: {
+    marginBottom: 12,
+  },
+  briefList: {
+    marginBottom: 16,
+    gap: 10,
+  },
+  briefItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: '#1A1A24',
+    padding: 12,
+    borderRadius: 10,
+  },
+  briefNumber: {
+    color: '#6366F1',
+    fontWeight: '800',
+    fontSize: 16,
+    width: 20,
+  },
+  briefText: {
+    flex: 1,
+    color: '#E2E8F0',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  briefBtn: {
+    paddingVertical: 14,
   },
   sectionCard: {
     marginBottom: 16,
-    padding: 20
+    padding: 20,
   },
   sectionTitleIndigo: {
     color: '#6366F1',
     marginBottom: 16,
-    fontSize: 18
+    fontSize: 18,
   },
   sectionTitleAmber: {
     color: '#F59E0B',
     marginBottom: 16,
-    fontSize: 18
+    fontSize: 18,
   },
   sectionTitleEmerald: {
     color: '#10B981',
     marginBottom: 16,
-    fontSize: 18
+    fontSize: 18,
   },
   sectionTitlePurple: {
     color: '#A855F7',
     marginBottom: 16,
-    fontSize: 18
+    fontSize: 18,
   },
   sectionTitlePink: {
     color: '#EC4899',
     marginBottom: 16,
-    fontSize: 18
+    fontSize: 18,
   },
   sectionTitleLog: {
     color: '#94A3B8',
     marginBottom: 16,
-    fontSize: 18
+    fontSize: 18,
   },
   listItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12
+    marginBottom: 12,
   },
   bulletIndigo: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: '#6366F1',
-    marginRight: 12
+    marginRight: 12,
   },
   bulletAmber: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: '#F59E0B',
-    marginRight: 12
+    marginRight: 12,
   },
   bulletEmerald: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: '#10B981',
-    marginRight: 12
+    marginRight: 12,
   },
   listText: {
     color: '#E2E8F0',
     fontSize: 15,
     lineHeight: 22,
-    flex: 1
+    flex: 1,
   },
   actionRow: {
     flexDirection: 'row',
@@ -410,7 +505,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A1A24',
     padding: 12,
     borderRadius: 12,
-    marginBottom: 12
+    marginBottom: 12,
   },
   actionIconBox: {
     width: 40,
@@ -419,21 +514,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#2D2D44',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12
+    marginRight: 12,
   },
   actionIcon: {
-    fontSize: 18
+    fontSize: 18,
   },
   actionBody: {
-    flex: 1
+    flex: 1,
   },
   actionTitle: {
     fontWeight: '600',
     fontSize: 15,
-    marginBottom: 2
+    marginBottom: 2,
   },
   actionDesc: {
-    fontSize: 13
+    fontSize: 13,
   },
   actionBadge: {
     backgroundColor: 'rgba(16, 185, 129, 0.15)',
@@ -441,19 +536,19 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)'
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   actionBadgeText: {
     color: '#10B981',
     fontSize: 11,
     fontWeight: 'bold',
-    letterSpacing: 0.5
+    letterSpacing: 0.5,
   },
   impactContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 8
+    marginTop: 8,
   },
   impactBoxBefore: {
     flex: 1,
@@ -462,32 +557,33 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2D2D44'
+    borderColor: '#2D2D44',
   },
   impactBoxTitle: {
     fontWeight: '600',
     marginBottom: 8,
     textTransform: 'uppercase',
-    fontSize: 13
+    fontSize: 13,
   },
   impactBoxValueBefore: {
     fontSize: 28,
     fontWeight: '800',
     marginBottom: 4,
-    color: '#FFFFFF'
+    color: '#FFFFFF',
   },
   impactBoxDesc: {
     fontSize: 12,
-    color: '#94A3B8'
+    color: '#94A3B8',
+    textAlign: 'center',
   },
   impactArrow: {
     paddingHorizontal: 12,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   impactArrowText: {
     color: '#64748B',
     fontSize: 24,
-    fontWeight: '300'
+    fontWeight: '300',
   },
   impactBoxAfter: {
     flex: 1,
@@ -496,59 +592,40 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)'
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   impactBoxTitleAfter: {
     fontWeight: '600',
     marginBottom: 8,
     textTransform: 'uppercase',
     fontSize: 13,
-    color: '#10B981'
+    color: '#10B981',
   },
   impactBoxValueAfter: {
     fontSize: 28,
     fontWeight: '800',
     marginBottom: 4,
-    color: '#10B981'
-  },
-  logContainer: {
-    backgroundColor: '#05050A',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#1A1A24'
-  },
-  logLine: {
-    color: '#A1A1AA',
-    fontFamily: 'monospace',
-    fontSize: 12,
-    marginBottom: 8,
-    lineHeight: 18
-  },
-  logTime: {
-    color: '#6366F1',
-    fontFamily: 'monospace',
-    fontSize: 12
+    color: '#10B981',
   },
   bottomActions: {
-    marginTop: 24
+    marginTop: 8,
+    gap: 12,
   },
   exportBtn: {
-    marginBottom: 12,
     paddingVertical: 16,
-    borderRadius: 14
+    borderRadius: 14,
   },
   exportMsg: {
     color: '#10B981',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
     fontSize: 14,
-    fontWeight: '500'
+    fontWeight: '500',
   },
   backBtn: {
     paddingVertical: 16,
     borderRadius: 14,
     borderColor: '#2D2D44',
-    borderWidth: 1
-  }
+    borderWidth: 1,
+  },
 });
