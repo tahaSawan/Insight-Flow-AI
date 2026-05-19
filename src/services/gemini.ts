@@ -4,6 +4,12 @@ import { MIN_CONTENT_LENGTH } from '@/constants/sampleReport';
 const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 
+/** gemini-1.5-flash was removed from the API — use a current model. */
+const GEMINI_MODEL =
+  process.env.EXPO_PUBLIC_GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
+
+const FALLBACK_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest'];
+
 export interface GeminiAnalysisResponse {
   riskScore: number;
   confidence: number;
@@ -64,18 +70,42 @@ export async function analyzeContent(text: string): Promise<GeminiAnalysisRespon
     throw new Error(inputError);
   }
 
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   const prompt = `${SYSTEM_PROMPT}\n\n"${text.trim()}"`;
+  const modelsToTry = [
+    GEMINI_MODEL,
+    ...FALLBACK_MODELS.filter((m) => m !== GEMINI_MODEL),
+  ];
 
-  const result = await model.generateContent({
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: {
-      responseMimeType: 'application/json',
-    },
-  });
+  let responseText = '';
+  let lastError: unknown;
 
-  const response = await result.response;
-  const responseText = response.text();
+  for (const modelName of modelsToTry) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+        },
+      });
+      responseText = (await result.response).text();
+      break;
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message : String(error);
+      const isModelNotFound =
+        message.includes('404') || message.includes('not found');
+      if (!isModelNotFound) {
+        throw error;
+      }
+    }
+  }
+
+  if (!responseText) {
+    const msg =
+      lastError instanceof Error ? lastError.message : 'All Gemini models failed.';
+    throw new Error(msg);
+  }
 
   let parsedData: Record<string, unknown>;
   try {
