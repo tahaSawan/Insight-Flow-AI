@@ -12,6 +12,7 @@ import { validateAnalysisInput } from '@/services/gemini';
 import { pickAndExtractDocument } from '@/services/document';
 import { AnalysisModePicker } from '@/components/AnalysisModePicker';
 import { INDUSTRY_OPTIONS, type IndustryType } from '@/types/analysis';
+import { UI, looksLikeResume } from '@/constants/plainLanguage';
 
 export default function UploadScreen() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function UploadScreen() {
 
   const charCount = textInput.trim().length;
   const canSubmit = charCount >= MIN_CONTENT_LENGTH;
+  const showResumeTip = canSubmit && looksLikeResume(textInput);
 
   const handleLoadSample = () => {
     setTextInput(SAMPLE_REPORT);
@@ -76,10 +78,10 @@ export default function UploadScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Typography variant="h1" style={styles.title}>
-            Upload Content
+            {UI.upload.title}
           </Typography>
           <Typography variant="body" style={styles.subtitle}>
-            Paste text or upload a .txt / .pdf file. PDFs are read with Gemini AI extraction.
+            {UI.upload.subtitle}
           </Typography>
         </View>
 
@@ -87,7 +89,7 @@ export default function UploadScreen() {
           <AnalysisModePicker value={analysisMode} onChange={setAnalysisMode} />
 
           <Typography variant="caption" style={styles.industryLabel}>
-            Industry focus
+            {UI.upload.industryLabel}
           </Typography>
           <View style={styles.industryRow}>
             {INDUSTRY_OPTIONS.map((opt) => {
@@ -118,9 +120,9 @@ export default function UploadScreen() {
             ) : (
               <>
                 <FileUp size={28} color="#6366F1" />
-                <Typography style={styles.fileDropTitle}>Upload .txt or .pdf</Typography>
+                <Typography style={styles.fileDropTitle}>{UI.upload.fileTitle}</Typography>
                 <Typography variant="caption">
-                  {fileName ? `Loaded: ${fileName}` : 'Tap to browse files'}
+                  {fileName ? UI.upload.fileLoaded(fileName) : UI.upload.fileTap}
                 </Typography>
               </>
             )}
@@ -129,14 +131,14 @@ export default function UploadScreen() {
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
             <Typography variant="caption" style={styles.dividerText}>
-              or paste below
+              {UI.upload.pasteDivider}
             </Typography>
             <View style={styles.dividerLine} />
           </View>
 
           <View style={styles.toolbar}>
             <Button
-              title="Load sample"
+              title={UI.upload.sampleBtn}
               variant="outline"
               onPress={handleLoadSample}
               style={styles.sampleBtn}
@@ -148,7 +150,7 @@ export default function UploadScreen() {
 
           <TextInput
             style={styles.textInput}
-            placeholder="Paste your report, article, or business update..."
+            placeholder={UI.upload.placeholder}
             placeholderTextColor="#64748B"
             multiline
             textAlignVertical="top"
@@ -161,6 +163,12 @@ export default function UploadScreen() {
             }}
           />
 
+          {showResumeTip ? (
+            <Typography variant="body" style={styles.resumeTip}>
+              {UI.upload.resumeWarning}
+            </Typography>
+          ) : null}
+
           {validationError ? (
             <Typography variant="body" style={styles.errorText}>
               {validationError}
@@ -168,7 +176,7 @@ export default function UploadScreen() {
           ) : null}
 
           <Button
-            title="Start AI Analysis"
+            title={UI.upload.submit}
             onPress={handleSubmit}
             disabled={!canSubmit}
             style={[styles.submitBtn, !canSubmit && styles.submitBtnDisabled]}
@@ -242,6 +250,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 180,
     marginBottom: 16,
+  },
+  resumeTip: {
+    color: '#FCD34D',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 12,
+    fontSize: 14,
   },
   errorText: { color: '#EF4444', textAlign: 'center', fontWeight: '500', marginBottom: 16 },
   submitBtn: { width: '100%', paddingVertical: 16, marginTop: 8 },

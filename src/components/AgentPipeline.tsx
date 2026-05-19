@@ -57,13 +57,13 @@ export function AgentPipeline({ trace }: AgentPipelineProps) {
             {entry && status !== 'pending' ? (
               <View style={styles.body}>
                 <Typography variant="caption" style={styles.reasoningLabel}>
-                  Reasoning
+                  What it is doing
                 </Typography>
                 <Typography style={styles.reasoning}>{entry.reasoning}</Typography>
                 {entry.outputSummary ? (
                   <>
                     <Typography variant="caption" style={styles.outputLabel}>
-                      Output
+                      Result
                     </Typography>
                     <Typography style={[styles.output, { color: agent.color }]}>
                       {entry.outputSummary}

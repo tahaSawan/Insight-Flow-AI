@@ -14,6 +14,7 @@ import { useAppContext } from '@/context/AppContext';
 import { ANALYSIS_MODE_OPTIONS } from '@/types/analysis';
 import { formatReportAsText } from '@/utils/formatReport';
 import { generateExecutiveBrief } from '@/services/gemini';
+import { UI, looksLikeResume } from '@/constants/plainLanguage';
 
 export default function ResultsScreen() {
   const router = useRouter();
@@ -38,9 +39,9 @@ export default function ResultsScreen() {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <View style={styles.emptyState}>
-          <Typography variant="h2">No results yet</Typography>
+          <Typography variant="h2">{UI.results.emptyTitle}</Typography>
           <Typography variant="body" style={styles.subtitle}>
-            Run an analysis from Upload to see your AI decision report.
+            {UI.results.emptySubtitle}
           </Typography>
         </View>
       </SafeAreaView>
@@ -48,12 +49,13 @@ export default function ResultsScreen() {
   }
 
   const results = analysisResults;
+  const showResumeTip = looksLikeResume(uploadedText);
 
   const handleShare = async () => {
     try {
       await Share.share({
         message: formatReportAsText(results),
-        title: 'InsightFlow AI — Decision Report',
+        title: 'InsightFlow AI — Report',
       });
       setExportMessage('Report shared');
     } catch {
@@ -110,45 +112,67 @@ export default function ResultsScreen() {
             <Typography style={styles.modeBadgeText}>{modeLabel}</Typography>
           </View>
           <Typography variant="h1" style={styles.title}>
-            AI Decision Report
+            {UI.results.title}
           </Typography>
           <Typography variant="body" style={styles.subtitle}>
-            Insight-to-Action pipeline complete — powered by Gemini AI.
+            {UI.results.subtitle}
           </Typography>
         </View>
+
+        {showResumeTip ? (
+          <Card style={styles.resumeBanner}>
+            <Typography style={styles.resumeBannerText}>{UI.results.resumeBanner}</Typography>
+          </Card>
+        ) : null}
 
         <AgentTracePanel trace={results.agentTrace ?? []} />
 
         <Card style={styles.summaryCard}>
           <Typography variant="h2" style={styles.cardTitle}>
-            Executive Summary
+            {UI.results.summaryTitle}
+          </Typography>
+          <Typography variant="caption" style={styles.sectionHint}>
+            {UI.results.summaryHint}
           </Typography>
           <Typography style={styles.executiveSummary}>{results.executiveSummary}</Typography>
 
           <View style={styles.metricsGroup}>
-            {renderMetricBar('Risk Score', `${results.riskScore}/100`, results.riskScore, styles.bgRed)}
-            {renderMetricBar('Confidence', `${results.confidence}%`, results.confidence, styles.bgEmerald)}
+            {renderMetricBar(
+              UI.results.problemSeriousness,
+              `${results.riskScore}/100`,
+              results.riskScore,
+              styles.bgRed,
+            )}
+            {renderMetricBar(
+              UI.results.howSure,
+              `${results.confidence}%`,
+              results.confidence,
+              styles.bgEmerald,
+            )}
           </View>
+          <Typography variant="caption" style={styles.metricFootnote}>
+            {UI.results.problemSeriousnessHint} · {UI.results.howSureHint}
+          </Typography>
 
           <View style={styles.summaryRow}>
-            <Typography variant="caption">Priority Level:</Typography>
+            <Typography variant="caption">{UI.results.priority}:</Typography>
             <View style={styles.priorityBadge}>
               <Typography style={styles.priorityText}>{results.priorityLevel}</Typography>
             </View>
           </View>
 
           <View style={styles.summaryRow}>
-            <Typography variant="caption">Estimated Impact:</Typography>
+            <Typography variant="caption">{UI.results.whatCouldHappen}:</Typography>
             <Typography style={styles.impactText}>{results.estimatedImpact}</Typography>
           </View>
         </Card>
 
         <Card style={styles.briefCard}>
           <Typography variant="h3" style={styles.sectionTitleIndigo}>
-            30-Second CEO Brief
+            {UI.results.ceoBriefTitle}
           </Typography>
           <Typography variant="caption" style={styles.briefHint}>
-            AI-generated talking points for your presentation.
+            {UI.results.ceoBriefHint}
           </Typography>
           {briefBullets ? (
             <View style={styles.briefList}>
@@ -161,7 +185,13 @@ export default function ResultsScreen() {
             </View>
           ) : null}
           <Button
-            title={briefLoading ? 'Generating...' : briefBullets ? 'Regenerate Brief' : 'Generate CEO Brief'}
+            title={
+              briefLoading
+                ? UI.results.ceoBriefLoading
+                : briefBullets
+                  ? UI.results.ceoBriefBtnAgain
+                  : UI.results.ceoBriefBtn
+            }
             variant="outline"
             onPress={handleExecutiveBrief}
             disabled={briefLoading}
@@ -174,7 +204,10 @@ export default function ResultsScreen() {
 
         <Card style={styles.sectionCard}>
           <Typography variant="h3" style={styles.sectionTitleIndigo}>
-            Key Findings
+            {UI.results.findingsTitle}
+          </Typography>
+          <Typography variant="caption" style={styles.sectionHint}>
+            {UI.results.findingsHint}
           </Typography>
           <InsightList
             items={results.keyFindings}
@@ -188,7 +221,10 @@ export default function ResultsScreen() {
 
         <Card style={styles.sectionCard}>
           <Typography variant="h3" style={styles.sectionTitleAmber}>
-            Risk Assessment
+            {UI.results.problemsTitle}
+          </Typography>
+          <Typography variant="caption" style={styles.sectionHint}>
+            {UI.results.problemsHint}
           </Typography>
           <InsightList
             items={results.riskAssessment}
@@ -202,7 +238,10 @@ export default function ResultsScreen() {
 
         <Card style={styles.sectionCard}>
           <Typography variant="h3" style={styles.sectionTitleEmerald}>
-            Recommended Actions
+            {UI.results.actionsTitle}
+          </Typography>
+          <Typography variant="caption" style={styles.sectionHint}>
+            {UI.results.actionsHint}
           </Typography>
           <InsightList
             items={results.recommendedActions}
@@ -216,7 +255,10 @@ export default function ResultsScreen() {
 
         <Card style={styles.sectionCard}>
           <Typography variant="h3" style={styles.sectionTitlePurple}>
-            Automated Actions Executed
+            {UI.results.simulatedTitle}
+          </Typography>
+          <Typography variant="caption" style={styles.sectionHint}>
+            {UI.results.simulatedHint}
           </Typography>
           {results.simulatedActions.map((action, index) => (
             <View key={`sim-${index}`} style={styles.actionRow}>
@@ -230,7 +272,7 @@ export default function ResultsScreen() {
                 </Typography>
               </View>
               <View style={styles.actionBadge}>
-                <Typography style={styles.actionBadgeText}>DONE</Typography>
+                <Typography style={styles.actionBadgeText}>{UI.results.simulatedDone}</Typography>
               </View>
             </View>
           ))}
@@ -238,12 +280,15 @@ export default function ResultsScreen() {
 
         <Card style={styles.sectionCard}>
           <Typography variant="h3" style={styles.sectionTitlePink}>
-            Projected Impact
+            {UI.results.impactTitle}
+          </Typography>
+          <Typography variant="caption" style={styles.sectionHint}>
+            {UI.results.impactHint}
           </Typography>
           <View style={styles.impactContainer}>
             <View style={styles.impactBoxBefore}>
               <Typography variant="caption" style={styles.impactBoxTitle}>
-                Before
+                {UI.results.before}
               </Typography>
               <Typography style={styles.impactBoxValueBefore}>{results.beforeMetric}</Typography>
               <Typography style={styles.impactBoxDesc}>{results.impactMetricLabel}</Typography>
@@ -253,17 +298,20 @@ export default function ResultsScreen() {
             </View>
             <View style={styles.impactBoxAfter}>
               <Typography variant="caption" style={styles.impactBoxTitleAfter}>
-                After
+                {UI.results.after}
               </Typography>
               <Typography style={styles.impactBoxValueAfter}>{results.afterMetric}</Typography>
-              <Typography style={styles.impactBoxDesc}>Projected</Typography>
+              <Typography style={styles.impactBoxDesc}>{UI.results.projected}</Typography>
             </View>
           </View>
         </Card>
 
         <Card style={styles.sectionCard}>
           <Typography variant="h3" style={styles.sectionTitleLog}>
-            System Execution Logs
+            {UI.results.logsTitle}
+          </Typography>
+          <Typography variant="caption" style={styles.sectionHint}>
+            {UI.results.logsHint}
           </Typography>
           <AnimatedExecutionLog lines={results.executionLog} />
         </Card>
@@ -271,20 +319,20 @@ export default function ResultsScreen() {
         <FollowUpChat documentText={uploadedText} analysis={results} />
 
         <View style={styles.bottomActions}>
-          <Button title="Share Report" onPress={handleShare} style={styles.exportBtn} />
-          <Button title="Copy Report" variant="outline" onPress={handleCopy} style={styles.exportBtn} />
+          <Button title={UI.results.share} onPress={handleShare} style={styles.exportBtn} />
+          <Button title={UI.results.copy} variant="outline" onPress={handleCopy} style={styles.exportBtn} />
           {exportMessage ? (
             <Typography style={styles.exportMsg}>{exportMessage}</Typography>
           ) : null}
 
           <Button
-            title="New Analysis"
+            title={UI.results.newAnalysis}
             variant="outline"
             onPress={() => router.push('/upload')}
             style={styles.backBtn}
           />
           <Button
-            title="Back to Home"
+            title={UI.results.backHome}
             variant="outline"
             onPress={() => router.push('/')}
             style={styles.backBtn}
@@ -345,9 +393,32 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 8,
   },
+  resumeBanner: {
+    marginBottom: 16,
+    padding: 16,
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+    borderWidth: 1,
+  },
+  resumeBannerText: {
+    color: '#FCD34D',
+    fontSize: 14,
+    lineHeight: 22,
+  },
   cardTitle: {
     fontSize: 20,
+    marginBottom: 4,
+  },
+  sectionHint: {
+    color: '#64748B',
     marginBottom: 12,
+    lineHeight: 18,
+  },
+  metricFootnote: {
+    color: '#64748B',
+    marginBottom: 8,
+    fontSize: 11,
+    lineHeight: 16,
   },
   executiveSummary: {
     color: '#CBD5E1',

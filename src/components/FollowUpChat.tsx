@@ -12,6 +12,7 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { askFollowUp } from '@/services/gemini';
+import { UI } from '@/constants/plainLanguage';
 import type { AnalysisResult } from '@/types/analysis';
 
 interface Message {
@@ -24,11 +25,7 @@ interface FollowUpChatProps {
   analysis: AnalysisResult;
 }
 
-const SUGGESTED_QUESTIONS = [
-  'What is the single biggest risk?',
-  'What should we do in the next 48 hours?',
-  'How confident are you in these recommendations?',
-];
+const SUGGESTED_QUESTIONS = [...UI.followUp.suggestions];
 
 export function FollowUpChat({ documentText, analysis }: FollowUpChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -59,10 +56,10 @@ export function FollowUpChat({ documentText, analysis }: FollowUpChatProps) {
   return (
     <Card style={styles.card}>
       <Typography variant="h3" style={styles.title}>
-        Ask InsightFlow AI
+        {UI.followUp.title}
       </Typography>
       <Typography variant="caption" style={styles.subtitle}>
-        Follow-up questions grounded in your document and analysis.
+        {UI.followUp.subtitle}
       </Typography>
 
       <View style={styles.suggestions}>
@@ -110,7 +107,7 @@ export function FollowUpChat({ documentText, analysis }: FollowUpChatProps) {
         <View style={styles.inputRow}>
           <TextInput
             style={styles.input}
-            placeholder="Ask about risks, priorities, next steps..."
+            placeholder={UI.followUp.placeholder}
             placeholderTextColor="#64748B"
             value={input}
             onChangeText={setInput}
@@ -118,7 +115,7 @@ export function FollowUpChat({ documentText, analysis }: FollowUpChatProps) {
             onSubmitEditing={() => sendQuestion(input)}
           />
           <Button
-            title="Ask"
+            title={UI.followUp.send}
             onPress={() => sendQuestion(input)}
             disabled={isLoading || !input.trim()}
             style={styles.askBtn}

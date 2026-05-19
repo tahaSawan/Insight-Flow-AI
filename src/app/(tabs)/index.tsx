@@ -8,6 +8,7 @@ import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { StatPreviewCard } from '@/components/StatPreviewCard';
 import { useAppContext } from '@/context/AppContext';
+import { UI } from '@/constants/plainLanguage';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function HomeScreen() {
         <View style={styles.topBar}>
           <View style={styles.badgeRow}>
             <Sparkles size={14} color="#818CF8" />
-            <Typography style={styles.badge}>5-Agent Insight-to-Action</Typography>
+            <Typography style={styles.badge}>{UI.home.badge}</Typography>
           </View>
           <Pressable onPress={() => router.push('/settings')} style={styles.settingsBtn}>
             <Settings size={22} color="#8A8D98" />
@@ -33,43 +34,42 @@ export default function HomeScreen() {
           InsightFlow AI
         </Typography>
         <Typography variant="body" style={styles.subtitle}>
-          Turn reports and business updates into executive insights, automated actions, and
-          projected impact — in seconds.
+          {UI.home.subtitle}
         </Typography>
 
         <View style={styles.previewRow}>
           <StatPreviewCard
-            label="Risk Score"
+            label={UI.home.riskLabel}
             value={hasLastRun ? `${analysisResults.riskScore}` : '—'}
             accent="#EF4444"
-            subtext={hasLastRun ? 'Last analysis' : 'Awaiting data'}
+            subtext={hasLastRun ? 'Last report' : 'Waiting'}
           />
           <View style={styles.previewGap} />
           <StatPreviewCard
-            label="Confidence"
+            label={UI.home.sureLabel}
             value={hasLastRun ? `${analysisResults.confidence}%` : '—'}
             accent="#10B981"
-            subtext={hasLastRun ? analysisResults.priorityLevel : 'AI ready'}
+            subtext={hasLastRun ? analysisResults.priorityLevel : 'Ready'}
           />
           <View style={styles.previewGap} />
           <StatPreviewCard
-            label="Actions"
+            label={UI.home.actionsLabel}
             value={hasLastRun ? `${analysisResults.simulatedActions.length}` : '3'}
             accent="#A855F7"
-            subtext="Auto-executed"
+            subtext={hasLastRun ? UI.home.actionsSubDone : UI.home.actionsSubReady}
           />
         </View>
 
         <View style={styles.featureRow}>
           <Card style={styles.featureCard}>
             <Zap size={20} color="#F59E0B" />
-            <Typography style={styles.featureTitle}>5 AI Agents</Typography>
-            <Typography variant="caption">Ingest → Insight → Risk → Action → Execute</Typography>
+            <Typography style={styles.featureTitle}>{UI.home.featureAgents}</Typography>
+            <Typography variant="caption">{UI.home.featureAgentsDesc}</Typography>
           </Card>
           <Card style={styles.featureCard}>
             <ShieldAlert size={20} color="#6366F1" />
-            <Typography style={styles.featureTitle}>Action Simulation</Typography>
-            <Typography variant="caption">Mock execution + before/after impact</Typography>
+            <Typography style={styles.featureTitle}>{UI.home.featureDemo}</Typography>
+            <Typography variant="caption">{UI.home.featureDemoDesc}</Typography>
           </Card>
         </View>
 
@@ -77,10 +77,10 @@ export default function HomeScreen() {
           <View style={styles.historySection}>
             <View style={styles.historyHeader}>
               <Typography variant="h3" style={styles.historyTitle}>
-                Recent Analyses
+                {UI.home.recentTitle}
               </Typography>
               <Pressable onPress={() => router.push('/history')}>
-                <Typography style={styles.seeAll}>See all</Typography>
+                <Typography style={styles.seeAll}>{UI.home.seeAll}</Typography>
               </Pressable>
             </View>
             {recentHistory.map((entry) => (
@@ -98,7 +98,7 @@ export default function HomeScreen() {
                         {entry.title}
                       </Typography>
                       <Typography variant="caption">
-                        Risk {entry.results.riskScore} · {entry.industry}
+                        {UI.home.historyRisk(entry.results.riskScore)} · {entry.industry}
                       </Typography>
                     </View>
                     <ChevronRight size={18} color="#64748B" />
@@ -111,23 +111,21 @@ export default function HomeScreen() {
 
         <Card style={styles.ctaCard}>
           <Typography variant="h2" style={styles.cardTitle}>
-            {hasLastRun ? 'Run another analysis' : 'Ready to analyze'}
+            {hasLastRun ? UI.home.ctaTitleAgain : UI.home.ctaTitleReady}
           </Typography>
           <Typography variant="body" style={styles.cardSubtitle}>
-            {hasLastRun
-              ? 'Upload new content or view your latest decision report.'
-              : 'Paste a report, upload PDF, or load our sample.'}
+            {hasLastRun ? UI.home.ctaSubAgain : UI.home.ctaSubReady}
           </Typography>
 
           <Button
-            title="Start Analysis"
+            title={UI.home.startBtn}
             onPress={() => router.push('/upload')}
             style={styles.button}
           />
 
           {hasLastRun ? (
             <Button
-              title="View Last Results"
+              title={UI.home.viewLastBtn}
               variant="outline"
               onPress={() => router.push('/results')}
               style={styles.secondaryButton}

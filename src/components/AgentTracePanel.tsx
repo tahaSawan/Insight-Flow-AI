@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { getAgentDefinition } from '@/constants/agents';
+import { UI } from '@/constants/plainLanguage';
 import type { AgentTraceEntry } from '@/types/agents';
 
 interface AgentTracePanelProps {
@@ -21,10 +22,10 @@ export function AgentTracePanel({ trace }: AgentTracePanelProps) {
   return (
     <Card style={styles.card}>
       <Typography variant="h3" style={styles.title}>
-        Agent Decision Trace
+        {UI.results.traceTitle}
       </Typography>
       <Typography variant="caption" style={styles.subtitle}>
-        Autonomous multi-agent pipeline — insight → action → execution
+        {UI.results.traceHint}
       </Typography>
 
       {trace.map((entry, index) => {
@@ -47,7 +48,13 @@ export function AgentTracePanel({ trace }: AgentTracePanelProps) {
                   entry.status === 'error' && styles.statusErr,
                 ]}
               >
-                {entry.status.toUpperCase()}
+                {entry.status === 'complete'
+                  ? 'DONE'
+                  : entry.status === 'running'
+                    ? 'WORKING'
+                    : entry.status === 'error'
+                      ? 'ERROR'
+                      : 'WAIT'}
               </Typography>
             </View>
             <Typography style={styles.reasoning}>{entry.reasoning}</Typography>

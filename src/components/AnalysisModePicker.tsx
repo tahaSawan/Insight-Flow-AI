@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Typography } from '@/components/Typography';
 import { ANALYSIS_MODE_OPTIONS, type AnalysisMode } from '@/types/analysis';
+import { UI } from '@/constants/plainLanguage';
 
 interface AnalysisModePickerProps {
   value: AnalysisMode;
@@ -12,7 +13,7 @@ export function AnalysisModePicker({ value, onChange }: AnalysisModePickerProps)
   return (
     <View style={styles.container}>
       <Typography variant="caption" style={styles.label}>
-        Analysis mode
+        {UI.modePicker.label}
       </Typography>
       <View style={styles.row}>
         {ANALYSIS_MODE_OPTIONS.map((opt) => {

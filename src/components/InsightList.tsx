@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { Typography } from '@/components/Typography';
 import { explainInsight } from '@/services/gemini';
+import { UI } from '@/constants/plainLanguage';
 import type { AnalysisResult } from '@/types/analysis';
 
 type InsightType = 'finding' | 'risk' | 'action';
@@ -44,7 +45,7 @@ export function InsightList({
     } catch {
       setExplanations((prev) => ({
         ...prev,
-        [index]: 'Could not load explanation. Tap to retry.',
+        [index]: UI.followUp.explainFail,
       }));
     } finally {
       setLoadingIndex(null);
@@ -53,9 +54,6 @@ export function InsightList({
 
   return (
     <View>
-      <Typography variant="caption" style={[styles.hint, { color: titleColor }]}>
-        Tap any item for AI explanation
-      </Typography>
       {items.map((item, index) => (
         <Pressable key={`${type}-${index}`} onPress={() => handleTap(index, item)}>
           <View style={[styles.listItem, expandedIndex === index && styles.listItemExpanded]}>

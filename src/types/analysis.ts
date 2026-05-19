@@ -12,13 +12,13 @@ export const ANALYSIS_MODE_OPTIONS: {
 }[] = [
   {
     id: 'full',
-    label: 'Full Agents',
-    description: '5 specialized agents · traceable pipeline · ~45–90s',
+    label: 'Step by step (5 helpers)',
+    description: 'Easier to follow · takes about 1 minute',
   },
   {
     id: 'fast',
-    label: 'Fast Mode',
-    description: 'Single AI pass · same report output · ~15–25s',
+    label: 'Quick mode',
+    description: 'One pass · same report · about 20 seconds',
   },
 ];
 

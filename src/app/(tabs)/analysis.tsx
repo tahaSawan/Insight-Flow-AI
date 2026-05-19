@@ -15,6 +15,7 @@ import { AGENT_PIPELINE } from '@/constants/agents';
 import { ANALYSIS_MODE_OPTIONS } from '@/types/analysis';
 import type { AnalysisResult } from '@/types/analysis';
 import type { AgentTraceEntry } from '@/types/agents';
+import { UI } from '@/constants/plainLanguage';
 
 const TOTAL_AGENTS = AGENT_PIPELINE.length;
 
@@ -61,7 +62,7 @@ export default function AnalysisScreen() {
           agentId: a.id,
           agentName: a.name,
           status: 'pending',
-          reasoning: 'Queued by orchestrator...',
+          reasoning: UI.analysis.queued,
           outputSummary: '',
         })),
       );
@@ -69,10 +70,10 @@ export default function AnalysisScreen() {
       setAgentTrace([
         {
           agentId: 'ingestion',
-          agentName: 'Fast Analysis Engine',
+          agentName: UI.analysis.fastEngine,
           status: 'running',
           startedAt: new Date().toISOString(),
-          reasoning: 'Running unified insight-to-action analysis in one pass...',
+          reasoning: UI.analysis.fastRunning,
           outputSummary: '',
         },
       ]);
@@ -147,32 +148,32 @@ export default function AnalysisScreen() {
             <Typography style={styles.modeBadgeText}>{modeLabel}</Typography>
           </View>
           <Typography variant="h1" style={styles.title}>
-            {isFullMode ? 'Agent Orchestrator' : 'Fast Analysis'}
+            {isFullMode ? UI.analysis.titleFull : UI.analysis.titleFast}
           </Typography>
           <Typography variant="body" style={styles.subtitle}>
             {preview
-              ? 'Analysis complete — review the preview below.'
+              ? UI.analysis.done
               : isFullMode
-                ? `Running ${TOTAL_AGENTS} specialized AI agents on your document...`
-                : 'Single optimized AI pass — same decision report, faster.'}
+                ? UI.analysis.runningFull
+                : UI.analysis.runningFast}
           </Typography>
         </View>
 
         <Card style={styles.progressCard}>
           <View style={styles.progressRow}>
             <Typography variant="caption" style={styles.progressLabel}>
-              Pipeline progress
+              {UI.analysis.progress}
             </Typography>
             <Typography style={styles.progressPct}>{Math.round(progress)}%</Typography>
           </View>
           <ProgressBar progress={progress} />
           {isFullMode ? (
             <Typography variant="caption" style={styles.agentCount}>
-              {completedAgents} / {TOTAL_AGENTS} agents complete
+              {UI.analysis.agentsDone(completedAgents, TOTAL_AGENTS)}
             </Typography>
           ) : (
             <Typography variant="caption" style={styles.agentCount}>
-              Unified analysis in progress
+              {UI.analysis.fastProgress}
             </Typography>
           )}
         </Card>
@@ -184,10 +185,8 @@ export default function AnalysisScreen() {
             <View style={styles.fastHeader}>
               <Typography style={styles.fastIcon}>⚡</Typography>
               <View style={styles.fastBody}>
-                <Typography style={styles.fastTitle}>Fast Analysis Engine</Typography>
-                <Typography variant="caption">
-                  Combines all agent stages in one Gemini request
-                </Typography>
+                <Typography style={styles.fastTitle}>{UI.analysis.fastEngine}</Typography>
+                <Typography variant="caption">{UI.analysis.fastEngineDesc}</Typography>
               </View>
               {isAnalyzing ? (
                 <ActivityIndicator color="#6366F1" />
@@ -219,22 +218,26 @@ export default function AnalysisScreen() {
         {preview ? (
           <Card style={styles.previewCard}>
             <Typography variant="h3" style={styles.previewTitle}>
-              {isFullMode ? 'Orchestrator Output' : 'Fast Mode Output'}
+              {isFullMode ? UI.analysis.previewTitleFull : UI.analysis.previewTitleFast}
             </Typography>
             <Typography style={styles.previewSummary} numberOfLines={3}>
               {preview.executiveSummary}
             </Typography>
             <View style={styles.previewRow}>
-              <StatPreviewCard label="Risk" value={`${preview.riskScore}`} accent="#EF4444" />
+              <StatPreviewCard
+                label={UI.home.riskLabel}
+                value={`${preview.riskScore}`}
+                accent="#EF4444"
+              />
               <View style={styles.gap} />
               <StatPreviewCard
-                label="Confidence"
+                label={UI.home.sureLabel}
                 value={`${preview.confidence}%`}
                 accent="#10B981"
               />
             </View>
             <Button
-              title="View Full Decision Report"
+              title={UI.analysis.viewReport}
               onPress={handleViewResults}
               style={styles.viewResultsBtn}
             />

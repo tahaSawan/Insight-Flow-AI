@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { MIN_CONTENT_LENGTH } from '@/constants/sampleReport';
+import { PLAIN_LANGUAGE_AI_RULES } from '@/constants/plainLanguage';
 import type { AnalysisResult, IndustryType, SimulatedAction } from '@/types/analysis';
 
 const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
@@ -56,28 +57,25 @@ const INDUSTRY_CONTEXT: Record<IndustryType, string> = {
 };
 
 const ANALYSIS_PROMPT = `
-You are InsightFlow AI — an executive decision-support orchestrator.
-Analyze the provided business text and return ONLY a raw JSON object (no markdown).
+You are InsightFlow AI. Use very simple English anyone can understand.
+Analyze the document and return ONLY a raw JSON object (no markdown).
+
+${PLAIN_LANGUAGE_AI_RULES}
 
 Required JSON keys:
-- executiveSummary: string (2-3 sentences for a CEO)
-- riskScore: number (0-100)
-- confidence: number (0-100)
-- priorityLevel: string ("High", "Medium", or "Low")
-- estimatedImpact: string (one sentence)
-- keyFindings: string[] (exactly 3 concise bullets)
-- riskAssessment: string[] (exactly 3 concise bullets)
-- recommendedActions: string[] (exactly 3 actionable items starting with verbs)
-- impactMetricLabel: string (e.g. "Churn Rate", "Revenue at Risk", "NPS Score" — pick the most relevant KPI for this content)
-- beforeMetric: string (current state, e.g. "14.2%")
-- afterMetric: string (projected state after recommended actions, e.g. "8.5%")
-- simulatedActions: array of exactly 3 objects, each with:
-  - title: string (action taken, e.g. "Alert Triggered")
-  - description: string (what happened)
-  - icon: string (single emoji)
-- executionLog: string[] (exactly 6 log lines; each line is plain text WITHOUT timestamps — we add timestamps in the app)
-
-Base insights on the actual content provided. Do not invent unrelated metrics.
+- executiveSummary: string (2-3 short sentences, plain English)
+- riskScore: number (0-100) — how serious the main problem is
+- confidence: number (0-100) — how sure you are
+- priorityLevel: string ("High", "Medium", or "Low") — how urgent
+- estimatedImpact: string (one simple sentence: what could happen if nobody acts)
+- keyFindings: string[] (exactly 3 short bullets — main points)
+- riskAssessment: string[] (exactly 3 short bullets — what could go wrong)
+- recommendedActions: string[] (exactly 3 short bullets — what to do next, start with a verb)
+- impactMetricLabel: string (simple name, max 4 words, e.g. "Lost customers")
+- beforeMetric: string (situation now, e.g. "25% drop")
+- afterMetric: string (situation after fixes, e.g. "10% drop")
+- simulatedActions: array of exactly 3 objects: { title, description, icon } — pretend demo actions (simple titles)
+- executionLog: string[] (exactly 6 short log lines, no timestamps, plain English)
 `;
 
 export async function generateJson<T>(prompt: string): Promise<T> {
@@ -162,12 +160,12 @@ function parseAnalysisResponse(parsedData: Record<string, unknown>): AnalysisRes
   const executionLog = Array.isArray(parsedData.executionLog)
     ? parsedData.executionLog.map(String)
     : [
-        'Content parsed and indexed',
-        'Risk models applied to document',
-        `Identified ${Array.isArray(parsedData.riskAssessment) ? parsedData.riskAssessment.length : 3} risk factors`,
-        'Mitigation strategies generated',
-        'Automated actions dispatched',
-        'Insight-to-Action pipeline complete',
+        'Read the document',
+        'Checked how serious the problems are',
+        `Found ${Array.isArray(parsedData.riskAssessment) ? parsedData.riskAssessment.length : 3} things that could go wrong`,
+        'Wrote next steps',
+        'Ran pretend demo actions',
+        'Report ready',
       ];
 
   return {
@@ -224,13 +222,12 @@ function buildFastModeTrace(): import('@/types/agents').AgentTraceEntry[] {
   return [
     {
       agentId: 'ingestion',
-      agentName: 'Fast Analysis Engine',
+      agentName: 'Quick mode',
       status: 'complete',
       startedAt: completedAt,
       completedAt,
-      reasoning:
-        'Fast mode: one unified Gemini pass covering ingestion, insights, risk assessment, actions, and execution simulation.',
-      outputSummary: 'All pipeline stages completed in a single optimized request.',
+      reasoning: 'Quick mode: one AI pass did all steps at once (read, find points, spot problems, suggest fixes).',
+      outputSummary: 'Done in one go — same report as step-by-step mode.',
     },
   ];
 }
@@ -325,8 +322,8 @@ export async function explainInsight(
   if (configError) throw new Error(configError);
 
   const prompt = `
-You are InsightFlow AI. Explain this ${insightType} in 2-3 sentences for an executive.
-Be specific to the document. Explain WHY it matters and WHAT to do next.
+Explain this in 2-3 very simple sentences (no jargon). Say why it matters and what to do.
+${PLAIN_LANGUAGE_AI_RULES}
 
 DOCUMENT (excerpt):
 ${documentText.slice(0, 2500)}
@@ -353,8 +350,8 @@ export async function askFollowUp(
   }
 
   const context = `
-You are InsightFlow AI assistant. Answer based ONLY on the document and analysis below.
-Be concise (2-4 sentences). Be specific and actionable.
+Answer in plain, simple English (2-4 short sentences). Only use the document and analysis below.
+${PLAIN_LANGUAGE_AI_RULES}
 
 DOCUMENT (excerpt):
 ${documentText.slice(0, 3000)}
@@ -379,15 +376,16 @@ export async function generateExecutiveBrief(
   if (configError) throw new Error(configError);
 
   const prompt = `
-Based on this business document and analysis, create a 30-second CEO briefing.
-Return ONLY a JSON object: { "bullets": string[] } with exactly 4 punchy bullets (max 15 words each).
+Create 4 very simple bullets anyone can say in a presentation (max 12 words each).
+${PLAIN_LANGUAGE_AI_RULES}
+Return ONLY JSON: { "bullets": string[] }
 
 DOCUMENT (excerpt):
 ${documentText.slice(0, 2000)}
 
 ANALYSIS:
 ${analysis.executiveSummary}
-Priority: ${analysis.priorityLevel} | Risk: ${analysis.riskScore}/100
+Urgency: ${analysis.priorityLevel} | How serious: ${analysis.riskScore}/100
 `;
 
   const responseText = await generateWithGemini(prompt, true);
@@ -397,9 +395,9 @@ Priority: ${analysis.priorityLevel} | Risk: ${analysis.riskScore}/100
   }
   return [
     analysis.executiveSummary,
-    `Priority: ${analysis.priorityLevel} — Risk score ${analysis.riskScore}/100`,
-    `Top action: ${analysis.recommendedActions[0]}`,
-    `Projected ${analysis.impactMetricLabel}: ${analysis.beforeMetric} → ${analysis.afterMetric}`,
+    `Urgency: ${analysis.priorityLevel} — seriousness ${analysis.riskScore}/100`,
+    `First step: ${analysis.recommendedActions[0]}`,
+    `${analysis.impactMetricLabel}: ${analysis.beforeMetric} → ${analysis.afterMetric}`,
   ];
 }
 

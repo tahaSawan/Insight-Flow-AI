@@ -1,4 +1,5 @@
 import { AGENT_PIPELINE, getAgentDefinition } from '@/constants/agents';
+import { PLAIN_LANGUAGE_AI_RULES } from '@/constants/plainLanguage';
 import type { AgentId, AgentTraceEntry } from '@/types/agents';
 import type { AnalysisResult, IndustryType, SimulatedAction } from '@/types/analysis';
 import {
@@ -48,7 +49,7 @@ async function runIngestionAgent(
     agentName: def.name,
     status: 'running',
     startedAt: now(),
-    reasoning: 'Scanning document structure and extracting signals...',
+    reasoning: 'Reading your document...',
     outputSummary: '',
   };
   updateTrace(trace, entry, onProgress);
@@ -57,14 +58,14 @@ async function runIngestionAgent(
   await sleep(600);
 
   const parsed = await generateJson<{ documentType: string; signals: string[] }>(`
-You are the Ingestion Agent in a multi-agent insight-to-action system.
-Analyze this document excerpt and return ONLY JSON:
-{ "documentType": string, "signals": string[] }
-- documentType: e.g. "Q3 Sales Report", "Policy Brief", "Incident Report"
-- signals: exactly 3 short factual signals detected (not insights yet)
+You are the Reader helper. Use very simple English.
+${PLAIN_LANGUAGE_AI_RULES}
+Return ONLY JSON: { "documentType": string, "signals": string[] }
+- documentType: short plain label (e.g. "Sales report", "Resume", "Team update")
+- signals: exactly 3 short facts from the text (not advice yet)
 
 Industry: ${INDUSTRY_CONTEXT[industry]}
-Document excerpt:
+Document:
 """${text.slice(0, 2500)}"""
 `);
 
@@ -72,7 +73,7 @@ Document excerpt:
     ...entry,
     status: 'complete',
     completedAt: now(),
-    reasoning: `Identified document as "${parsed.documentType}" with ${wordCount} words. Flagged ${parsed.signals.length} raw signals for downstream agents.`,
+    reasoning: `Read your ${parsed.documentType} (${wordCount} words). Picked out ${parsed.signals.length} key facts.`,
     outputSummary: parsed.signals.join(' · '),
   };
   updateTrace(trace, completed, onProgress);
@@ -92,22 +93,22 @@ async function runInsightAgent(
     agentName: def.name,
     status: 'running',
     startedAt: now(),
-    reasoning: 'Moving beyond summary — extracting non-trivial patterns...',
+    reasoning: 'Finding the main points...',
     outputSummary: '',
   };
   updateTrace(trace, entry, onProgress);
 
   const parsed = await generateJson<{ executiveSummary: string; keyFindings: string[] }>(`
-You are the Insight Agent. Do NOT write a generic summary.
-Extract meaningful, non-obvious insights tied to the document.
+You are the Main Points helper. Use very simple English.
+${PLAIN_LANGUAGE_AI_RULES}
 Return ONLY JSON:
 {
-  "executiveSummary": "2-3 sentences for a CEO",
-  "keyFindings": ["exactly 3 specific findings"]
+  "executiveSummary": "2-3 short sentences anyone can understand",
+  "keyFindings": ["exactly 3 main points in plain English"]
 }
 
 Industry: ${INDUSTRY_CONTEXT[industry]}
-Signals from Ingestion Agent: ${signals.join('; ')}
+Facts from Reader: ${signals.join('; ')}
 
 Document:
 """${text.slice(0, 4000)}"""
@@ -117,7 +118,7 @@ Document:
     ...entry,
     status: 'complete',
     completedAt: now(),
-    reasoning: 'Synthesized patterns into executive-level findings. Passed context to Risk Agent.',
+    reasoning: 'Wrote a short summary and 3 main points. Sending to Problems helper.',
     outputSummary: parsed.keyFindings[0] || parsed.executiveSummary.slice(0, 80),
   };
   updateTrace(trace, completed, onProgress);
@@ -143,7 +144,7 @@ async function runRiskAgent(
     agentName: def.name,
     status: 'running',
     startedAt: now(),
-    reasoning: 'Connecting insights to real-world consequences and exposure...',
+    reasoning: 'Checking how serious the problems are...',
     outputSummary: '',
   };
   updateTrace(trace, entry, onProgress);
@@ -155,19 +156,20 @@ async function runRiskAgent(
     priorityLevel: string;
     estimatedImpact: string;
   }>(`
-You are the Risk Agent. Analyze implications — WHY this matters operationally.
+You are the Problems helper. Use very simple English.
+${PLAIN_LANGUAGE_AI_RULES}
 Return ONLY JSON:
 {
-  "riskAssessment": ["exactly 3 risks"],
-  "riskScore": number 0-100,
-  "confidence": number 0-100,
-  "priorityLevel": "High"|"Medium"|"Low",
-  "estimatedImpact": "one sentence on business impact"
+  "riskAssessment": ["exactly 3 things that could go wrong — plain English"],
+  "riskScore": number 0-100 (how serious the main problem is),
+  "confidence": number 0-100 (how sure you are),
+  "priorityLevel": "High"|"Medium"|"Low" (how urgent),
+  "estimatedImpact": "one simple sentence: what happens if nobody acts"
 }
 
 Industry: ${INDUSTRY_CONTEXT[industry]}
-Insights: ${insight.executiveSummary}
-Findings: ${insight.keyFindings.join('; ')}
+Summary: ${insight.executiveSummary}
+Main points: ${insight.keyFindings.join('; ')}
 
 Document:
 """${text.slice(0, 3000)}"""
@@ -177,8 +179,8 @@ Document:
     ...entry,
     status: 'complete',
     completedAt: now(),
-    reasoning: `Risk score ${parsed.riskScore}/100 at ${parsed.priorityLevel} priority. Impact: ${parsed.estimatedImpact}`,
-    outputSummary: `Risk ${parsed.riskScore}/100 · ${parsed.priorityLevel} priority`,
+    reasoning: `Seriousness: ${parsed.riskScore}/100. Urgency: ${parsed.priorityLevel}. ${parsed.estimatedImpact}`,
+    outputSummary: `Seriousness ${parsed.riskScore}/100 · ${parsed.priorityLevel} urgency`,
   };
   updateTrace(trace, completed, onProgress);
   return parsed;
@@ -197,17 +199,18 @@ async function runActionAgent(
     agentName: def.name,
     status: 'running',
     startedAt: now(),
-    reasoning: 'Generating realistic, domain-specific actionable recommendations...',
+    reasoning: 'Writing clear next steps...',
     outputSummary: '',
   };
   updateTrace(trace, entry, onProgress);
 
   const parsed = await generateJson<{ recommendedActions: string[] }>(`
-You are the Action Agent. Generate clear, executable recommendations (verbs first).
-Return ONLY JSON: { "recommendedActions": ["exactly 3 actions"] }
+You are the Next Steps helper. Use very simple English.
+${PLAIN_LANGUAGE_AI_RULES}
+Return ONLY JSON: { "recommendedActions": ["exactly 3 things to do — start each with a verb"] }
 
 Industry: ${INDUSTRY_CONTEXT[industry]}
-Prior analysis: ${context}
+So far: ${context}
 
 Document:
 """${text.slice(0, 2500)}"""
@@ -217,7 +220,7 @@ Document:
     ...entry,
     status: 'complete',
     completedAt: now(),
-    reasoning: 'Validated actions against risk profile. Handoff to Execution Agent for simulation.',
+    reasoning: 'Listed 3 next steps. Showing a demo of what could happen.',
     outputSummary: parsed.recommendedActions[0] || 'Actions ready',
   };
   updateTrace(trace, completed, onProgress);
@@ -244,7 +247,7 @@ async function runExecutionAgent(
     agentName: def.name,
     status: 'running',
     startedAt: now(),
-    reasoning: 'Simulating workflow triggers: notifications, dashboard, pricing updates...',
+    reasoning: 'Building a pretend before/after picture (demo only)...',
     outputSummary: '',
   };
   updateTrace(trace, entry, onProgress);
@@ -256,20 +259,21 @@ async function runExecutionAgent(
     beforeMetric: string;
     afterMetric: string;
   }>(`
-You are the Execution Agent. SIMULATE executing the recommended actions in a business system.
+You are the Results helper. This is a DEMO — pretend actions only, simple words.
+${PLAIN_LANGUAGE_AI_RULES}
 Return ONLY JSON:
 {
   "simulatedActions": [{ "title": string, "description": string, "icon": "single emoji" }],
-  "executionLog": ["exactly 6 plain log lines, no timestamps"],
-  "impactMetricLabel": "relevant KPI name",
-  "beforeMetric": "current value e.g. 14.2%",
-  "afterMetric": "projected value after actions"
+  "executionLog": ["exactly 6 short log lines, no timestamps, plain English"],
+  "impactMetricLabel": "simple name, max 4 words",
+  "beforeMetric": "situation now",
+  "afterMetric": "situation after fixes (guess)"
 }
-- simulatedActions: exactly 3 items mapping to the recommended actions
+- simulatedActions: exactly 3 pretend steps (e.g. "Team emailed")
 
 Industry: ${INDUSTRY_CONTEXT[industry]}
-Risk context: ${riskSummary}
-Actions to simulate: ${actions.join('; ')}
+Problems: ${riskSummary}
+Next steps: ${actions.join('; ')}
 
 Document:
 """${text.slice(0, 2000)}"""
@@ -279,7 +283,7 @@ Document:
     ...entry,
     status: 'complete',
     completedAt: now(),
-    reasoning: `Simulated ${parsed.simulatedActions.length} system actions. Projected ${parsed.impactMetricLabel}: ${parsed.beforeMetric} → ${parsed.afterMetric}`,
+    reasoning: `Demo: ${parsed.simulatedActions.length} pretend actions. ${parsed.impactMetricLabel}: ${parsed.beforeMetric} → ${parsed.afterMetric}`,
     outputSummary: `${parsed.beforeMetric} → ${parsed.afterMetric}`,
   };
   updateTrace(trace, completed, onProgress);
@@ -303,7 +307,7 @@ export async function runAgentOrchestration(
     agentId: a.id,
     agentName: a.name,
     status: 'pending' as const,
-    reasoning: 'Waiting for orchestrator...',
+    reasoning: 'Waiting to start...',
     outputSummary: '',
   }));
   onProgress?.([...trace]);
