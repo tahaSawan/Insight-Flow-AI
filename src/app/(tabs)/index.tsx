@@ -1,7 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
+import { Typography } from '@/components/Typography';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -10,30 +13,32 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Insight-to-Action AI</Text>
-          <Text style={styles.subtitle}>
+          <Typography variant="h1" style={styles.title}>
+            InsightFlow AI
+          </Typography>
+          <Typography variant="body" style={styles.subtitle}>
             Transform your raw data into actionable insights instantly using advanced autonomous AI agents.
-          </Text>
+          </Typography>
         </View>
 
-        <View style={styles.cardContainer}>
-          <View style={styles.card}>
+        <View style={styles.content}>
+          <Card style={styles.card}>
             <View style={styles.iconContainer}>
-              <View style={styles.pulseDot} />
+              <View style={styles.iconInner} />
             </View>
-            <Text style={styles.cardTitle}>Ready to Analyze</Text>
-            <Text style={styles.cardDescription}>
+            <Typography variant="h2" style={styles.cardTitle}>
+              Ready to Analyze
+            </Typography>
+            <Typography variant="body" style={styles.cardSubtitle}>
               Upload documents, datasets, or link your workspace to begin analysis.
-            </Text>
+            </Typography>
             
-            <TouchableOpacity 
+            <Button 
+              title="Start Analysis" 
+              onPress={() => router.push('/upload')} 
               style={styles.button}
-              onPress={() => router.push('/upload')}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.buttonText}>Start Analysis</Text>
-            </TouchableOpacity>
-          </View>
+            />
+          </Card>
         </View>
       </View>
     </SafeAreaView>
@@ -57,34 +62,27 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 42,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: -1,
     lineHeight: 48,
+    letterSpacing: -1,
     marginBottom: 16,
   },
   subtitle: {
     fontSize: 18,
     color: '#8A8D98',
-    lineHeight: 26,
-    fontWeight: '400',
+    lineHeight: 28,
   },
-  cardContainer: {
+  content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   card: {
-    backgroundColor: '#12121A',
-    borderRadius: 24,
-    padding: 32,
     width: '100%',
-    borderWidth: 1,
-    borderColor: '#1F1F2E',
+    padding: 32,
     shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.15,
-    shadowRadius: 24,
+    shadowRadius: 20,
     elevation: 10,
   },
   iconContainer: {
@@ -96,7 +94,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  pulseDot: {
+  iconInner: {
     width: 12,
     height: 12,
     borderRadius: 6,
@@ -104,37 +102,25 @@ const styles = StyleSheet.create({
     shadowColor: '#6366F1',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 4,
+    elevation: 2,
   },
   cardTitle: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#FFFFFF',
     marginBottom: 12,
   },
-  cardDescription: {
-    fontSize: 16,
+  cardSubtitle: {
     color: '#8A8D98',
-    lineHeight: 24,
     marginBottom: 32,
+    lineHeight: 24,
   },
   button: {
-    backgroundColor: '#6366F1',
-    borderRadius: 16,
-    paddingVertical: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: '100%',
+    paddingVertical: 16,
     shadowColor: '#6366F1',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
+    shadowRadius: 6,
+    elevation: 4,
+  }
 });

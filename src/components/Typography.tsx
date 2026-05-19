@@ -1,36 +1,44 @@
 import React from 'react';
-import { Text, TextProps } from 'react-native';
+import { Text, TextProps, StyleSheet } from 'react-native';
 
 interface TypographyProps extends TextProps {
   variant?: 'h1' | 'h2' | 'h3' | 'body' | 'caption';
-  color?: string;
-  className?: string;
 }
 
-export function Typography({ variant = 'body', className = '', style, children, ...props }: TypographyProps) {
-  let baseClass = 'text-textPrimary';
-  
-  switch (variant) {
-    case 'h1':
-      baseClass += ' text-4xl font-bold mb-4';
-      break;
-    case 'h2':
-      baseClass += ' text-2xl font-bold mb-3';
-      break;
-    case 'h3':
-      baseClass += ' text-xl font-semibold mb-2';
-      break;
-    case 'body':
-      baseClass += ' text-base';
-      break;
-    case 'caption':
-      baseClass += ' text-sm text-textSecondary';
-      break;
-  }
-
+export function Typography({ variant = 'body', style, children, ...props }: TypographyProps) {
   return (
-    <Text className={`${baseClass} ${className}`} style={style} {...props}>
+    <Text style={[styles.base, styles[variant], style]} {...props}>
       {children}
     </Text>
   );
 }
+
+const styles = StyleSheet.create({
+  base: {
+    color: '#FFFFFF',
+  },
+  h1: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    letterSpacing: -0.5,
+  },
+  h2: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  h3: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  body: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  caption: {
+    fontSize: 14,
+    color: '#8A8D98',
+  },
+});

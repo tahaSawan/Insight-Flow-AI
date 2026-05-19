@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Alert } from 'react-native';
+import { View, TextInput, StyleSheet, ActivityIndicator, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
+import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
+import { Typography } from '@/components/Typography';
+import { useAppContext } from '@/context/AppContext';
 
 export default function UploadScreen() {
   const router = useRouter();
+  const { setUploadedText } = useAppContext();
   
   const [textInput, setTextInput] = useState('');
   const [isUploadingPdf, setIsUploadingPdf] = useState(false);
@@ -45,8 +50,10 @@ export default function UploadScreen() {
 
     setValidationError('');
     setIsAnalyzing(true);
+    
+    // Save to global context
+    setUploadedText(textInput.trim() || (selectedFile ? `File: ${selectedFile.name}` : ''));
 
-    // Simulate analysis loading for 2 seconds
     setTimeout(() => {
       setIsAnalyzing(false);
       router.push('/analysis');
@@ -55,15 +62,15 @@ export default function UploadScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={styles.title}>Upload Content</Text>
-          <Text style={styles.subtitle}>
+          <Typography variant="h1" style={styles.title}>Upload Content</Typography>
+          <Typography variant="body" style={styles.subtitle}>
             Paste reports, articles, or upload files for AI analysis.
-          </Text>
+          </Typography>
         </View>
 
-        <View style={styles.card}>
+        <Card style={styles.card}>
           <TextInput
             style={styles.textInput}
             placeholder="Paste your content here..."
@@ -77,49 +84,38 @@ export default function UploadScreen() {
             }}
           />
 
-          <View style={styles.pdfSection}>
-            <TouchableOpacity 
-              style={styles.pdfButton} 
+          <View style={styles.uploadRow}>
+            <Button 
+              title="Upload PDF"
+              variant="outline"
               onPress={handlePdfUpload}
               disabled={isUploadingPdf || isAnalyzing}
-            >
-              {isUploadingPdf ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <Text style={styles.pdfButtonText}>Upload PDF</Text>
-              )}
-            </TouchableOpacity>
+              isLoading={isUploadingPdf}
+              style={styles.uploadBtn}
+            />
             
-            <View style={styles.pdfInfoContainer}>
+            <View style={styles.fileInfo}>
               {selectedFile ? (
-                <Text style={styles.fileNameText} numberOfLines={1} ellipsizeMode="middle">
+                <Typography variant="body" style={styles.fileName} numberOfLines={1} ellipsizeMode="middle">
                   {selectedFile.name}
-                </Text>
+                </Typography>
               ) : null}
-              {pdfMessage ? <Text style={styles.pdfMessage}>{pdfMessage}</Text> : null}
+              {pdfMessage ? <Typography variant="caption" style={styles.successMessage}>{pdfMessage}</Typography> : null}
             </View>
           </View>
 
           {validationError ? (
-            <Text style={styles.errorText}>{validationError}</Text>
+            <Typography variant="body" style={styles.errorText}>{validationError}</Typography>
           ) : null}
 
-          <TouchableOpacity 
-            style={[styles.submitButton, isAnalyzing && styles.submitButtonDisabled]}
+          <Button 
+            title={isAnalyzing ? "Analyzing..." : "Start AI Analysis"}
             onPress={handleSubmit}
             disabled={isAnalyzing}
-            activeOpacity={0.8}
-          >
-            {isAnalyzing ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator color="#FFFFFF" size="small" style={styles.spinner} />
-                <Text style={styles.submitButtonText}>Analyzing...</Text>
-              </View>
-            ) : (
-              <Text style={styles.submitButtonText}>Start AI Analysis</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+            isLoading={isAnalyzing}
+            style={styles.submitBtn}
+          />
+        </Card>
       </ScrollView>
     </SafeAreaView>
   );
@@ -130,7 +126,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0A0A0F',
   },
-  scrollContainer: {
+  scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 24,
     paddingTop: 32,
@@ -141,32 +137,20 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 12,
     letterSpacing: -0.5,
+    marginBottom: 12,
   },
   subtitle: {
-    fontSize: 16,
     color: '#8A8D98',
     lineHeight: 24,
   },
   card: {
-    backgroundColor: '#12121A',
-    borderRadius: 24,
     padding: 24,
-    borderWidth: 1,
-    borderColor: '#1F1F2E',
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 8,
   },
   textInput: {
     backgroundColor: '#0A0A0F',
+    borderColor: 'rgba(100, 116, 139, 0.5)',
     borderWidth: 1,
-    borderColor: '#1F1F2E',
     borderRadius: 16,
     color: '#FFFFFF',
     padding: 16,
@@ -174,69 +158,37 @@ const styles = StyleSheet.create({
     minHeight: 180,
     marginBottom: 24,
   },
-  pdfSection: {
+  uploadRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 24,
   },
-  pdfButton: {
-    backgroundColor: '#1E1E2D',
-    borderWidth: 1,
-    borderColor: '#2D2D44',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+  uploadBtn: {
     marginRight: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
     minWidth: 120,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
-  pdfButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  pdfInfoContainer: {
+  fileInfo: {
     flex: 1,
     justifyContent: 'center',
   },
-  fileNameText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+  fileName: {
     fontWeight: '500',
     marginBottom: 4,
   },
-  pdfMessage: {
+  successMessage: {
     color: '#10B981',
-    fontSize: 12,
   },
   errorText: {
     color: '#EF4444',
-    fontSize: 14,
-    marginBottom: 16,
     textAlign: 'center',
     fontWeight: '500',
+    marginBottom: 16,
   },
-  submitButton: {
-    backgroundColor: '#6366F1',
-    borderRadius: 16,
-    paddingVertical: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  submitButtonDisabled: {
-    opacity: 0.7,
-  },
-  submitButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  spinner: {
-    marginRight: 8,
-  },
+  submitBtn: {
+    width: '100%',
+    paddingVertical: 16,
+    marginTop: 8,
+  }
 });

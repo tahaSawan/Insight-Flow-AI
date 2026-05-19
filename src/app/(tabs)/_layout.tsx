@@ -1,8 +1,7 @@
 import { Tabs } from 'expo-router';
 import { useColorScheme } from 'react-native';
-import { Colors } from '@/constants/theme';
 import React from 'react';
-// Note: In an actual app, you would import vector icons or custom images for tabs
+import { LayoutDashboard, UploadCloud, BrainCircuit, BarChart3 } from 'lucide-react-native';
 
 export default function TabsLayout() {
   const scheme = useColorScheme();
@@ -13,35 +12,39 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: isDark ? '#1E293B' : '#ffffff',
-          borderTopColor: isDark ? '#334155' : '#e2e8f0',
+          backgroundColor: isDark ? '#12121A' : '#ffffff',
+          borderTopColor: isDark ? '#1F1F2E' : '#e2e8f0',
         },
-        tabBarActiveTintColor: '#3B82F6', // primary blue
-        tabBarInactiveTintColor: '#94A3B8', // textSecondary
+        tabBarActiveTintColor: '#6366F1', // primary
+        tabBarInactiveTintColor: '#8A8D98', // textSecondary
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Dashboard',
+          tabBarIcon: ({ color, size }) => <LayoutDashboard color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="upload"
         options={{
           title: 'Upload',
+          tabBarIcon: ({ color, size }) => <UploadCloud color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="analysis"
         options={{
           title: 'Analysis',
+          tabBarIcon: ({ color, size }) => <BrainCircuit color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="results"
         options={{
           title: 'Results',
+          tabBarIcon: ({ color, size }) => <BarChart3 color={color} size={size} />,
         }}
       />
     </Tabs>
