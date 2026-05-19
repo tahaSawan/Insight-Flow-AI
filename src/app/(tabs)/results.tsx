@@ -13,8 +13,13 @@ import { AgentTracePanel } from '@/components/AgentTracePanel';
 import { useAppContext } from '@/context/AppContext';
 import { ANALYSIS_MODE_OPTIONS } from '@/types/analysis';
 import { formatReportAsText } from '@/utils/formatReport';
+import { formatBoardPack } from '@/utils/formatBoardPack';
+import { SeverityTimeline } from '@/components/SeverityTimeline';
 import { generateExecutiveBrief } from '@/services/gemini';
 import { UI, looksLikeResume } from '@/constants/plainLanguage';
+import { DecisionAlert } from '@/components/DecisionAlert';
+import { ScenarioFork } from '@/components/ScenarioFork';
+import { ActionCommander } from '@/components/ActionCommander';
 
 export default function ResultsScreen() {
   const router = useRouter();
@@ -67,6 +72,18 @@ export default function ResultsScreen() {
   const handleCopy = async () => {
     await Clipboard.setStringAsync(formatReportAsText(results));
     setExportMessage('Copied to clipboard');
+    setTimeout(() => setExportMessage(''), 3000);
+  };
+
+  const handleBoardPack = async () => {
+    const pack = formatBoardPack(results);
+    try {
+      await Share.share({ message: pack, title: 'InsightFlow — Board Pack' });
+      setExportMessage('Board pack shared');
+    } catch {
+      await Clipboard.setStringAsync(pack);
+      setExportMessage('Board pack copied');
+    }
     setTimeout(() => setExportMessage(''), 3000);
   };
 
@@ -125,7 +142,50 @@ export default function ResultsScreen() {
           </Card>
         ) : null}
 
-        <AgentTracePanel trace={results.agentTrace ?? []} />
+        <DecisionAlert results={results} />
+
+        <Card style={styles.heroCard}>
+          <Typography variant="h3" style={styles.heroTitle}>
+            Live action simulation
+          </Typography>
+          <Typography variant="caption" style={styles.sectionHint}>
+            Approve steps, then execute — Slack, email, CRM (demo).
+          </Typography>
+          <ActionCommander results={results} />
+        </Card>
+
+        <Card style={styles.sectionCard}>
+          <ScenarioFork results={results} />
+          <SeverityTimeline results={results} />
+        </Card>
+
+        <Card style={styles.sectionCard}>
+          <Typography variant="h3" style={styles.sectionTitlePink}>
+            {UI.results.impactTitle}
+          </Typography>
+          <Typography variant="caption" style={styles.sectionHint}>
+            {UI.results.impactHint}
+          </Typography>
+          <View style={styles.impactContainer}>
+            <View style={styles.impactBoxBefore}>
+              <Typography variant="caption" style={styles.impactBoxTitle}>
+                {UI.results.before}
+              </Typography>
+              <Typography style={styles.impactBoxValueBefore}>{results.beforeMetric}</Typography>
+              <Typography style={styles.impactBoxDesc}>{results.impactMetricLabel}</Typography>
+            </View>
+            <View style={styles.impactArrow}>
+              <Typography style={styles.impactArrowText}>→</Typography>
+            </View>
+            <View style={styles.impactBoxAfter}>
+              <Typography variant="caption" style={styles.impactBoxTitleAfter}>
+                {UI.results.after}
+              </Typography>
+              <Typography style={styles.impactBoxValueAfter}>{results.afterMetric}</Typography>
+              <Typography style={styles.impactBoxDesc}>{UI.results.projected}</Typography>
+            </View>
+          </View>
+        </Card>
 
         <Card style={styles.summaryCard}>
           <Typography variant="h2" style={styles.cardTitle}>
@@ -165,41 +225,6 @@ export default function ResultsScreen() {
             <Typography variant="caption">{UI.results.whatCouldHappen}:</Typography>
             <Typography style={styles.impactText}>{results.estimatedImpact}</Typography>
           </View>
-        </Card>
-
-        <Card style={styles.briefCard}>
-          <Typography variant="h3" style={styles.sectionTitleIndigo}>
-            {UI.results.ceoBriefTitle}
-          </Typography>
-          <Typography variant="caption" style={styles.briefHint}>
-            {UI.results.ceoBriefHint}
-          </Typography>
-          {briefBullets ? (
-            <View style={styles.briefList}>
-              {briefBullets.map((bullet, index) => (
-                <View key={`brief-${index}`} style={styles.briefItem}>
-                  <Typography style={styles.briefNumber}>{index + 1}</Typography>
-                  <Typography style={styles.briefText}>{bullet}</Typography>
-                </View>
-              ))}
-            </View>
-          ) : null}
-          <Button
-            title={
-              briefLoading
-                ? UI.results.ceoBriefLoading
-                : briefBullets
-                  ? UI.results.ceoBriefBtnAgain
-                  : UI.results.ceoBriefBtn
-            }
-            variant="outline"
-            onPress={handleExecutiveBrief}
-            disabled={briefLoading}
-            style={styles.briefBtn}
-          />
-          {briefLoading ? (
-            <ActivityIndicator size="small" color="#6366F1" style={{ marginTop: 12 }} />
-          ) : null}
         </Card>
 
         <Card style={styles.sectionCard}>
@@ -254,59 +279,6 @@ export default function ResultsScreen() {
         </Card>
 
         <Card style={styles.sectionCard}>
-          <Typography variant="h3" style={styles.sectionTitlePurple}>
-            {UI.results.simulatedTitle}
-          </Typography>
-          <Typography variant="caption" style={styles.sectionHint}>
-            {UI.results.simulatedHint}
-          </Typography>
-          {results.simulatedActions.map((action, index) => (
-            <View key={`sim-${index}`} style={styles.actionRow}>
-              <View style={styles.actionIconBox}>
-                <Typography style={styles.actionIcon}>{action.icon}</Typography>
-              </View>
-              <View style={styles.actionBody}>
-                <Typography style={styles.actionTitle}>{action.title}</Typography>
-                <Typography variant="caption" style={styles.actionDesc}>
-                  {action.description}
-                </Typography>
-              </View>
-              <View style={styles.actionBadge}>
-                <Typography style={styles.actionBadgeText}>{UI.results.simulatedDone}</Typography>
-              </View>
-            </View>
-          ))}
-        </Card>
-
-        <Card style={styles.sectionCard}>
-          <Typography variant="h3" style={styles.sectionTitlePink}>
-            {UI.results.impactTitle}
-          </Typography>
-          <Typography variant="caption" style={styles.sectionHint}>
-            {UI.results.impactHint}
-          </Typography>
-          <View style={styles.impactContainer}>
-            <View style={styles.impactBoxBefore}>
-              <Typography variant="caption" style={styles.impactBoxTitle}>
-                {UI.results.before}
-              </Typography>
-              <Typography style={styles.impactBoxValueBefore}>{results.beforeMetric}</Typography>
-              <Typography style={styles.impactBoxDesc}>{results.impactMetricLabel}</Typography>
-            </View>
-            <View style={styles.impactArrow}>
-              <Typography style={styles.impactArrowText}>→</Typography>
-            </View>
-            <View style={styles.impactBoxAfter}>
-              <Typography variant="caption" style={styles.impactBoxTitleAfter}>
-                {UI.results.after}
-              </Typography>
-              <Typography style={styles.impactBoxValueAfter}>{results.afterMetric}</Typography>
-              <Typography style={styles.impactBoxDesc}>{UI.results.projected}</Typography>
-            </View>
-          </View>
-        </Card>
-
-        <Card style={styles.sectionCard}>
           <Typography variant="h3" style={styles.sectionTitleLog}>
             {UI.results.logsTitle}
           </Typography>
@@ -316,10 +288,48 @@ export default function ResultsScreen() {
           <AnimatedExecutionLog lines={results.executionLog} />
         </Card>
 
+        <AgentTracePanel trace={results.agentTrace ?? []} />
+
+        <Card style={styles.briefCard}>
+          <Typography variant="h3" style={styles.sectionTitleIndigo}>
+            {UI.results.ceoBriefTitle}
+          </Typography>
+          <Typography variant="caption" style={styles.briefHint}>
+            {UI.results.ceoBriefHint}
+          </Typography>
+          {briefBullets ? (
+            <View style={styles.briefList}>
+              {briefBullets.map((bullet, index) => (
+                <View key={`brief-${index}`} style={styles.briefItem}>
+                  <Typography style={styles.briefNumber}>{index + 1}</Typography>
+                  <Typography style={styles.briefText}>{bullet}</Typography>
+                </View>
+              ))}
+            </View>
+          ) : null}
+          <Button
+            title={
+              briefLoading
+                ? UI.results.ceoBriefLoading
+                : briefBullets
+                  ? UI.results.ceoBriefBtnAgain
+                  : UI.results.ceoBriefBtn
+            }
+            variant="outline"
+            onPress={handleExecutiveBrief}
+            disabled={briefLoading}
+            style={styles.briefBtn}
+          />
+          {briefLoading ? (
+            <ActivityIndicator size="small" color="#6366F1" style={{ marginTop: 12 }} />
+          ) : null}
+        </Card>
+
         <FollowUpChat documentText={uploadedText} analysis={results} />
 
         <View style={styles.bottomActions}>
-          <Button title={UI.results.share} onPress={handleShare} style={styles.exportBtn} />
+          <Button title="Export board pack" onPress={handleBoardPack} style={styles.exportBtn} />
+          <Button title={UI.results.share} variant="outline" onPress={handleShare} style={styles.exportBtn} />
           <Button title={UI.results.copy} variant="outline" onPress={handleCopy} style={styles.exportBtn} />
           {exportMessage ? (
             <Typography style={styles.exportMsg}>{exportMessage}</Typography>
@@ -404,6 +414,24 @@ const styles = StyleSheet.create({
     color: '#FCD34D',
     fontSize: 14,
     lineHeight: 22,
+  },
+  heroCard: {
+    marginBottom: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(168, 85, 247, 0.45)',
+    backgroundColor: 'rgba(168, 85, 247, 0.08)',
+    shadowColor: '#A855F7',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  heroTitle: {
+    color: '#E9D5FF',
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 4,
   },
   cardTitle: {
     fontSize: 20,

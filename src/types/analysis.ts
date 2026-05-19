@@ -2,6 +2,8 @@ import type { AgentTraceEntry } from '@/types/agents';
 
 export type IndustryType = 'general' | 'finance' | 'healthcare' | 'technology';
 
+export type UseCaseType = 'board' | 'crisis' | 'weekly';
+
 /** `full` = 5-agent pipeline (hackathon showcase). `fast` = single Gemini call (~15s). */
 export type AnalysisMode = 'fast' | 'full';
 
@@ -22,14 +24,28 @@ export const ANALYSIS_MODE_OPTIONS: {
   },
 ];
 
+export type ActionChannel = 'slack' | 'email' | 'crm' | 'dashboard';
+
 export interface SimulatedAction {
   title: string;
   description: string;
   icon: string;
+  /** Mock system channel for live simulation UI */
+  channel?: ActionChannel;
+  /** One-line preview shown when action "runs" (e.g. Slack message body) */
+  notificationPreview?: string;
 }
 
 export interface AnalysisResult {
   executiveSummary: string;
+  /** One-line alert for executives, e.g. "Enterprise revenue down 12% — renewals at risk" */
+  urgencyHeadline?: string;
+  /** Quantified stake, e.g. "$2.1M ARR" or "~500 customers" */
+  stakeAtRisk?: string;
+  /** If team does nothing (one sentence) */
+  doNothingOutlook?: string;
+  /** If team follows the plan (one sentence) */
+  doActionOutlook?: string;
   riskScore: number;
   confidence: number;
   priorityLevel: string;

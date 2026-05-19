@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
@@ -8,10 +8,11 @@ import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { useAppContext } from '@/context/AppContext';
 import { getGeminiConfigError } from '@/services/gemini';
+import { setOnboardingComplete } from '@/services/appPreferences';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { resetSession, clearHistory, history } = useAppContext();
+  const { resetSession, clearHistory, history, demoMode, setDemoMode } = useAppContext();
   const apiStatus = getGeminiConfigError();
 
   const handleReset = () => {
@@ -35,9 +36,42 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const handleReplayOnboarding = async () => {
+    await setOnboardingComplete(false);
+    Alert.alert('Intro replay', 'Go to Home tab — the welcome slides will show again.', [
+      { text: 'OK', onPress: () => router.replace('/') },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
+        <Card style={styles.card}>
+          <Typography variant="h3" style={styles.sectionTitle}>
+            Demo & presentation
+          </Typography>
+          <View style={styles.switchRow}>
+            <View style={styles.switchBody}>
+              <Typography style={styles.switchLabel}>Demo mode</Typography>
+              <Typography variant="caption" style={styles.switchHint}>
+                Faster action simulation for live pitches (Settings → on before demo).
+              </Typography>
+            </View>
+            <Switch
+              value={demoMode}
+              onValueChange={setDemoMode}
+              trackColor={{ false: '#2D2D44', true: '#6366F1' }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+          <Button
+            title="Replay welcome intro"
+            variant="outline"
+            onPress={handleReplayOnboarding}
+            style={styles.btnSpaced}
+          />
+        </Card>
+
         <Card style={styles.card}>
           <Typography variant="h3" style={styles.sectionTitle}>
             App
@@ -103,6 +137,15 @@ const styles = StyleSheet.create({
   scroll: { padding: 24, paddingBottom: 40 },
   card: { padding: 20, marginBottom: 16, gap: 12 },
   sectionTitle: { color: '#818CF8', marginBottom: 4 },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 8,
+  },
+  switchBody: { flex: 1 },
+  switchLabel: { fontWeight: '700', marginBottom: 4 },
+  switchHint: { color: '#64748B', lineHeight: 18 },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',

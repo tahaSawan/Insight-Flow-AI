@@ -1,7 +1,8 @@
 import { AGENT_PIPELINE, getAgentDefinition } from '@/constants/agents';
 import { PLAIN_LANGUAGE_AI_RULES } from '@/constants/plainLanguage';
 import type { AgentId, AgentTraceEntry } from '@/types/agents';
-import type { AnalysisResult, IndustryType, SimulatedAction } from '@/types/analysis';
+import type { AnalysisResult, IndustryType, SimulatedAction, UseCaseType } from '@/types/analysis';
+import { getUseCaseHint } from '@/constants/useCases';
 import {
   generateJson,
   getGeminiConfigError,
@@ -40,6 +41,7 @@ function updateTrace(
 async function runIngestionAgent(
   text: string,
   industry: IndustryType,
+  scenarioHint: string,
   trace: AgentTraceEntry[],
   onProgress?: OrchestratorCallback,
 ): Promise<{ documentType: string; signals: string[] }> {
@@ -65,6 +67,7 @@ Return ONLY JSON: { "documentType": string, "signals": string[] }
 - signals: exactly 3 short facts from the text (not advice yet)
 
 Industry: ${INDUSTRY_CONTEXT[industry]}
+Scenario: ${scenarioHint}
 Document:
 """${text.slice(0, 2500)}"""
 `);
@@ -83,6 +86,7 @@ Document:
 async function runInsightAgent(
   text: string,
   industry: IndustryType,
+  scenarioHint: string,
   signals: string[],
   trace: AgentTraceEntry[],
   onProgress?: OrchestratorCallback,
@@ -108,6 +112,7 @@ Return ONLY JSON:
 }
 
 Industry: ${INDUSTRY_CONTEXT[industry]}
+Scenario: ${scenarioHint}
 Facts from Reader: ${signals.join('; ')}
 
 Document:
@@ -128,6 +133,7 @@ Document:
 async function runRiskAgent(
   text: string,
   industry: IndustryType,
+  scenarioHint: string,
   insight: { executiveSummary: string; keyFindings: string[] },
   trace: AgentTraceEntry[],
   onProgress?: OrchestratorCallback,
@@ -137,6 +143,10 @@ async function runRiskAgent(
   confidence: number;
   priorityLevel: string;
   estimatedImpact: string;
+  urgencyHeadline: string;
+  stakeAtRisk: string;
+  doNothingOutlook: string;
+  doActionOutlook: string;
 }> {
   const def = getAgentDefinition('risk');
   const entry: AgentTraceEntry = {
@@ -155,6 +165,10 @@ async function runRiskAgent(
     confidence: number;
     priorityLevel: string;
     estimatedImpact: string;
+    urgencyHeadline: string;
+    stakeAtRisk: string;
+    doNothingOutlook: string;
+    doActionOutlook: string;
   }>(`
 You are the Problems helper. Use very simple English.
 ${PLAIN_LANGUAGE_AI_RULES}
@@ -164,10 +178,15 @@ Return ONLY JSON:
   "riskScore": number 0-100 (how serious the main problem is),
   "confidence": number 0-100 (how sure you are),
   "priorityLevel": "High"|"Medium"|"Low" (how urgent),
-  "estimatedImpact": "one simple sentence: what happens if nobody acts"
+  "estimatedImpact": "one simple sentence: what happens if nobody acts",
+  "urgencyHeadline": "max 12 words — top alert for leadership",
+  "stakeAtRisk": "number from doc: $, %, customers, etc.",
+  "doNothingOutlook": "one sentence: worst case in ~30 days if no action",
+  "doActionOutlook": "one sentence: realistic outcome if plan runs"
 }
 
 Industry: ${INDUSTRY_CONTEXT[industry]}
+Scenario: ${scenarioHint}
 Summary: ${insight.executiveSummary}
 Main points: ${insight.keyFindings.join('; ')}
 
@@ -189,6 +208,7 @@ Document:
 async function runActionAgent(
   text: string,
   industry: IndustryType,
+  scenarioHint: string,
   context: string,
   trace: AgentTraceEntry[],
   onProgress?: OrchestratorCallback,
@@ -210,6 +230,7 @@ ${PLAIN_LANGUAGE_AI_RULES}
 Return ONLY JSON: { "recommendedActions": ["exactly 3 things to do — start each with a verb"] }
 
 Industry: ${INDUSTRY_CONTEXT[industry]}
+Scenario: ${scenarioHint}
 So far: ${context}
 
 Document:
@@ -230,6 +251,7 @@ Document:
 async function runExecutionAgent(
   text: string,
   industry: IndustryType,
+  scenarioHint: string,
   actions: string[],
   riskSummary: string,
   trace: AgentTraceEntry[],
@@ -263,7 +285,7 @@ You are the Results helper. This is a DEMO — pretend actions only, simple word
 ${PLAIN_LANGUAGE_AI_RULES}
 Return ONLY JSON:
 {
-  "simulatedActions": [{ "title": string, "description": string, "icon": "single emoji" }],
+  "simulatedActions": [{ "title": string, "description": string, "icon": "single emoji", "channel": "slack"|"email"|"crm"|"dashboard", "notificationPreview": string }],
   "executionLog": ["exactly 6 short log lines, no timestamps, plain English"],
   "impactMetricLabel": "simple name, max 4 words",
   "beforeMetric": "situation now",
@@ -272,6 +294,7 @@ Return ONLY JSON:
 - simulatedActions: exactly 3 pretend steps (e.g. "Team emailed")
 
 Industry: ${INDUSTRY_CONTEXT[industry]}
+Scenario: ${scenarioHint}
 Problems: ${riskSummary}
 Next steps: ${actions.join('; ')}
 
@@ -295,7 +318,9 @@ export async function runAgentOrchestration(
   text: string,
   industry: IndustryType = 'general',
   onProgress?: OrchestratorCallback,
+  useCase: UseCaseType = 'board',
 ): Promise<AnalysisResult> {
+  const scenarioHint = getUseCaseHint(useCase);
   const configError = getGeminiConfigError();
   if (configError) throw new Error(configError);
 
@@ -313,12 +338,20 @@ export async function runAgentOrchestration(
   onProgress?.([...trace]);
 
   try {
-    const ingestion = await runIngestionAgent(trimmed, industry, trace, onProgress);
-    const insight = await runInsightAgent(trimmed, industry, ingestion.signals, trace, onProgress);
-    const risk = await runRiskAgent(trimmed, industry, insight, trace, onProgress);
+    const ingestion = await runIngestionAgent(trimmed, industry, scenarioHint, trace, onProgress);
+    const insight = await runInsightAgent(
+      trimmed,
+      industry,
+      scenarioHint,
+      ingestion.signals,
+      trace,
+      onProgress,
+    );
+    const risk = await runRiskAgent(trimmed, industry, scenarioHint, insight, trace, onProgress);
     const action = await runActionAgent(
       trimmed,
       industry,
+      scenarioHint,
       `${insight.executiveSummary} Risks: ${risk.riskAssessment.join('; ')}`,
       trace,
       onProgress,
@@ -326,6 +359,7 @@ export async function runAgentOrchestration(
     const execution = await runExecutionAgent(
       trimmed,
       industry,
+      scenarioHint,
       action.recommendedActions,
       `Risk ${risk.riskScore}, ${risk.estimatedImpact}`,
       trace,
@@ -334,6 +368,10 @@ export async function runAgentOrchestration(
 
     return {
       executiveSummary: insight.executiveSummary,
+      urgencyHeadline: risk.urgencyHeadline,
+      stakeAtRisk: risk.stakeAtRisk,
+      doNothingOutlook: risk.doNothingOutlook,
+      doActionOutlook: risk.doActionOutlook,
       riskScore: Math.min(100, Math.max(0, risk.riskScore)),
       confidence: Math.min(100, Math.max(0, risk.confidence)),
       priorityLevel: risk.priorityLevel,

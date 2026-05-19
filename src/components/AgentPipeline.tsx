@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet, ActivityIndicator, Animated } from 'react-native';
 import { Typography } from '@/components/Typography';
 import { AGENT_PIPELINE } from '@/constants/agents';
 import type { AgentTraceEntry } from '@/types/agents';
@@ -19,14 +19,11 @@ export function AgentPipeline({ trace }: AgentPipelineProps) {
         const isError = status === 'error';
 
         return (
-          <View
+          <AgentCard
             key={agent.id}
-            style={[
-              styles.card,
-              isRunning && styles.cardRunning,
-              isComplete && styles.cardComplete,
-              isError && styles.cardError,
-            ]}
+            isRunning={isRunning}
+            isComplete={isComplete}
+            isError={isError}
           >
             <View style={styles.header}>
               <Typography style={styles.icon}>{agent.icon}</Typography>
@@ -72,10 +69,48 @@ export function AgentPipeline({ trace }: AgentPipelineProps) {
                 ) : null}
               </View>
             ) : null}
-          </View>
+          </AgentCard>
         );
       })}
     </View>
+  );
+}
+
+function AgentCard({
+  children,
+  isRunning,
+  isComplete,
+  isError,
+}: {
+  children: React.ReactNode;
+  isRunning: boolean;
+  isComplete: boolean;
+  isError: boolean;
+}) {
+  const opacity = useRef(new Animated.Value(0.6)).current;
+
+  useEffect(() => {
+    if (isRunning || isComplete) {
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [isRunning, isComplete, opacity]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.card,
+        { opacity },
+        isRunning && styles.cardRunning,
+        isComplete && styles.cardComplete,
+        isError && styles.cardError,
+      ]}
+    >
+      {children}
+    </Animated.View>
   );
 }
 

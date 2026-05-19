@@ -9,6 +9,13 @@ export function formatReportAsText(results: AnalysisResult): string {
     'QUICK SUMMARY',
     results.executiveSummary,
     '',
+    ...(results.urgencyHeadline ? [`ALERT: ${results.urgencyHeadline}`] : []),
+    ...(results.stakeAtRisk ? [`AT STAKE: ${results.stakeAtRisk}`] : []),
+    ...(results.doNothingOutlook
+      ? ['', 'IF WE DO NOTHING:', results.doNothingOutlook]
+      : []),
+    ...(results.doActionOutlook ? ['IF WE ACT:', results.doActionOutlook] : []),
+    '',
     `How serious (0-100): ${results.riskScore}`,
     `How sure the AI is: ${results.confidence}%`,
     `Urgency: ${results.priorityLevel}`,

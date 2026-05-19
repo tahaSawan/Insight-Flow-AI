@@ -11,6 +11,7 @@ import { SAMPLE_REPORT, MIN_CONTENT_LENGTH } from '@/constants/sampleReport';
 import { validateAnalysisInput } from '@/services/gemini';
 import { pickAndExtractDocument } from '@/services/document';
 import { AnalysisModePicker } from '@/components/AnalysisModePicker';
+import { UseCasePicker } from '@/components/UseCasePicker';
 import { INDUSTRY_OPTIONS, type IndustryType } from '@/types/analysis';
 import { UI, looksLikeResume } from '@/constants/plainLanguage';
 
@@ -24,6 +25,8 @@ export default function UploadScreen() {
     setIndustry,
     analysisMode,
     setAnalysisMode,
+    useCase,
+    setUseCase,
   } = useAppContext();
 
   const [textInput, setTextInput] = useState('');
@@ -87,6 +90,8 @@ export default function UploadScreen() {
 
         <Card style={styles.card}>
           <AnalysisModePicker value={analysisMode} onChange={setAnalysisMode} />
+
+          <UseCasePicker value={useCase} onChange={setUseCase} />
 
           <Typography variant="caption" style={styles.industryLabel}>
             {UI.upload.industryLabel}

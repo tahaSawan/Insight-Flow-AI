@@ -11,6 +11,7 @@ import type {
   HistoryEntry,
   IndustryType,
   AnalysisMode,
+  UseCaseType,
 } from '@/types/analysis';
 import {
   loadHistory,
@@ -18,6 +19,12 @@ import {
   clearAllHistory,
   deleteHistoryEntry,
 } from '@/services/historyStorage';
+import {
+  getDemoMode,
+  setDemoMode as persistDemoMode,
+  getUseCase,
+  setUseCase as persistUseCase,
+} from '@/services/appPreferences';
 
 interface AppContextType {
   uploadedText: string;
@@ -39,6 +46,11 @@ interface AppContextType {
   clearHistory: () => Promise<void>;
   removeHistoryEntry: (id: string) => Promise<void>;
   resetSession: () => void;
+  demoMode: boolean;
+  setDemoMode: (on: boolean) => Promise<void>;
+  useCase: UseCaseType;
+  setUseCase: (useCase: UseCaseType) => Promise<void>;
+  preferencesLoaded: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -51,6 +63,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [demoMode, setDemoModeState] = useState(false);
+  const [useCase, setUseCaseState] = useState<UseCaseType>('board');
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
 
   const refreshHistory = useCallback(async () => {
     const entries = await loadHistory();
@@ -60,6 +75,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     refreshHistory();
   }, [refreshHistory]);
+
+  useEffect(() => {
+    (async () => {
+      const [demo, uc] = await Promise.all([getDemoMode(), getUseCase()]);
+      setDemoModeState(demo);
+      setUseCaseState(uc);
+      setPreferencesLoaded(true);
+    })();
+  }, []);
+
+  const setDemoMode = useCallback(async (on: boolean) => {
+    setDemoModeState(on);
+    await persistDemoMode(on);
+  }, []);
+
+  const setUseCase = useCallback(async (uc: UseCaseType) => {
+    setUseCaseState(uc);
+    await persistUseCase(uc);
+  }, []);
 
   const persistAnalysisToHistory = useCallback(async () => {
     if (!analysisResults || !uploadedText.trim()) return;
@@ -134,6 +168,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         clearHistory,
         removeHistoryEntry,
         resetSession,
+        demoMode,
+        setDemoMode,
+        useCase,
+        setUseCase,
+        preferencesLoaded,
       }}
     >
       {children}

@@ -1,7 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { MIN_CONTENT_LENGTH } from '@/constants/sampleReport';
 import { PLAIN_LANGUAGE_AI_RULES } from '@/constants/plainLanguage';
-import type { AnalysisResult, IndustryType, SimulatedAction } from '@/types/analysis';
+import type { AnalysisResult, IndustryType, SimulatedAction, UseCaseType } from '@/types/analysis';
+import { getUseCaseHint } from '@/constants/useCases';
 
 const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -68,13 +69,17 @@ Required JSON keys:
 - confidence: number (0-100) — how sure you are
 - priorityLevel: string ("High", "Medium", or "Low") — how urgent
 - estimatedImpact: string (one simple sentence: what could happen if nobody acts)
+- urgencyHeadline: string (max 12 words — the one thing a CEO must know today)
+- stakeAtRisk: string (a number from the doc: dollars, %, customers, hours — e.g. "$2.1M ARR" or "41h support wait")
+- doNothingOutlook: string (one sentence: worst realistic outcome if no action in 30 days)
+- doActionOutlook: string (one sentence: realistic outcome if recommended actions run)
 - keyFindings: string[] (exactly 3 short bullets — main points)
 - riskAssessment: string[] (exactly 3 short bullets — what could go wrong)
 - recommendedActions: string[] (exactly 3 short bullets — what to do next, start with a verb)
 - impactMetricLabel: string (simple name, max 4 words, e.g. "Lost customers")
 - beforeMetric: string (situation now, e.g. "25% drop")
 - afterMetric: string (situation after fixes, e.g. "10% drop")
-- simulatedActions: array of exactly 3 objects: { title, description, icon } — pretend demo actions (simple titles)
+- simulatedActions: array of exactly 3 objects: { title, description, icon, channel: "slack"|"email"|"crm"|"dashboard", notificationPreview: string (short mock message body) }
 - executionLog: string[] (exactly 6 short log lines, no timestamps, plain English)
 `;
 
@@ -131,14 +136,24 @@ async function generateWithGemini(prompt: string, jsonMode = true): Promise<stri
   throw new Error(toFriendlyGeminiError(lastError));
 }
 
+const CHANNELS: SimulatedAction['channel'][] = ['slack', 'email', 'crm', 'dashboard'];
+
 function parseSimulatedActions(raw: unknown): SimulatedAction[] {
   if (!Array.isArray(raw)) return [];
   return raw.slice(0, 3).map((item, i) => {
     const obj = item as Record<string, unknown>;
+    const ch = String(obj.channel || CHANNELS[i] || 'system');
+    const channel = (CHANNELS.includes(ch as SimulatedAction['channel'])
+      ? ch
+      : CHANNELS[i]) as SimulatedAction['channel'];
     return {
       title: String(obj.title || `Action ${i + 1}`),
       description: String(obj.description || 'Executed successfully'),
       icon: String(obj.icon || '✅'),
+      channel,
+      notificationPreview: String(
+        obj.notificationPreview || obj.description || 'Action completed in demo mode.',
+      ),
     };
   });
 }
@@ -152,6 +167,8 @@ function parseAnalysisResponse(parsedData: Record<string, unknown>): AnalysisRes
     title: ['Dashboard Updated', 'Alert Triggered', 'Stakeholder Brief'][i] || 'Action Executed',
     description: action,
     icon: ['📊', '🔔', '✉️'][i] || '✅',
+    channel: CHANNELS[i],
+    notificationPreview: action,
   }));
 
   const simulatedActions = parseSimulatedActions(parsedData.simulatedActions);
@@ -178,6 +195,20 @@ function parseAnalysisResponse(parsedData: Record<string, unknown>): AnalysisRes
     confidence: Math.min(100, Math.max(0, Number(parsedData.confidence) || 80)),
     priorityLevel: String(parsedData.priorityLevel || 'Medium'),
     estimatedImpact: String(parsedData.estimatedImpact || 'Operational improvement possible'),
+    urgencyHeadline: String(
+      parsedData.urgencyHeadline ||
+        parsedData.executiveSummary?.toString().slice(0, 80) ||
+        'Review required',
+    ),
+    stakeAtRisk: String(parsedData.stakeAtRisk || 'Impact under review'),
+    doNothingOutlook: String(
+      parsedData.doNothingOutlook ||
+        parsedData.estimatedImpact ||
+        'Problems may get worse without action.',
+    ),
+    doActionOutlook: String(
+      parsedData.doActionOutlook || 'Following the plan should improve key metrics.',
+    ),
     keyFindings: Array.isArray(parsedData.keyFindings)
       ? parsedData.keyFindings.map(String)
       : ['Insight generation completed'],
@@ -233,9 +264,14 @@ function buildFastModeTrace(): import('@/types/agents').AgentTraceEntry[] {
 }
 
 /** Single API call — faster, fewer 503 failures. Same report structure as full mode. */
+function useCaseBlock(useCase: UseCaseType): string {
+  return `Scenario: ${getUseCaseHint(useCase)}`;
+}
+
 export async function analyzeContentFast(
   text: string,
   industry: IndustryType = 'general',
+  useCase: UseCaseType = 'board',
 ): Promise<AnalysisResult> {
   const configError = getGeminiConfigError();
   if (configError) throw new Error(configError);
@@ -243,7 +279,7 @@ export async function analyzeContentFast(
   const inputError = validateAnalysisInput(text);
   if (inputError) throw new Error(inputError);
 
-  const prompt = `${ANALYSIS_PROMPT}\n\nIndustry context: ${INDUSTRY_CONTEXT[industry]}\n\nDocument:\n"""${text.trim()}"""`;
+  const prompt = `${ANALYSIS_PROMPT}\n\nIndustry context: ${INDUSTRY_CONTEXT[industry]}\n${useCaseBlock(useCase)}\n\nDocument:\n"""${text.trim()}"""`;
 
   const responseText = await generateWithGemini(prompt, true);
   let parsedData: Record<string, unknown>;

@@ -16,6 +16,7 @@ import { ANALYSIS_MODE_OPTIONS } from '@/types/analysis';
 import type { AnalysisResult } from '@/types/analysis';
 import type { AgentTraceEntry } from '@/types/agents';
 import { UI } from '@/constants/plainLanguage';
+import { AnalysisLoadingPanel } from '@/components/AnalysisLoadingPanel';
 
 const TOTAL_AGENTS = AGENT_PIPELINE.length;
 
@@ -26,6 +27,7 @@ export default function AnalysisScreen() {
     setAnalysisResults,
     industry,
     analysisMode,
+    useCase,
     persistAnalysisToHistory,
     setIsAnalyzing: setGlobalAnalyzing,
   } = useAppContext();
@@ -89,8 +91,8 @@ export default function AnalysisScreen() {
       const result = isFullMode
         ? await runAgentOrchestration(uploadedText, industry, (trace) => {
             setAgentTrace(trace);
-          })
-        : await analyzeContentFast(uploadedText, industry);
+          }, useCase)
+        : await analyzeContentFast(uploadedText, industry, useCase);
 
       if (fastTimer) clearInterval(fastTimer);
       setFastProgress(100);
@@ -113,6 +115,7 @@ export default function AnalysisScreen() {
     uploadedText,
     industry,
     isFullMode,
+    useCase,
     setAnalysisResults,
     setGlobalAnalyzing,
   ]);
@@ -122,11 +125,11 @@ export default function AnalysisScreen() {
       router.replace('/upload');
       return;
     }
-    const runKey = `${uploadedText}:${analysisMode}`;
+    const runKey = `${uploadedText}:${analysisMode}:${useCase}`;
     if (lastRunKey.current === runKey) return;
     lastRunKey.current = runKey;
     startAnalysis();
-  }, [uploadedText, analysisMode, router, startAnalysis]);
+  }, [uploadedText, analysisMode, useCase, router, startAnalysis]);
 
   const handleViewResults = async () => {
     await persistAnalysisToHistory();
@@ -136,7 +139,7 @@ export default function AnalysisScreen() {
   const handleRetry = () => {
     setErrorMessage(null);
     lastRunKey.current = '';
-    lastRunKey.current = `${uploadedText}:${analysisMode}`;
+    lastRunKey.current = `${uploadedText}:${analysisMode}:${useCase}`;
     startAnalysis();
   };
 
@@ -177,6 +180,8 @@ export default function AnalysisScreen() {
             </Typography>
           )}
         </Card>
+
+        <AnalysisLoadingPanel active={isAnalyzing && !preview} isFullMode={isFullMode} />
 
         {isFullMode ? (
           <AgentPipeline trace={agentTrace} />

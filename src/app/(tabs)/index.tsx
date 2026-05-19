@@ -9,6 +9,7 @@ import { Typography } from '@/components/Typography';
 import { StatPreviewCard } from '@/components/StatPreviewCard';
 import { useAppContext } from '@/context/AppContext';
 import { UI } from '@/constants/plainLanguage';
+import { REAL_WORLD_PROBLEM } from '@/constants/problemStory';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -36,6 +37,14 @@ export default function HomeScreen() {
         <Typography variant="body" style={styles.subtitle}>
           {UI.home.subtitle}
         </Typography>
+
+        <Card style={styles.problemCard}>
+          <Typography style={styles.problemLabel}>The real problem</Typography>
+          <Typography style={styles.problemText}>{REAL_WORLD_PROBLEM.pain}</Typography>
+          <Typography variant="caption" style={styles.problemSolution}>
+            {REAL_WORLD_PROBLEM.insightFlow}
+          </Typography>
+        </Card>
 
         <View style={styles.previewRow}>
           <StatPreviewCard
@@ -150,7 +159,24 @@ const styles = StyleSheet.create({
   badge: { color: '#818CF8', fontSize: 13, fontWeight: '600' },
   settingsBtn: { padding: 8 },
   title: { fontSize: 40, lineHeight: 46, letterSpacing: -1, marginBottom: 14 },
-  subtitle: { fontSize: 17, color: '#8A8D98', lineHeight: 26, marginBottom: 24 },
+  subtitle: { fontSize: 17, color: '#8A8D98', lineHeight: 26, marginBottom: 16 },
+  problemCard: {
+    padding: 16,
+    marginBottom: 20,
+    borderColor: 'rgba(99, 102, 241, 0.25)',
+    borderWidth: 1,
+    backgroundColor: 'rgba(99, 102, 241, 0.06)',
+  },
+  problemLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: '#A5B4FC',
+    marginBottom: 8,
+  },
+  problemText: { color: '#E2E8F0', fontSize: 15, lineHeight: 22, marginBottom: 10 },
+  problemSolution: { color: '#94A3B8', lineHeight: 20, fontSize: 13 },
   previewRow: { flexDirection: 'row', marginBottom: 20 },
   previewGap: { width: 10 },
   featureRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
