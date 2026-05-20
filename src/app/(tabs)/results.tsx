@@ -12,11 +12,9 @@ import { AgentTracePanel } from '@/components/AgentTracePanel';
 import { useAppContext } from '@/context/AppContext';
 import { ANALYSIS_MODE_OPTIONS } from '@/types/analysis';
 import { formatReportAsText } from '@/utils/formatReport';
-import { SeverityTimeline } from '@/components/SeverityTimeline';
 import { generateExecutiveBrief } from '@/services/gemini';
 import { UI, looksLikeResume } from '@/constants/plainLanguage';
 import { DecisionAlert } from '@/components/DecisionAlert';
-import { ScenarioFork } from '@/components/ScenarioFork';
 import { ActionCommander } from '@/components/ActionCommander';
 import { AutonomousDecisionCenter } from '@/components/AutonomousDecisionCenter';
 import { ConsequenceSimulation } from '@/components/ConsequenceSimulation';
@@ -142,11 +140,6 @@ export default function ResultsScreen() {
             Approve steps, then execute — Slack, email, CRM (demo).
           </Typography>
           <ActionCommander results={results} />
-        </Card>
-
-        <Card style={styles.sectionCard}>
-          <ScenarioFork results={results} />
-          <SeverityTimeline results={results} />
         </Card>
 
         <Card style={styles.sectionCard}>
