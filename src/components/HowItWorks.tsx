@@ -5,26 +5,26 @@ import { Typography } from '@/components/Typography';
 import { colors, spacing, radius } from '@/constants/designTokens';
 
 const STEPS = [
-  { icon: UploadCloud, label: 'Upload', color: colors.accent },
-  { icon: BrainCircuit, label: 'Analyze', color: colors.info },
-  { icon: Target, label: 'Decide & act', color: colors.success },
+  { icon: UploadCloud, label: 'Upload', color: colors.accent, bg: colors.accentSoft },
+  { icon: BrainCircuit, label: 'Analyze', color: colors.info, bg: colors.infoSoft },
+  { icon: Target, label: 'Decide & act', color: colors.success, bg: colors.successSoft },
 ] as const;
 
 export function HowItWorks() {
   return (
     <View style={styles.wrap}>
-      <Typography style={styles.title}>How it works</Typography>
+      <Typography variant="label">How it works</Typography>
       <View style={styles.row}>
         {STEPS.map((step, index) => {
           const Icon = step.icon;
           return (
             <View key={step.label} style={styles.step}>
-              <View style={[styles.iconCircle, { borderColor: `${step.color}55` }]}>
-                <Icon size={18} color={step.color} />
+              <View style={[styles.iconCircle, { backgroundColor: step.bg, borderColor: `${step.color}44` }]}>
+                <Icon size={20} color={step.color} />
               </View>
               <Typography style={styles.stepLabel}>{step.label}</Typography>
               {index < STEPS.length - 1 ? (
-                <Typography style={styles.arrow}>→</Typography>
+                <View style={styles.connector} />
               ) : null}
             </View>
           );
@@ -39,22 +39,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     padding: spacing.md,
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-  },
-  title: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: spacing.md,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    marginTop: spacing.md,
   },
   step: {
     flex: 1,
@@ -62,27 +55,27 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1,
-    backgroundColor: colors.surfaceElevated,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   stepLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     color: colors.textSecondary,
     textAlign: 'center',
   },
-  arrow: {
+  connector: {
     position: 'absolute',
-    right: -8,
-    top: 10,
-    color: colors.textMuted,
-    fontSize: 14,
-    fontWeight: '600',
+    top: 20,
+    right: -12,
+    width: 24,
+    height: 2,
+    backgroundColor: colors.borderStrong,
+    borderRadius: 1,
   },
 });

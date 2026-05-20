@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet, Pressable, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppScreen } from '@/components/AppScreen';
 import { useRouter } from 'expo-router';
 import { Clock, Trash2, ChevronRight, UploadCloud } from 'lucide-react-native';
 import { Typography } from '@/components/Typography';
@@ -50,7 +50,7 @@ export default function HistoryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <AppScreen>
       <ScrollView contentContainerStyle={styles.scroll}>
         <ScreenHeader title={UI.history.title} subtitle={UI.history.subtitle} />
 
@@ -119,12 +119,11 @@ export default function HistoryScreen() {
           </>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.bg },
   scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: 40 },
   pressed: { opacity: 0.85 },
   emptyCard: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },

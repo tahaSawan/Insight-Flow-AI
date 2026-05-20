@@ -10,7 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppScreen } from '@/components/AppScreen';
 import { useRouter } from 'expo-router';
 import { FileUp } from 'lucide-react-native';
 import { Button } from '@/components/Button';
@@ -109,7 +110,7 @@ export default function UploadScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <AppScreen>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -260,12 +261,11 @@ export default function UploadScreen() {
           />
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.bg },
   flex: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceElevated,
   },
   industryLabel: {
     color: '#8A8D98',

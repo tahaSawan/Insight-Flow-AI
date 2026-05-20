@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppScreen } from '@/components/AppScreen';
 import { useRouter } from 'expo-router';
 import { Settings, ChevronRight, FileText } from 'lucide-react-native';
 import { Button } from '@/components/Button';
@@ -21,7 +21,7 @@ export default function HomeScreen() {
   const recentHistory = history.slice(0, 2);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <AppScreen>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
           <Pressable
@@ -40,7 +40,7 @@ export default function HomeScreen() {
 
         <HowItWorks />
 
-        <Card style={styles.ctaCard}>
+        <Card variant="elevated" style={styles.ctaCard}>
           <Typography variant="h2" style={styles.cardTitle}>
             {hasLastRun ? UI.home.ctaTitleAgain : UI.home.ctaTitleReady}
           </Typography>
@@ -152,12 +152,11 @@ export default function HomeScreen() {
           </View>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.bg },
   scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: 40 },
   topBar: {
     flexDirection: 'row',

@@ -1,6 +1,6 @@
 import { Tabs, useRouter, useFocusEffect } from 'expo-router';
-import { useColorScheme } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
+import { colors } from '@/constants/designTokens';
 import { LayoutDashboard, UploadCloud, BrainCircuit, BarChart3, History } from 'lucide-react-native';
 import { useAppContext } from '@/context/AppContext';
 import { OnboardingModal } from '@/components/OnboardingModal';
@@ -10,8 +10,6 @@ import {
 } from '@/services/appPreferences';
 
 export default function TabsLayout() {
-  const scheme = useColorScheme();
-  const isDark = scheme === 'dark';
   const { uploadedText, analysisResults, history, preferencesLoaded } = useAppContext();
   const router = useRouter();
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -46,11 +44,19 @@ export default function TabsLayout() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: isDark ? '#12121A' : '#ffffff',
-            borderTopColor: isDark ? '#1F1F2E' : '#e2e8f0',
+            backgroundColor: colors.surface,
+            borderTopColor: colors.borderStrong,
+            borderTopWidth: 1,
+            height: 62,
+            paddingTop: 6,
+            paddingBottom: 8,
           },
-          tabBarActiveTintColor: '#6366F1',
-          tabBarInactiveTintColor: '#8A8D98',
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: '600',
+          },
+          tabBarActiveTintColor: colors.accent,
+          tabBarInactiveTintColor: colors.textMuted,
         }}
       >
         <Tabs.Screen

@@ -3,6 +3,7 @@ import { View, StyleSheet, ActivityIndicator, Animated } from 'react-native';
 import { Typography } from '@/components/Typography';
 import { AGENT_PIPELINE } from '@/constants/agents';
 import type { AgentTraceEntry } from '@/types/agents';
+import { colors, radius, spacing } from '@/constants/designTokens';
 
 interface AgentPipelineProps {
   trace: AgentTraceEntry[];
@@ -115,23 +116,25 @@ function AgentCard({
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 10 },
+  container: { gap: spacing.sm },
   card: {
-    backgroundColor: '#12121A',
-    borderRadius: 14,
-    padding: 14,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.md,
     borderWidth: 1,
-    borderColor: '#1F1F2E',
+    borderColor: colors.border,
   },
   cardRunning: {
-    borderColor: 'rgba(99, 102, 241, 0.5)',
-    backgroundColor: 'rgba(99, 102, 241, 0.06)',
+    borderColor: colors.borderAccent,
+    backgroundColor: colors.accentMuted,
   },
   cardComplete: {
-    borderColor: 'rgba(16, 185, 129, 0.25)',
+    borderColor: 'rgba(52, 211, 153, 0.35)',
+    backgroundColor: colors.successSoft,
   },
   cardError: {
-    borderColor: 'rgba(239, 68, 68, 0.4)',
+    borderColor: 'rgba(248, 113, 113, 0.4)',
+    backgroundColor: colors.dangerSoft,
   },
   header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   icon: { fontSize: 22, width: 28 },

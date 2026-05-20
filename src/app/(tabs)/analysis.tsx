@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppScreen } from '@/components/AppScreen';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
@@ -161,7 +161,7 @@ export default function AnalysisScreen() {
   }, [preview, isAnalyzing, persistAnalysisToHistory, router]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <AppScreen>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <DemoStepBar current="analyze" />
 
@@ -275,12 +275,11 @@ export default function AnalysisScreen() {
           </Card>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: colors.bg },
   scrollContent: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,

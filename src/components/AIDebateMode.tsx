@@ -143,7 +143,7 @@ export function AIDebateMode({ results }: AIDebateModeProps) {
 
       <View style={styles.finalCard}>
         <View style={styles.finalHead}>
-          <Gavel size={16} color="#C084FC" />
+          <Gavel size={16} color={colors.accent} />
           <Typography style={styles.finalTitle}>{UI.results.debateFinalTitle}</Typography>
         </View>
         <Typography style={styles.finalConclusion}>{debate.finalConclusion}</Typography>

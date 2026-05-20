@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, Share, ActivityIndicator, Pressable } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppScreen } from '@/components/AppScreen';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
@@ -74,14 +75,14 @@ export default function ResultsScreen() {
 
   if (!analysisResults) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <AppScreen>
         <View style={styles.emptyState}>
           <Typography variant="h2">{UI.results.emptyTitle}</Typography>
           <Typography variant="body" style={styles.emptySubtitle}>
             {UI.results.emptySubtitle}
           </Typography>
         </View>
-      </SafeAreaView>
+      </AppScreen>
     );
   }
 
@@ -123,7 +124,8 @@ export default function ResultsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <AppScreen>
+      <View style={styles.page}>
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={styles.scrollContent}
@@ -345,14 +347,14 @@ export default function ResultsScreen() {
           <Typography style={styles.newReportText}>{UI.results.newAnalysis}</Typography>
         </Pressable>
       </View>
-    </SafeAreaView>
+      </View>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  page: {
     flex: 1,
-    backgroundColor: colors.bg,
   },
   emptyState: {
     flex: 1,
@@ -399,7 +401,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceElevated,
   },
   stickyRow: {
     flexDirection: 'row',
