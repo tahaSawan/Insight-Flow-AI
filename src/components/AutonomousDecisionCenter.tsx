@@ -43,7 +43,9 @@ export function AutonomousDecisionCenter({ results }: AutonomousDecisionCenterPr
     <Card
       variant="elevated"
       highlighted
-      style={[featureSection, styles.prominentCard]}
+      glowActive
+      entranceIndex={1}
+      style={featureSection}
       icon={<BrainCircuit size={22} color={colors.accent} />}
       title={UI.results.decisionCenterTitle}
       subtitle={UI.results.decisionCenterHint}
@@ -101,15 +103,6 @@ export function AutonomousDecisionCenter({ results }: AutonomousDecisionCenterPr
 }
 
 const styles = StyleSheet.create({
-  prominentCard: {
-    padding: spacing.lg,
-    borderWidth: 1.5,
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.22,
-    shadowRadius: 16,
-    elevation: 10,
-  },
   headerBadgeRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',

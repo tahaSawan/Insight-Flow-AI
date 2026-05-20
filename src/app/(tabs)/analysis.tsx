@@ -18,6 +18,9 @@ import type { AnalysisResult } from '@/types/analysis';
 import type { AgentTraceEntry, AgentStatus } from '@/types/agents';
 import { UI } from '@/constants/plainLanguage';
 import { DemoStepBar } from '@/components/DemoStepBar';
+import { AnalysisSkeleton } from '@/components/AnalysisSkeleton';
+import { AnimatedEntrance } from '@/components/AnimatedEntrance';
+import { hapticAnalysisStart } from '@/utils/haptics';
 import { colors, spacing, radius } from '@/constants/designTokens';
 
 const TOTAL_AGENTS = AGENT_PIPELINE.length;
@@ -104,6 +107,7 @@ export default function AnalysisScreen() {
     setErrorMessage(null);
     setFastProgress(4);
     setAgentTrace(buildPendingTrace());
+    void hapticAnalysisStart();
 
     const fastTimer = !isFullMode
       ? setInterval(() => {
@@ -183,6 +187,7 @@ export default function AnalysisScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <DemoStepBar current="analyze" />
 
+        <AnimatedEntrance index={0}>
         <View style={styles.hero}>
           <View style={styles.heroIcon}>
             <Cpu size={20} color={colors.accent} />
@@ -197,16 +202,29 @@ export default function AnalysisScreen() {
                 : UI.analysis.agentsDone(completedAgents, TOTAL_AGENTS)}
             </Typography>
           </View>
-          <Typography style={styles.pct}>{Math.round(progress)}%</Typography>
+          <Typography variant="metricValue" style={styles.pct}>
+            {Math.round(progress)}%
+          </Typography>
         </View>
 
         <ProgressBar progress={progress} />
+        </AnimatedEntrance>
 
+        {isAnalyzing && !preview ? (
+          <AnalysisSkeleton />
+        ) : (
+          <>
+        <AnimatedEntrance index={1}>
         <View style={styles.workflowPanel}>
           <AgentWorkflowTimeline trace={displayTrace} />
         </View>
+        </AnimatedEntrance>
 
+        <AnimatedEntrance index={2}>
         <AgentWorkflowTerminal trace={displayTrace} />
+        </AnimatedEntrance>
+          </>
+        )}
 
         {errorMessage ? (
           <Card variant="danger" title="Analysis failed" style={styles.errorCard}>

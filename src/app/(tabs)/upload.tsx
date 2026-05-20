@@ -28,6 +28,7 @@ import { UI, looksLikeResume } from '@/constants/plainLanguage';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { DemoStepBar } from '@/components/DemoStepBar';
 import { colors, spacing } from '@/constants/designTokens';
+import { hapticAnalysisStart } from '@/utils/haptics';
 
 export default function UploadScreen() {
   const router = useRouter();
@@ -106,6 +107,7 @@ export default function UploadScreen() {
     setValidationError('');
     setAnalysisResults(null);
     setUploadedText(textInput.trim());
+    void hapticAnalysisStart();
     router.push('/analysis');
   };
 

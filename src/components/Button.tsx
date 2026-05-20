@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { colors, radius, spacing, shadows } from '@/constants/designTokens';
 import { hapticMedium } from '@/utils/haptics';
+import { pressSpring } from '@/utils/microAnimations';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
 
@@ -68,12 +69,12 @@ export function Button({
   }));
 
   const handlePressIn: PressableProps['onPressIn'] = (e) => {
-    if (!isDisabled) scale.value = withSpring(0.96, { damping: 18, stiffness: 320 });
+    if (!isDisabled) scale.value = withSpring(0.97, pressSpring);
     onPressIn?.(e);
   };
 
   const handlePressOut: PressableProps['onPressOut'] = (e) => {
-    scale.value = withSpring(1, { damping: 18, stiffness: 320 });
+    scale.value = withSpring(1, pressSpring);
     onPressOut?.(e);
   };
 

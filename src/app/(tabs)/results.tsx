@@ -175,7 +175,7 @@ export default function ResultsScreen() {
         </ScrollSection>
 
         <ScrollSection sectionId="actions" onMeasure={onSectionMeasure}>
-          <Card variant="elevated" style={styles.actionsCard}>
+          <Card variant="elevated" entranceIndex={3} style={styles.actionsCard}>
             <SectionHeader
               title={UI.results.recommendedTitle}
               hint={UI.results.recommendedHint}
@@ -183,7 +183,7 @@ export default function ResultsScreen() {
             <RecommendedActionCards results={results} />
           </Card>
 
-          <Card style={styles.executeCard}>
+          <Card entranceIndex={4} style={styles.executeCard}>
             <SectionHeader
               title={UI.results.actionsSectionTitle}
               hint={UI.results.actionsSectionHint}

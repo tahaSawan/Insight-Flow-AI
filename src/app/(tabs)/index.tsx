@@ -19,6 +19,8 @@ import { HomeDashboardPreview } from '@/components/HomeDashboardPreview';
 import { HomeFeatureCard } from '@/components/HomeFeatureCard';
 import { useAppContext } from '@/context/AppContext';
 import { UI } from '@/constants/plainLanguage';
+import { AnimatedEntrance } from '@/components/AnimatedEntrance';
+import { PressableScale } from '@/components/PressableScale';
 import { colors, spacing, radius } from '@/constants/designTokens';
 
 export default function HomeScreen() {
@@ -47,6 +49,7 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
+        <AnimatedEntrance index={0}>
         <View style={styles.heroShell}>
           <LinearGradient
             colors={[colors.accentSoft, 'transparent', colors.accentSecondarySoft]}
@@ -59,7 +62,9 @@ export default function HomeScreen() {
             <Typography variant="heroSubtitle">{UI.home.heroSubtitle}</Typography>
           </View>
         </View>
+        </AnimatedEntrance>
 
+        <AnimatedEntrance index={1}>
         <View style={styles.ctaWrap}>
           <Button
             title={UI.home.startAnalysisBtn}
@@ -84,7 +89,9 @@ export default function HomeScreen() {
             {UI.home.judgeDemoHint}
           </Typography>
         </View>
+        </AnimatedEntrance>
 
+        <AnimatedEntrance index={2}>
         <View style={styles.featureRow}>
           <HomeFeatureCard
             title={UI.home.featureExtract}
@@ -102,14 +109,15 @@ export default function HomeScreen() {
             icon={<Zap size={18} color={colors.accentSecondary} />}
           />
         </View>
+        </AnimatedEntrance>
 
+        <AnimatedEntrance index={3}>
         <HomeDashboardPreview results={analysisResults} />
+        </AnimatedEntrance>
 
         {hasLastRun ? (
-          <Pressable
-            onPress={() => router.push('/results')}
-            style={({ pressed }) => [pressed && styles.pressed]}
-          >
+          <AnimatedEntrance index={4}>
+          <PressableScale onPress={() => router.push('/results')}>
             <Card
               variant="alert"
               highlighted
@@ -137,7 +145,8 @@ export default function HomeScreen() {
                 {UI.home.lastRunTap}
               </Typography>
             </Card>
-          </Pressable>
+          </PressableScale>
+          </AnimatedEntrance>
         ) : null}
 
         {recentHistory.length > 0 ? (

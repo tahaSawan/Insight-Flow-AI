@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, ViewProps, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { Typography } from '@/components/Typography';
+import { AnimatedEntrance } from '@/components/AnimatedEntrance';
+import { GlowBorder } from '@/components/GlowBorder';
+import { PressableScale } from '@/components/PressableScale';
 import { colors, radius, spacing, shadows } from '@/constants/designTokens';
 import { textBlock } from '@/constants/typography';
 
@@ -14,7 +17,14 @@ interface CardProps extends ViewProps {
   title?: string;
   subtitle?: string;
   icon?: React.ReactNode;
+  /** Stronger border — not animated glow */
   highlighted?: boolean;
+  /** Pulsing accent ring for active / hero cards only */
+  glowActive?: boolean;
+  /** Fade + slide in on mount */
+  entranceIndex?: number;
+  /** Press scale feedback */
+  onPress?: () => void;
   noPadding?: boolean;
   children?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
@@ -34,6 +44,9 @@ export function Card({
   subtitle,
   icon,
   highlighted = false,
+  glowActive = false,
+  entranceIndex,
+  onPress,
   noPadding = false,
   ...props
 }: CardProps) {
@@ -48,45 +61,62 @@ export function Card({
           ? styles.titleAlert
           : undefined;
 
-  return (
-    <View
-      style={[
-        styles.card,
-        resolved === 'elevated' && styles.elevated,
-        resolved === 'alert' && styles.alert,
-        resolved === 'success' && styles.success,
-        resolved === 'danger' && styles.danger,
-        highlighted && styles.highlighted,
-        (resolved === 'elevated' || highlighted) && shadows.card,
-        resolved === 'alert' && highlighted && shadows.accent,
-        noPadding && styles.noPadding,
-        style,
-      ]}
-      {...props}
-    >
-      {hasHeader ? (
-        <View style={[styles.header, !noPadding && styles.headerWithPadding]}>
-          {icon ? <View style={styles.iconWrap}>{icon}</View> : null}
-          <View style={styles.headerText}>
-            {title ? (
-              <Typography variant="cardTitle" style={[titleColorStyle]}>
-                {title}
-              </Typography>
-            ) : null}
-            {subtitle ? (
-              <Typography variant="cardSubtitle" style={styles.subtitle}>
-                {subtitle}
-              </Typography>
-            ) : null}
+  const cardBody = (
+    <GlowBorder active={glowActive} borderRadius={radius.lg} style={style}>
+      <View
+        style={[
+          styles.card,
+          resolved === 'elevated' && styles.elevated,
+          resolved === 'alert' && styles.alert,
+          resolved === 'success' && styles.success,
+          resolved === 'danger' && styles.danger,
+          highlighted && styles.highlighted,
+          (resolved === 'elevated' || highlighted) && !glowActive && shadows.card,
+          noPadding && styles.noPadding,
+        ]}
+        {...props}
+      >
+        {hasHeader ? (
+          <View style={[styles.header, !noPadding && styles.headerWithPadding]}>
+            {icon ? <View style={styles.iconWrap}>{icon}</View> : null}
+            <View style={styles.headerText}>
+              {title ? (
+                <Typography variant="cardTitle" style={[titleColorStyle]}>
+                  {title}
+                </Typography>
+              ) : null}
+              {subtitle ? (
+                <Typography variant="cardSubtitle" style={styles.subtitle}>
+                  {subtitle}
+                </Typography>
+              ) : null}
+            </View>
           </View>
-        </View>
-      ) : null}
-      {children}
-    </View>
+        ) : null}
+        {children}
+      </View>
+    </GlowBorder>
   );
+
+  const withPress = onPress ? (
+    <PressableScale onPress={onPress} style={styles.pressWrap}>
+      {cardBody}
+    </PressableScale>
+  ) : (
+    cardBody
+  );
+
+  if (entranceIndex !== undefined) {
+    return <AnimatedEntrance index={entranceIndex}>{withPress}</AnimatedEntrance>;
+  }
+
+  return withPress;
 }
 
 const styles = StyleSheet.create({
+  pressWrap: {
+    marginBottom: 0,
+  },
   card: {
     backgroundColor: colors.surface,
     padding: spacing.md,

@@ -75,6 +75,15 @@ Props: `title`, `subtitle`, `icon`, `highlighted`. Legacy `accent` → `alert`.
 
 - **Screens:** wrap with `<AppScreen>` for background atmosphere
 
+## Microinteractions
+
+- `AnimatedEntrance` — staggered fade/slide on cards (`entranceIndex`)
+- `PressableScale` — subtle press on cards and chips
+- `GlowBorder` — pulsing ring only when `glowActive` (critical alert, decision center, running agent)
+- `SkeletonBar` / `AnalysisSkeleton` / `ResultsSkeleton` — loading placeholders
+- `SuccessFlash` — brief confirmation when action simulation completes
+- Haptics: `hapticAnalysisStart`, `hapticMedium` (execute), `hapticSuccess`
+
 ## Rules
 
 1. No new hex in screens — add a token if needed.

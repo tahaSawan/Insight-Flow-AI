@@ -2,7 +2,8 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Check, MessageSquare, Mail, Building2, LayoutDashboard } from 'lucide-react-native';
 import { colors, spacing, radius } from '@/constants/designTokens';
-import { hapticLight, hapticSuccess } from '@/utils/haptics';
+import { SuccessFlash } from '@/components/SuccessFlash';
+import { hapticLight, hapticMedium, hapticSuccess } from '@/utils/haptics';
 import { Button } from '@/components/Button';
 import { Typography } from '@/components/Typography';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -78,6 +79,7 @@ export function ActionCommander({ results }: ActionCommanderProps) {
 
   const runPlan = useCallback(async () => {
     if (!canRun) return;
+    void hapticMedium();
     setPhase('running');
     setCompleted(actions.map(() => false));
     setRunProgress(0);
@@ -168,11 +170,7 @@ export function ActionCommander({ results }: ActionCommanderProps) {
 
       {phase === 'done' ? (
         <>
-          <View style={styles.doneBanner}>
-            <Typography style={styles.doneText}>
-              {UI.results.executeDone(approvedIndices.length)}
-            </Typography>
-          </View>
+          <SuccessFlash message={UI.results.executeDone(approvedIndices.length)} />
           <BeforeAfterOutcome results={results} />
         </>
       ) : null}
@@ -352,13 +350,4 @@ const styles = StyleSheet.create({
   },
   mockChannel: { fontSize: 11, color: colors.textSecondary, fontWeight: '600', marginBottom: 6 },
   mockBody: { color: colors.text, fontSize: 13, lineHeight: 19 },
-  doneBanner: {
-    marginTop: 4,
-    padding: 14,
-    borderRadius: radius.sm,
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.35)',
-  },
-  doneText: { color: '#6EE7B7', fontSize: 14, lineHeight: 20, fontWeight: '600' },
 });

@@ -17,7 +17,12 @@ export function ExecutivePathCompare({ results }: ExecutivePathCompareProps) {
   const actNow = results.doActionOutlook || 'Plan stabilizes operations and reduces exposure.';
 
   return (
-    <Card title={UI.results.pathCompareTitle} subtitle={UI.results.pathCompareHint} style={styles.card}>
+    <Card
+      title={UI.results.pathCompareTitle}
+      subtitle={UI.results.pathCompareHint}
+      entranceIndex={2}
+      style={styles.card}
+    >
       <View style={styles.columns}>
         <View style={[styles.pathCard, styles.pathBad]}>
           <View style={styles.pathHead}>

@@ -26,6 +26,8 @@ export function ExecutiveAlertHeader({ results }: ExecutiveAlertHeaderProps) {
     <Card
       variant={isCritical ? 'danger' : 'alert'}
       highlighted
+      glowActive={isCritical}
+      entranceIndex={0}
       icon={<AlertTriangle size={20} color={isCritical ? colors.danger : colors.warning} />}
       title="Leadership Alert"
       style={styles.card}

@@ -11,6 +11,11 @@ export async function hapticLight(): Promise<void> {
   }
 }
 
+/** Starting document analysis. */
+export async function hapticAnalysisStart(): Promise<void> {
+  return hapticMedium();
+}
+
 /** Medium tap for primary actions (Analyze, Execute). */
 export async function hapticMedium(): Promise<void> {
   if (Platform.OS === 'web') return;

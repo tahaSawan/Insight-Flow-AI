@@ -13,6 +13,7 @@ import { Check } from 'lucide-react-native';
 import { Typography } from '@/components/Typography';
 import { CINEMATIC_WORKFLOW } from '@/constants/workflowAgents';
 import type { AgentTraceEntry, AgentStatus } from '@/types/agents';
+import { GlowBorder } from '@/components/GlowBorder';
 import { colors, radius, spacing } from '@/constants/designTokens';
 
 interface AgentWorkflowTimelineProps {
@@ -143,6 +144,7 @@ function TimelineStep({
         {!isLast ? <View style={[styles.connector, isComplete && styles.connectorDone]} /> : null}
       </View>
 
+      <GlowBorder active={isRunning} borderRadius={radius.md} style={styles.stepGlowWrap}>
       <View style={[styles.stepBody, isRunning && styles.stepBodyActive]}>
         <View style={styles.stepHeader}>
           <Typography variant="cardTitle" style={isRunning ? styles.stepNameActive : styles.stepName}>
@@ -157,6 +159,7 @@ function TimelineStep({
         </Typography>
         <StepProgress status={status} />
       </View>
+      </GlowBorder>
     </View>
   );
 }
@@ -266,14 +269,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     minWidth: 0,
   },
+  stepGlowWrap: {
+    flex: 1,
+    minWidth: 0,
+  },
   stepBodyActive: {
     borderColor: colors.borderAccent,
     backgroundColor: colors.accentMuted,
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 6,
   },
   stepHeader: {
     flexDirection: 'row',
