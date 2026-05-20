@@ -8,7 +8,7 @@ import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { AnimatedExecutionLog } from '@/components/AnimatedExecutionLog';
 import { InsightList } from '@/components/InsightList';
-import { AgentTracePanel } from '@/components/AgentTracePanel';
+import { AutonomousWorkflowReplay } from '@/components/AutonomousWorkflowReplay';
 import { useAppContext } from '@/context/AppContext';
 import { ANALYSIS_MODE_OPTIONS } from '@/types/analysis';
 import { formatReportAsText } from '@/utils/formatReport';
@@ -276,7 +276,7 @@ export default function ResultsScreen() {
           <AnimatedExecutionLog lines={results.executionLog} />
         </Card>
 
-        <AgentTracePanel trace={results.agentTrace ?? []} />
+        <AutonomousWorkflowReplay results={results} />
 
         <Card style={styles.briefCard}>
           <Typography variant="h3" style={styles.sectionTitleIndigo}>
