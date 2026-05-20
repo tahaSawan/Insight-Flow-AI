@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Share, Pressable } from 'react-native';
+import { View, ScrollView, StyleSheet, Share, Pressable, Platform } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppScreen } from '@/components/AppScreen';
@@ -122,7 +122,9 @@ export default function ResultsScreen() {
     setExportMessage('');
     try {
       await exportReportPdf(results);
-      setExportMessage(UI.results.exportPdfDone);
+      setExportMessage(
+        Platform.OS === 'web' ? UI.results.exportPdfDone : UI.results.exportPdfDoneNative,
+      );
     } catch {
       setExportMessage(UI.results.exportPdfError);
     } finally {

@@ -389,7 +389,9 @@ export const UI = {
 
     exportPdfLoading: 'Creating PDF…',
 
-    exportPdfDone: 'PDF ready — save or share from the sheet',
+    exportPdfDone: 'PDF downloaded to your device',
+
+    exportPdfDoneNative: 'PDF ready — save or share from the sheet',
 
     exportPdfError: 'Could not create PDF. Try again.',
 

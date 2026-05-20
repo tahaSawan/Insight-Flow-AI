@@ -10,20 +10,9 @@ function buildFilename(): string {
   return `InsightFlow-Report-${date}.pdf`;
 }
 
-/** Renders the report as PDF and opens the system share sheet (save, email, Drive, etc.). */
-export async function exportReportPdf(results: AnalysisResult): Promise<void> {
+async function exportReportPdfNative(results: AnalysisResult): Promise<void> {
   const html = formatReportAsHtml(results);
   const { uri } = await Print.printToFileAsync({ html });
-
-  if (Platform.OS === 'web') {
-    if (typeof window !== 'undefined') {
-      const link = document.createElement('a');
-      link.href = uri;
-      link.download = buildFilename();
-      link.click();
-    }
-    return;
-  }
 
   const filename = buildFilename();
   const destination = `${FileSystem.cacheDirectory}${filename}`;
@@ -39,4 +28,17 @@ export async function exportReportPdf(results: AnalysisResult): Promise<void> {
     UTI: 'com.adobe.pdf',
     dialogTitle: 'Export InsightFlow report',
   });
+}
+
+/** Renders the full text report as a PDF file (download on web, share sheet on phone). */
+export async function exportReportPdf(results: AnalysisResult): Promise<void> {
+  const filename = buildFilename();
+
+  if (Platform.OS === 'web') {
+    const { downloadReportPdfWeb } = await import('@/services/exportReportPdfWeb');
+    downloadReportPdfWeb(results, filename);
+    return;
+  }
+
+  await exportReportPdfNative(results);
 }
