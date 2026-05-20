@@ -152,6 +152,32 @@ export const UI = {
 
     traceHint: 'Five helpers read your text one after another.',
 
+    scorecardTitle: 'AI Decision Scorecard',
+
+    scorecardHint: 'How sure, how urgent, and how hard this plan is — all in one view.',
+
+    scorecardBadge: 'FROM YOUR REPORT',
+
+    scoreConfidence: 'Confidence',
+
+    scoreConfidenceHint: 'How sure the AI is that the top action is the right move.',
+
+    scoreUrgency: 'Urgency',
+
+    scoreUrgencyHint: 'How fast you should act before things get worse.',
+
+    scoreFinancial: 'Financial Impact',
+
+    scoreFinancialHint: 'Money, revenue, or customers that could be lost or saved.',
+
+    scoreOperational: 'Operational Risk',
+
+    scoreOperationalHint: 'How much day-to-day work could break down if you wait.',
+
+    scoreExecution: 'Execution Complexity',
+
+    scoreExecutionHint: 'How many teams, tools, and steps it takes to follow the plan.',
+
     summaryTitle: 'Quick summary',
 
     summaryHint: 'The main message in a few easy sentences.',

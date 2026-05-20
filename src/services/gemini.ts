@@ -87,6 +87,12 @@ Required JSON keys:
   - priorityLevel: string ("High" | "Medium" | "Low")
   - expectedOutcome: string (one sentence: the specific positive result of this action)
   - confidence: number (0-100)
+- decisionScores: object with five numbers 0-100 (plain estimates from the document):
+  - confidence: how sure the recommended plan is correct
+  - urgency: how fast leadership must act
+  - financialImpact: money, revenue, or customers at stake
+  - operationalRisk: how much day-to-day operations could suffer
+  - executionComplexity: how hard the plan is to carry out (people, tools, time)
 `;
 
 export async function generateJson<T>(prompt: string): Promise<T> {
@@ -203,6 +209,18 @@ function parseAnalysisResponse(parsedData: Record<string, unknown>): AnalysisRes
     };
   }
 
+  let decisionScores: import('@/types/analysis').DecisionScorecardScores | undefined;
+  if (parsedData.decisionScores && typeof parsedData.decisionScores === 'object') {
+    const ds = parsedData.decisionScores as Record<string, unknown>;
+    decisionScores = {
+      confidence: Math.min(100, Math.max(0, Number(ds.confidence) || 0)),
+      urgency: Math.min(100, Math.max(0, Number(ds.urgency) || 0)),
+      financialImpact: Math.min(100, Math.max(0, Number(ds.financialImpact) || 0)),
+      operationalRisk: Math.min(100, Math.max(0, Number(ds.operationalRisk) || 0)),
+      executionComplexity: Math.min(100, Math.max(0, Number(ds.executionComplexity) || 0)),
+    };
+  }
+
   return {
     executiveSummary: String(
       parsedData.executiveSummary ||
@@ -246,6 +264,7 @@ function parseAnalysisResponse(parsedData: Record<string, unknown>): AnalysisRes
     executionLog: executionLog.slice(0, 8),
     agentTrace: [],
     autonomousDecision,
+    decisionScores,
   };
 }
 

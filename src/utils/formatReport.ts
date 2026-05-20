@@ -1,6 +1,8 @@
 import type { AnalysisResult } from '@/types/analysis';
+import { getDecisionScorecardScores } from '@/utils/decisionScorecard';
 
 export function formatReportAsText(results: AnalysisResult): string {
+  const scores = getDecisionScorecardScores(results);
   const lines = [
     '═══════════════════════════════════',
     '       INSIGHTFLOW AI — YOUR REPORT',
@@ -20,6 +22,13 @@ export function formatReportAsText(results: AnalysisResult): string {
     `How sure the AI is: ${results.confidence}%`,
     `Urgency: ${results.priorityLevel}`,
     `If nothing is done: ${results.estimatedImpact}`,
+    '',
+    '── DECISION SCORECARD (0-100) ──',
+    `Confidence: ${scores.confidence}`,
+    `Urgency: ${scores.urgency}`,
+    `Financial impact: ${scores.financialImpact}`,
+    `Operational risk: ${scores.operationalRisk}`,
+    `Execution complexity: ${scores.executionComplexity}`,
     '',
     '── MAIN POINTS ──',
     ...results.keyFindings.map((f, i) => `${i + 1}. ${f}`),

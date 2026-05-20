@@ -34,6 +34,15 @@ export interface AutonomousDecision {
   confidence: number;
 }
 
+/** Optional 0–100 scores for the Results scorecard (from AI or computed locally). */
+export interface DecisionScorecardScores {
+  confidence: number;
+  urgency: number;
+  financialImpact: number;
+  operationalRisk: number;
+  executionComplexity: number;
+}
+
 export interface SimulatedAction {
   title: string;
   description: string;
@@ -69,6 +78,8 @@ export interface AnalysisResult {
   agentTrace: AgentTraceEntry[];
   /** Detailed single primary action selected automatically by AI */
   autonomousDecision?: AutonomousDecision;
+  /** Per-dimension scores for AI Decision Scorecard when the model returns them */
+  decisionScores?: DecisionScorecardScores;
 }
 
 export const INDUSTRY_OPTIONS: { id: IndustryType; label: string }[] = [

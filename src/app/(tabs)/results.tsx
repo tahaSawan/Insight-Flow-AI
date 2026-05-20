@@ -19,6 +19,7 @@ import { ActionCommander } from '@/components/ActionCommander';
 import { AutonomousDecisionCenter } from '@/components/AutonomousDecisionCenter';
 import { ConsequenceSimulation } from '@/components/ConsequenceSimulation';
 import { ExecutiveVoiceBriefing } from '@/components/ExecutiveVoiceBriefing';
+import { AIDecisionScorecard } from '@/components/AIDecisionScorecard';
 
 export default function ResultsScreen() {
   const router = useRouter();
@@ -132,6 +133,8 @@ export default function ResultsScreen() {
         <DecisionAlert results={results} />
 
         <AutonomousDecisionCenter results={results} />
+
+        <AIDecisionScorecard results={results} />
 
         <ExecutiveVoiceBriefing results={results} />
 
