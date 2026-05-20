@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Sparkles, Zap, ShieldAlert, Settings, ChevronRight } from 'lucide-react-native';
+import { Zap, ShieldAlert, Settings, ChevronRight } from 'lucide-react-native';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
@@ -10,6 +10,8 @@ import { StatPreviewCard } from '@/components/StatPreviewCard';
 import { useAppContext } from '@/context/AppContext';
 import { UI } from '@/constants/plainLanguage';
 import { REAL_WORLD_PROBLEM } from '@/constants/problemStory';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { colors, spacing } from '@/constants/designTokens';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -22,21 +24,16 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
-          <View style={styles.badgeRow}>
-            <Sparkles size={14} color="#818CF8" />
-            <Typography style={styles.badge}>{UI.home.badge}</Typography>
-          </View>
           <Pressable onPress={() => router.push('/settings')} style={styles.settingsBtn}>
             <Settings size={22} color="#8A8D98" />
           </Pressable>
         </View>
 
-        <Typography variant="h1" style={styles.title}>
-          InsightFlow AI
-        </Typography>
-        <Typography variant="body" style={styles.subtitle}>
-          {UI.home.subtitle}
-        </Typography>
+        <ScreenHeader
+          title="InsightFlow AI"
+          subtitle={UI.home.subtitle}
+          badge={UI.home.badge}
+        />
 
         <Card style={styles.problemCard}>
           <Typography style={styles.problemLabel}>The real problem</Typography>
@@ -147,19 +144,15 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0A0A0F' },
-  scroll: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 40 },
+  safeArea: { flex: 1, backgroundColor: colors.bg },
+  scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: 40 },
   topBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.sm,
   },
-  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  badge: { color: '#818CF8', fontSize: 13, fontWeight: '600' },
   settingsBtn: { padding: 8 },
-  title: { fontSize: 40, lineHeight: 46, letterSpacing: -1, marginBottom: 14 },
-  subtitle: { fontSize: 17, color: '#8A8D98', lineHeight: 26, marginBottom: 16 },
   problemCard: {
     padding: 16,
     marginBottom: 20,

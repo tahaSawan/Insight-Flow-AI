@@ -1,9 +1,24 @@
 import React from 'react';
 import { View, ViewProps, StyleSheet } from 'react-native';
+import { colors, radius, spacing } from '@/constants/designTokens';
 
-export function Card({ style, children, ...props }: ViewProps) {
+type CardVariant = 'default' | 'elevated' | 'accent';
+
+interface CardProps extends ViewProps {
+  variant?: CardVariant;
+}
+
+export function Card({ style, children, variant = 'default', ...props }: CardProps) {
   return (
-    <View style={[styles.card, style]} {...props}>
+    <View
+      style={[
+        styles.card,
+        variant === 'elevated' && styles.elevated,
+        variant === 'accent' && styles.accent,
+        style,
+      ]}
+      {...props}
+    >
       {children}
     </View>
   );
@@ -11,15 +26,17 @@ export function Card({ style, children, ...props }: ViewProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#12121A',
-    padding: 16,
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(100, 116, 139, 0.2)', // slate-700/50 approx
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderColor: colors.border,
+  },
+  elevated: {
+    backgroundColor: colors.surfaceElevated,
+  },
+  accent: {
+    borderColor: colors.borderAccent,
+    backgroundColor: colors.accentSoft,
   },
 });

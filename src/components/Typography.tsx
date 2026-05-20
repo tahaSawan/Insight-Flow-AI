@@ -15,30 +15,28 @@ export function Typography({ variant = 'body', style, children, ...props }: Typo
 
 const styles = StyleSheet.create({
   base: {
-    color: '#FFFFFF',
+    color: '#F8FAFC',
   },
   h1: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    marginBottom: 16,
+    fontSize: 28,
+    fontWeight: '800',
     letterSpacing: -0.5,
   },
   h2: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 12,
+    fontSize: 22,
+    fontWeight: '700',
   },
   h3: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: '600',
-    marginBottom: 8,
   },
   body: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 22,
   },
   caption: {
-    fontSize: 14,
-    color: '#8A8D98',
+    fontSize: 13,
+    color: '#94A3B8',
+    lineHeight: 18,
   },
 });

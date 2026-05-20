@@ -74,6 +74,8 @@ export const UI = {
 
     viewLastBtn: 'Open last report',
 
+    howItWorks: 'How it works',
+
   },
 
   upload: {
@@ -140,9 +142,11 @@ export const UI = {
 
   results: {
 
-    title: 'Your AI report',
+    title: 'Decision report',
 
-    subtitle: 'Alert → one decision → consequences → demo actions. Details below.',
+    subtitle: 'Alert → one decision → consequences → demo actions.',
+
+    jumpNavHint: 'Jump to a section',
 
     demoDisclaimer:
       'AI analysis is real (Gemini). Slack, email, and CRM steps are simulated for this demo.',

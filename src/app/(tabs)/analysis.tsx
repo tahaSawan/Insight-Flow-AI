@@ -17,6 +17,9 @@ import type { AnalysisResult } from '@/types/analysis';
 import type { AgentTraceEntry } from '@/types/agents';
 import { UI } from '@/constants/plainLanguage';
 import { AnalysisLoadingPanel } from '@/components/AnalysisLoadingPanel';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DemoStepBar } from '@/components/DemoStepBar';
+import { colors, spacing } from '@/constants/designTokens';
 
 const TOTAL_AGENTS = AGENT_PIPELINE.length;
 
@@ -41,6 +44,7 @@ export default function AnalysisScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fastProgress, setFastProgress] = useState(0);
   const lastRunKey = useRef('');
+  const autoNavigated = useRef(false);
 
   const completedAgents = agentTrace.filter((t) => t.status === 'complete').length;
   const progress = preview
@@ -138,29 +142,40 @@ export default function AnalysisScreen() {
 
   const handleRetry = () => {
     setErrorMessage(null);
+    autoNavigated.current = false;
     lastRunKey.current = '';
     lastRunKey.current = `${uploadedText}:${analysisMode}:${useCase}`;
     startAnalysis();
   };
 
+  useEffect(() => {
+    if (!preview || isAnalyzing || autoNavigated.current) return;
+    autoNavigated.current = true;
+    const timer = setTimeout(() => {
+      void (async () => {
+        await persistAnalysisToHistory();
+        router.replace('/results');
+      })();
+    }, 1400);
+    return () => clearTimeout(timer);
+  }, [preview, isAnalyzing, persistAnalysisToHistory, router]);
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <View style={styles.modeBadge}>
-            <Typography style={styles.modeBadgeText}>{modeLabel}</Typography>
-          </View>
-          <Typography variant="h1" style={styles.title}>
-            {isFullMode ? UI.analysis.titleFull : UI.analysis.titleFast}
-          </Typography>
-          <Typography variant="body" style={styles.subtitle}>
-            {preview
+        <DemoStepBar current="analyze" />
+
+        <ScreenHeader
+          title={isFullMode ? UI.analysis.titleFull : UI.analysis.titleFast}
+          subtitle={
+            preview
               ? UI.analysis.done
               : isFullMode
                 ? UI.analysis.runningFull
-                : UI.analysis.runningFast}
-          </Typography>
-        </View>
+                : UI.analysis.runningFast
+          }
+          badge={modeLabel}
+        />
 
         <Card style={styles.progressCard}>
           <View style={styles.progressRow}>
@@ -246,6 +261,9 @@ export default function AnalysisScreen() {
               onPress={handleViewResults}
               style={styles.viewResultsBtn}
             />
+            <Typography variant="caption" style={styles.autoNavHint}>
+              Opening decision report…
+            </Typography>
           </Card>
         ) : null}
       </ScrollView>
@@ -254,22 +272,18 @@ export default function AnalysisScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0A0A0F' },
-  scrollContent: { paddingHorizontal: 24, paddingTop: 32, paddingBottom: 40, gap: 16 },
-  header: { marginBottom: 8 },
-  modeBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(99, 102, 241, 0.15)',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.35)',
+  safeArea: { flex: 1, backgroundColor: colors.bg },
+  scrollContent: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: 40,
+    gap: spacing.md,
   },
-  modeBadgeText: { color: '#A5B4FC', fontSize: 12, fontWeight: '700' },
-  title: { fontSize: 34, letterSpacing: -0.5, marginBottom: 10 },
-  subtitle: { color: '#8A8D98', lineHeight: 24 },
+  autoNavHint: {
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginTop: 8,
+  },
   progressCard: { padding: 16, gap: 10 },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   progressLabel: { color: '#8A8D98', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 11 },

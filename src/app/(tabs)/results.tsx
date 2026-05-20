@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Share, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { View, ScrollView, StyleSheet, Share, ActivityIndicator, Pressable } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -21,6 +21,12 @@ import { ConsequenceSimulation } from '@/components/ConsequenceSimulation';
 import { ExecutiveVoiceBriefing } from '@/components/ExecutiveVoiceBriefing';
 import { AIDecisionScorecard } from '@/components/AIDecisionScorecard';
 import { AIDebateMode } from '@/components/AIDebateMode';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DemoStepBar } from '@/components/DemoStepBar';
+import { ResultsJumpNav, type ResultsSectionId } from '@/components/ResultsJumpNav';
+import { ScrollSection } from '@/components/ScrollSection';
+import { CollapsibleSection } from '@/components/CollapsibleSection';
+import { colors, spacing } from '@/constants/designTokens';
 
 export default function ResultsScreen() {
   const router = useRouter();
@@ -30,6 +36,21 @@ export default function ResultsScreen() {
   const [exportMessage, setExportMessage] = useState('');
   const [briefBullets, setBriefBullets] = useState<string[] | null>(null);
   const [briefLoading, setBriefLoading] = useState(false);
+  const [activeJump, setActiveJump] = useState<ResultsSectionId>('alert');
+  const scrollRef = useRef<ScrollView>(null);
+  const sectionY = useRef<Partial<Record<ResultsSectionId, number>>>({});
+
+  const onSectionMeasure = useCallback((id: ResultsSectionId, y: number) => {
+    sectionY.current[id] = y;
+  }, []);
+
+  const jumpTo = useCallback((id: ResultsSectionId) => {
+    setActiveJump(id);
+    const y = sectionY.current[id];
+    if (y != null) {
+      scrollRef.current?.scrollTo({ y: Math.max(0, y - 12), animated: true });
+    }
+  }, []);
 
   useEffect(() => {
     if (!analysisResults) {
@@ -112,47 +133,68 @@ export default function ResultsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <View style={styles.modeBadge}>
-            <Typography style={styles.modeBadgeText}>{modeLabel}</Typography>
-          </View>
-          <Typography variant="h1" style={styles.title}>
-            {UI.results.title}
-          </Typography>
-          <Typography variant="body" style={styles.subtitle}>
-            {UI.results.subtitle}
-          </Typography>
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <DemoStepBar current="decide" />
+
+        <ScreenHeader
+          title={UI.results.title}
+          subtitle={UI.results.subtitle}
+          badge={modeLabel}
+        />
+
+        <Typography variant="caption" style={styles.jumpHint}>
+          {UI.results.jumpNavHint}
+        </Typography>
+        <ResultsJumpNav active={activeJump} onJump={jumpTo} />
+
+        <View style={styles.demoStrip}>
+          <Typography style={styles.demoStripText}>{UI.results.demoDisclaimer}</Typography>
         </View>
 
-        <Card style={styles.demoBanner}>
-          <Typography style={styles.demoBannerText}>{UI.results.demoDisclaimer}</Typography>
-        </Card>
-
         {showResumeTip ? (
-          <Card style={styles.resumeBanner}>
+          <Card variant="accent" style={styles.resumeBanner}>
             <Typography style={styles.resumeBannerText}>{UI.results.resumeBanner}</Typography>
           </Card>
         ) : null}
 
-        <DecisionAlert results={results} />
+        <ScrollSection sectionId="alert" onMeasure={onSectionMeasure}>
+          <DecisionAlert results={results} />
+        </ScrollSection>
 
-        <AutonomousDecisionCenter results={results} />
+        <ScrollSection sectionId="decision" onMeasure={onSectionMeasure}>
+          <AutonomousDecisionCenter results={results} />
+        </ScrollSection>
 
-        <ConsequenceSimulation results={results} />
+        <ScrollSection sectionId="consequences" onMeasure={onSectionMeasure}>
+          <ConsequenceSimulation results={results} />
+        </ScrollSection>
 
-        <Card style={styles.heroCard}>
-          <Typography variant="h3" style={styles.heroTitle}>
-            Live action simulation
-          </Typography>
-          <Typography variant="caption" style={styles.sectionHint}>
-            Approve steps, then execute — Slack, email, CRM (demo).
-          </Typography>
-          <ActionCommander results={results} />
-        </Card>
+        <ScrollSection sectionId="actions" onMeasure={onSectionMeasure}>
+          <Card style={styles.heroCard}>
+            <Typography variant="h3" style={styles.heroTitle}>
+              Live action simulation
+            </Typography>
+            <Typography variant="caption" style={styles.sectionHint}>
+              Approve steps, then execute — Slack, email, CRM (demo).
+            </Typography>
+            <ActionCommander results={results} />
+          </Card>
+        </ScrollSection>
 
-        <AIDebateMode results={results} />
+        <ScrollSection sectionId="debate" onMeasure={onSectionMeasure}>
+          <AIDebateMode results={results} />
+        </ScrollSection>
 
+        <ScrollSection sectionId="details" onMeasure={onSectionMeasure}>
+          <CollapsibleSection
+            title="Full report details"
+            hint="Summary, findings, risks, and recommended steps"
+            defaultOpen={false}
+          >
         <Card style={styles.summaryCard}>
           <Typography variant="h2" style={styles.cardTitle}>
             {UI.results.summaryTitle}
@@ -253,22 +295,18 @@ export default function ResultsScreen() {
           </Typography>
           <AnimatedExecutionLog lines={results.executionLog} />
         </Card>
+          </CollapsibleSection>
+        </ScrollSection>
 
-        <View style={styles.moreToolsHeader}>
-          <Typography variant="h3" style={styles.moreToolsTitle}>
-            {UI.results.moreToolsTitle}
-          </Typography>
-          <Typography variant="caption" style={styles.moreToolsHint}>
-            {UI.results.moreToolsHint}
-          </Typography>
-        </View>
-
-        <AIDecisionScorecard results={results} />
-
-        <ExecutiveVoiceBriefing results={results} />
-
-        <AutonomousWorkflowReplay results={results} />
-
+        <ScrollSection sectionId="more" onMeasure={onSectionMeasure}>
+          <CollapsibleSection
+            title={UI.results.moreToolsTitle}
+            hint={UI.results.moreToolsHint}
+            defaultOpen={false}
+          >
+            <AIDecisionScorecard results={results} />
+            <ExecutiveVoiceBriefing results={results} />
+            <AutonomousWorkflowReplay results={results} />
         <Card style={styles.briefCard}>
           <Typography variant="h3" style={styles.sectionTitleIndigo}>
             {UI.results.ceoBriefTitle}
@@ -303,28 +341,29 @@ export default function ResultsScreen() {
             <ActivityIndicator size="small" color="#6366F1" style={{ marginTop: 12 }} />
           ) : null}
         </Card>
+          </CollapsibleSection>
+        </ScrollSection>
 
-        <View style={styles.bottomActions}>
-          <Button title={UI.results.share} onPress={handleShare} style={styles.exportBtn} />
-          <Button title={UI.results.copy} variant="outline" onPress={handleCopy} style={styles.exportBtn} />
-          {exportMessage ? (
-            <Typography style={styles.exportMsg}>{exportMessage}</Typography>
-          ) : null}
+        <View style={styles.scrollFooterSpacer} />
+      </ScrollView>
 
+      <View style={styles.stickyBar}>
+        <View style={styles.stickyRow}>
+          <Button title={UI.results.share} onPress={handleShare} style={styles.stickyBtnPrimary} />
           <Button
-            title={UI.results.newAnalysis}
+            title={UI.results.copy}
             variant="outline"
-            onPress={() => router.push('/upload')}
-            style={styles.backBtn}
-          />
-          <Button
-            title={UI.results.backHome}
-            variant="outline"
-            onPress={() => router.push('/')}
-            style={styles.backBtn}
+            onPress={handleCopy}
+            style={styles.stickyBtnSecondary}
           />
         </View>
-      </ScrollView>
+        {exportMessage ? (
+          <Typography style={styles.exportMsg}>{exportMessage}</Typography>
+        ) : null}
+        <Pressable onPress={() => router.push('/upload')} style={styles.newReportLink}>
+          <Typography style={styles.newReportText}>{UI.results.newAnalysis}</Typography>
+        </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
@@ -332,7 +371,7 @@ export default function ResultsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0A0A0F',
+    backgroundColor: colors.bg,
   },
   emptyState: {
     flex: 1,
@@ -342,33 +381,59 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 48,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
   },
-  header: {
-    marginBottom: 28,
+  jumpHint: {
+    color: colors.textMuted,
+    marginBottom: spacing.sm,
+    fontSize: 12,
   },
-  modeBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(99, 102, 241, 0.15)',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
-    marginBottom: 10,
+  demoStrip: {
+    marginBottom: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.accentSoft,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.35)',
+    borderColor: colors.borderAccent,
   },
-  modeBadgeText: { color: '#A5B4FC', fontSize: 12, fontWeight: '700' },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    marginBottom: 8,
+  demoStripText: {
+    color: colors.accentText,
+    fontSize: 12,
+    lineHeight: 17,
   },
-  subtitle: {
-    color: '#8A8D98',
-    lineHeight: 24,
+  scrollFooterSpacer: {
+    height: 8,
+  },
+  stickyBar: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  stickyRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  stickyBtnPrimary: {
+    flex: 1,
+  },
+  stickyBtnSecondary: {
+    flex: 1,
+  },
+  newReportLink: {
+    alignItems: 'center',
+    marginTop: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  newReportText: {
+    color: colors.accentText,
+    fontSize: 14,
+    fontWeight: '600',
   },
   summaryCard: {
     marginBottom: 16,
@@ -378,33 +443,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 8,
-  },
-  demoBanner: {
-    marginBottom: 16,
-    padding: 14,
-    backgroundColor: 'rgba(99, 102, 241, 0.12)',
-    borderColor: 'rgba(99, 102, 241, 0.35)',
-    borderWidth: 1,
-  },
-  demoBannerText: {
-    color: '#C7D2FE',
-    fontSize: 13,
-    lineHeight: 19,
-    fontWeight: '600',
-  },
-  moreToolsHeader: {
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  moreToolsTitle: {
-    color: '#94A3B8',
-    fontSize: 15,
-    fontWeight: '800',
-    marginBottom: 4,
-  },
-  moreToolsHint: {
-    color: '#64748B',
-    fontSize: 12,
   },
   resumeBanner: {
     marginBottom: 16,

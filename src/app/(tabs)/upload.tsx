@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { FileUp } from 'lucide-react-native';
@@ -14,6 +23,9 @@ import { AnalysisModePicker } from '@/components/AnalysisModePicker';
 import { UseCasePicker } from '@/components/UseCasePicker';
 import { INDUSTRY_OPTIONS, type IndustryType } from '@/types/analysis';
 import { UI, looksLikeResume } from '@/constants/plainLanguage';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { DemoStepBar } from '@/components/DemoStepBar';
+import { colors, spacing } from '@/constants/designTokens';
 
 export default function UploadScreen() {
   const router = useRouter();
@@ -33,6 +45,7 @@ export default function UploadScreen() {
   const [validationError, setValidationError] = useState('');
   const [fileName, setFileName] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const charCount = textInput.trim().length;
   const canSubmit = charCount >= MIN_CONTENT_LENGTH;
@@ -78,42 +91,23 @@ export default function UploadScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <View style={styles.header}>
-          <Typography variant="h1" style={styles.title}>
-            {UI.upload.title}
-          </Typography>
-          <Typography variant="body" style={styles.subtitle}>
-            {UI.upload.subtitle}
-          </Typography>
-        </View>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <DemoStepBar current="document" />
 
-        <Card style={styles.card}>
-          <AnalysisModePicker value={analysisMode} onChange={setAnalysisMode} />
+          <ScreenHeader title={UI.upload.title} subtitle={UI.upload.subtitle} />
 
-          <UseCasePicker value={useCase} onChange={setUseCase} />
-
-          <Typography variant="caption" style={styles.industryLabel}>
-            {UI.upload.industryLabel}
-          </Typography>
-          <View style={styles.industryRow}>
-            {INDUSTRY_OPTIONS.map((opt) => {
-              const selected = industry === opt.id;
-              return (
-                <Pressable
-                  key={opt.id}
-                  onPress={() => setIndustry(opt.id as IndustryType)}
-                  style={[styles.industryChip, selected && styles.industryChipSelected]}
-                >
-                  <Typography
-                    style={[styles.industryChipText, selected && styles.industryChipTextSelected]}
-                  >
-                    {opt.label}
-                  </Typography>
-                </Pressable>
-              );
-            })}
-          </View>
+          <Card style={styles.card}>
+            <Typography variant="h3" style={styles.blockTitle}>
+              1. Your document
+            </Typography>
 
           <Pressable
             style={styles.fileDrop}
@@ -179,26 +173,96 @@ export default function UploadScreen() {
               {validationError}
             </Typography>
           ) : null}
+          </Card>
 
+          <Card style={styles.card}>
+            <Pressable
+              onPress={() => setShowAdvanced((v) => !v)}
+              style={styles.advancedToggle}
+            >
+              <Typography style={styles.blockTitle}>2. Options</Typography>
+              <Typography variant="caption" style={styles.advancedHint}>
+                {showAdvanced ? 'Hide' : 'Show'} mode, scenario, industry
+              </Typography>
+            </Pressable>
+
+            {showAdvanced ? (
+              <View style={styles.advancedBody}>
+                <AnalysisModePicker value={analysisMode} onChange={setAnalysisMode} />
+                <UseCasePicker value={useCase} onChange={setUseCase} />
+                <Typography variant="caption" style={styles.industryLabel}>
+                  {UI.upload.industryLabel}
+                </Typography>
+                <View style={styles.industryRow}>
+                  {INDUSTRY_OPTIONS.map((opt) => {
+                    const selected = industry === opt.id;
+                    return (
+                      <Pressable
+                        key={opt.id}
+                        onPress={() => setIndustry(opt.id as IndustryType)}
+                        style={[styles.industryChip, selected && styles.industryChipSelected]}
+                      >
+                        <Typography
+                          style={[
+                            styles.industryChipText,
+                            selected && styles.industryChipTextSelected,
+                          ]}
+                        >
+                          {opt.label}
+                        </Typography>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            ) : (
+              <Typography variant="caption" style={styles.advancedSummary}>
+                {analysisMode === 'full' ? 'Step by step (5 helpers)' : 'Quick mode'} · {industry}
+              </Typography>
+            )}
+          </Card>
+        </ScrollView>
+
+        <View style={styles.footer}>
           <Button
             title={UI.upload.submit}
             onPress={handleSubmit}
             disabled={!canSubmit}
             style={[styles.submitBtn, !canSubmit && styles.submitBtnDisabled]}
           />
-        </Card>
-      </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0A0A0F' },
-  scrollContent: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 32, paddingBottom: 40 },
-  header: { marginBottom: 28 },
-  title: { fontSize: 36, letterSpacing: -0.5, marginBottom: 12 },
-  subtitle: { color: '#8A8D98', lineHeight: 24 },
-  card: { padding: 24 },
+  safeArea: { flex: 1, backgroundColor: colors.bg },
+  flex: { flex: 1 },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
+  },
+  card: { padding: spacing.lg, marginBottom: spacing.md },
+  blockTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: spacing.sm },
+  advancedToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  advancedHint: { color: colors.accentText },
+  advancedBody: { gap: spacing.md, marginTop: spacing.sm },
+  advancedSummary: { color: colors.textMuted, marginTop: 4 },
+  footer: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.surface,
+  },
   industryLabel: {
     color: '#8A8D98',
     marginBottom: 10,

@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, TouchableOpacityProps, ActivityIndicator, StyleSheet } from 'react-native';
+import { colors, radius, spacing } from '@/constants/designTokens';
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -7,24 +8,28 @@ interface ButtonProps extends TouchableOpacityProps {
   isLoading?: boolean;
 }
 
-export function Button({ 
-  title, 
-  variant = 'primary', 
-  isLoading = false, 
+export function Button({
+  title,
+  variant = 'primary',
+  isLoading = false,
   style,
-  ...props 
+  disabled,
+  ...props
 }: ButtonProps) {
-  
+  const isDisabled = isLoading || disabled;
+
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={[
         styles.base,
         variant === 'primary' && styles.primary,
         variant === 'secondary' && styles.secondary,
         variant === 'outline' && styles.outline,
-        style
+        isDisabled && styles.disabled,
+        style,
       ]}
-      disabled={isLoading || props.disabled}
+      disabled={isDisabled}
+      activeOpacity={0.85}
       {...props}
     >
       {isLoading ? (
@@ -43,23 +48,27 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+    minHeight: 48,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.md,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
   primary: {
-    backgroundColor: '#6366F1', // Indigo 500
+    backgroundColor: colors.accent,
   },
   secondary: {
-    backgroundColor: '#1A1A24', // Surface light
+    backgroundColor: colors.surfaceElevated,
   },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#6366F1',
+    borderColor: colors.accent,
+  },
+  disabled: {
+    opacity: 0.45,
   },
   textBase: {
     fontWeight: '600',
