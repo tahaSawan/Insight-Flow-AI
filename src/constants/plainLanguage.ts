@@ -32,6 +32,20 @@ export const UI = {
 
   home: {
 
+    heroTitle: 'From information overload to autonomous action.',
+
+    heroSubtitle:
+
+      'InsightFlow AI analyzes messy reports, detects risks, recommends actions, and simulates execution.',
+
+    startAnalysisBtn: 'Start Analysis',
+
+    featureExtract: 'Extract Insights',
+
+    featureRisks: 'Detect Risks',
+
+    featureExecute: 'Execute Actions',
+
     badge: '5 AI helpers · read → plan → act',
 
     subtitle:
