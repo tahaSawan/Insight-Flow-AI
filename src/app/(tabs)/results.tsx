@@ -20,6 +20,7 @@ import { AutonomousDecisionCenter } from '@/components/AutonomousDecisionCenter'
 import { ConsequenceSimulation } from '@/components/ConsequenceSimulation';
 import { ExecutiveVoiceBriefing } from '@/components/ExecutiveVoiceBriefing';
 import { AIDecisionScorecard } from '@/components/AIDecisionScorecard';
+import { AIDebateMode } from '@/components/AIDebateMode';
 
 export default function ResultsScreen() {
   const router = useRouter();
@@ -124,6 +125,10 @@ export default function ResultsScreen() {
           </Typography>
         </View>
 
+        <Card style={styles.demoBanner}>
+          <Typography style={styles.demoBannerText}>{UI.results.demoDisclaimer}</Typography>
+        </Card>
+
         {showResumeTip ? (
           <Card style={styles.resumeBanner}>
             <Typography style={styles.resumeBannerText}>{UI.results.resumeBanner}</Typography>
@@ -134,9 +139,7 @@ export default function ResultsScreen() {
 
         <AutonomousDecisionCenter results={results} />
 
-        <AIDecisionScorecard results={results} />
-
-        <ExecutiveVoiceBriefing results={results} />
+        <ConsequenceSimulation results={results} />
 
         <Card style={styles.heroCard}>
           <Typography variant="h3" style={styles.heroTitle}>
@@ -148,35 +151,7 @@ export default function ResultsScreen() {
           <ActionCommander results={results} />
         </Card>
 
-        <Card style={styles.sectionCard}>
-          <Typography variant="h3" style={styles.sectionTitlePink}>
-            {UI.results.impactTitle}
-          </Typography>
-          <Typography variant="caption" style={styles.sectionHint}>
-            {UI.results.impactHint}
-          </Typography>
-          <View style={styles.impactContainer}>
-            <View style={styles.impactBoxBefore}>
-              <Typography variant="caption" style={styles.impactBoxTitle}>
-                {UI.results.before}
-              </Typography>
-              <Typography style={styles.impactBoxValueBefore}>{results.beforeMetric}</Typography>
-              <Typography style={styles.impactBoxDesc}>{results.impactMetricLabel}</Typography>
-            </View>
-            <View style={styles.impactArrow}>
-              <Typography style={styles.impactArrowText}>→</Typography>
-            </View>
-            <View style={styles.impactBoxAfter}>
-              <Typography variant="caption" style={styles.impactBoxTitleAfter}>
-                {UI.results.after}
-              </Typography>
-              <Typography style={styles.impactBoxValueAfter}>{results.afterMetric}</Typography>
-              <Typography style={styles.impactBoxDesc}>{UI.results.projected}</Typography>
-            </View>
-          </View>
-        </Card>
-
-        <ConsequenceSimulation results={results} />
+        <AIDebateMode results={results} />
 
         <Card style={styles.summaryCard}>
           <Typography variant="h2" style={styles.cardTitle}>
@@ -278,6 +253,19 @@ export default function ResultsScreen() {
           </Typography>
           <AnimatedExecutionLog lines={results.executionLog} />
         </Card>
+
+        <View style={styles.moreToolsHeader}>
+          <Typography variant="h3" style={styles.moreToolsTitle}>
+            {UI.results.moreToolsTitle}
+          </Typography>
+          <Typography variant="caption" style={styles.moreToolsHint}>
+            {UI.results.moreToolsHint}
+          </Typography>
+        </View>
+
+        <AIDecisionScorecard results={results} />
+
+        <ExecutiveVoiceBriefing results={results} />
 
         <AutonomousWorkflowReplay results={results} />
 
@@ -390,6 +378,33 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 8,
+  },
+  demoBanner: {
+    marginBottom: 16,
+    padding: 14,
+    backgroundColor: 'rgba(99, 102, 241, 0.12)',
+    borderColor: 'rgba(99, 102, 241, 0.35)',
+    borderWidth: 1,
+  },
+  demoBannerText: {
+    color: '#C7D2FE',
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: '600',
+  },
+  moreToolsHeader: {
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  moreToolsTitle: {
+    color: '#94A3B8',
+    fontSize: 15,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  moreToolsHint: {
+    color: '#64748B',
+    fontSize: 12,
   },
   resumeBanner: {
     marginBottom: 16,

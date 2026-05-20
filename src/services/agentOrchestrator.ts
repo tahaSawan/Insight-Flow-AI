@@ -9,6 +9,7 @@ import {
   validateAnalysisInput,
   toFriendlyGeminiError,
 } from '@/services/gemini';
+import { parseAgentDebate } from '@/utils/agentDebate';
 
 const INDUSTRY_CONTEXT: Record<IndustryType, string> = {
   general: 'general business leadership',
@@ -263,6 +264,7 @@ async function runExecutionAgent(
   beforeMetric: string;
   afterMetric: string;
   autonomousDecision?: import('@/types/analysis').AutonomousDecision;
+  agentDebate?: import('@/types/analysis').AgentDebate;
 }> {
   const def = getAgentDefinition('execution');
   const entry: AgentTraceEntry = {
@@ -304,9 +306,17 @@ Return ONLY JSON:
     "priorityLevel": "High"|"Medium"|"Low",
     "expectedOutcome": "one sentence: the specific positive result of this action",
     "confidence": number 0-100
+  },
+  "agentDebate": {
+    "growth": { "recommendedApproach": string, "concern": string, "confidence": number },
+    "risk": { "recommendedApproach": string, "concern": string, "confidence": number },
+    "finance": { "recommendedApproach": string, "concern": string, "confidence": number },
+    "finalConclusion": string,
+    "balanceExplanation": string
   }
 }
 - simulatedActions: exactly 3 pretend steps (e.g. "Team emailed")
+- agentDebate: three short viewpoints in plain English, then finalConclusion matching primaryDecision
 
 Industry: ${INDUSTRY_CONTEXT[industry]}
 Scenario: ${scenarioHint}
@@ -340,6 +350,7 @@ Document:
   return {
     ...parsed,
     autonomousDecision,
+    agentDebate: parseAgentDebate(parsed.agentDebate),
   };
 }
 
@@ -416,6 +427,7 @@ export async function runAgentOrchestration(
       executionLog: execution.executionLog.slice(0, 8),
       agentTrace: [...trace],
       autonomousDecision: execution.autonomousDecision,
+      agentDebate: execution.agentDebate,
     };
   } catch (error) {
     const running = trace.find((t) => t.status === 'running');

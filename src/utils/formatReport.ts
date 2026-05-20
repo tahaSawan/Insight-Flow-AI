@@ -1,8 +1,10 @@
 import type { AnalysisResult } from '@/types/analysis';
 import { getDecisionScorecardScores } from '@/utils/decisionScorecard';
+import { getAgentDebate } from '@/utils/agentDebate';
 
 export function formatReportAsText(results: AnalysisResult): string {
   const scores = getDecisionScorecardScores(results);
+  const { debate } = getAgentDebate(results);
   const lines = [
     '═══════════════════════════════════',
     '       INSIGHTFLOW AI — YOUR REPORT',
@@ -35,6 +37,16 @@ export function formatReportAsText(results: AnalysisResult): string {
     '',
     '── WHAT COULD GO WRONG ──',
     ...results.riskAssessment.map((r, i) => `${i + 1}. ${r}`),
+    '',
+    '── AI DEBATE (3 ADVISORS) ──',
+    `Growth: ${debate.growth.recommendedApproach}`,
+    `Growth concern: ${debate.growth.concern}`,
+    `Risk: ${debate.risk.recommendedApproach}`,
+    `Risk concern: ${debate.risk.concern}`,
+    `Finance: ${debate.finance.recommendedApproach}`,
+    `Finance concern: ${debate.finance.concern}`,
+    `FINAL: ${debate.finalConclusion}`,
+    `Why balanced: ${debate.balanceExplanation}`,
     '',
     '── WHAT TO DO NEXT ──',
     ...results.recommendedActions.map((a, i) => `${i + 1}. ${a}`),

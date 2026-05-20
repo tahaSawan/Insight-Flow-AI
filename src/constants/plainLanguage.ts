@@ -142,7 +142,10 @@ export const UI = {
 
     title: 'Your AI report',
 
-    subtitle: 'Here is what we found — and what you could do next.',
+    subtitle: 'Alert → one decision → consequences → demo actions. Details below.',
+
+    demoDisclaimer:
+      'AI analysis is real (Gemini). Slack, email, and CRM steps are simulated for this demo.',
 
     emptyTitle: 'No report yet',
 
@@ -177,6 +180,41 @@ export const UI = {
     scoreExecution: 'Execution Complexity',
 
     scoreExecutionHint: 'How many teams, tools, and steps it takes to follow the plan.',
+
+    debateTitle: 'AI Debate Mode',
+
+    debateHint:
+      'Three advisors argued different plans. Below is what each wanted — and the final pick.',
+
+    debateBadgeAi: 'FROM AI',
+
+    debateBadgeLocal: 'BUILT FROM REPORT',
+
+    debateApproach: 'Recommended approach',
+
+    debateConcern: 'Main concern',
+
+    debateConfidence: (n: number) => `${n}% sure`,
+
+    debateFinalTitle: 'Final Decision Agent',
+
+    debateFinalWhy: 'Why this balances all three',
+
+    growthAgent: 'Growth Agent',
+
+    growthAgentHint: 'Favors speed, customers, and fixing churn fast.',
+
+    riskAgent: 'Risk Agent',
+
+    riskAgentHint: 'Favors safety, checks, and avoiding new mistakes.',
+
+    financeAgent: 'Finance Agent',
+
+    financeAgentHint: 'Favors budget limits and protecting margin.',
+
+    moreToolsTitle: 'More tools',
+
+    moreToolsHint: 'Optional — for judges who want extra depth.',
 
     summaryTitle: 'Quick summary',
 

@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { MIN_CONTENT_LENGTH } from '@/constants/sampleReport';
 import { PLAIN_LANGUAGE_AI_RULES } from '@/constants/plainLanguage';
 import type { AnalysisResult, IndustryType, SimulatedAction, UseCaseType } from '@/types/analysis';
+import { parseAgentDebate } from '@/utils/agentDebate';
 import { getUseCaseHint } from '@/constants/useCases';
 
 const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
@@ -93,6 +94,12 @@ Required JSON keys:
   - financialImpact: money, revenue, or customers at stake
   - operationalRisk: how much day-to-day operations could suffer
   - executionComplexity: how hard the plan is to carry out (people, tools, time)
+- agentDebate: object — three advisors disagree, then one final pick (plain English, short sentences):
+  - growth: { recommendedApproach, concern, confidence 0-100 } — favors speed, customers, revenue
+  - risk: { recommendedApproach, concern, confidence 0-100 } — favors safety, checks, compliance
+  - finance: { recommendedApproach, concern, confidence 0-100 } — favors budget control and ROI
+  - finalConclusion: string — the single action leadership should take (match autonomousDecision.primaryDecision)
+  - balanceExplanation: string — 2-3 short sentences on why the final plan balances all three views
 `;
 
 export async function generateJson<T>(prompt: string): Promise<T> {
@@ -265,6 +272,7 @@ function parseAnalysisResponse(parsedData: Record<string, unknown>): AnalysisRes
     agentTrace: [],
     autonomousDecision,
     decisionScores,
+    agentDebate: parseAgentDebate(parsedData.agentDebate),
   };
 }
 

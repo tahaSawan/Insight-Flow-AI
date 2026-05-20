@@ -34,6 +34,22 @@ export interface AutonomousDecision {
   confidence: number;
 }
 
+/** One advisor in AI Debate Mode. */
+export interface AgentDebateViewpoint {
+  recommendedApproach: string;
+  concern: string;
+  confidence: number;
+}
+
+/** Three advisors + final reconciled decision (from AI or built locally). */
+export interface AgentDebate {
+  growth: AgentDebateViewpoint;
+  risk: AgentDebateViewpoint;
+  finance: AgentDebateViewpoint;
+  finalConclusion: string;
+  balanceExplanation: string;
+}
+
 /** Optional 0–100 scores for the Results scorecard (from AI or computed locally). */
 export interface DecisionScorecardScores {
   confidence: number;
@@ -80,6 +96,8 @@ export interface AnalysisResult {
   autonomousDecision?: AutonomousDecision;
   /** Per-dimension scores for AI Decision Scorecard when the model returns them */
   decisionScores?: DecisionScorecardScores;
+  /** Multi-agent debate before the final action (Growth / Risk / Finance) */
+  agentDebate?: AgentDebate;
 }
 
 export const INDUSTRY_OPTIONS: { id: IndustryType; label: string }[] = [
