@@ -145,11 +145,15 @@ export const UI = {
 
   analysis: {
 
+    workflowTitle: 'Autonomous Agent Workflow Running',
+
+    autoNavHint: 'Opening decision report…',
+
     titleFull: 'AI is reading your report',
 
     titleFast: 'Quick AI read',
 
-    done: 'Done! Check the preview below.',
+    done: 'Workflow complete — preparing your report',
 
     runningFull: 'Five helpers are reading your text, one after another...',
 
