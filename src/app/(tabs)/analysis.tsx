@@ -11,20 +11,12 @@ import { AgentWorkflowTimeline } from '@/components/AgentWorkflowTimeline';
 import { AgentWorkflowTerminal } from '@/components/AgentWorkflowTerminal';
 import { useAppContext } from '@/context/AppContext';
 import { runAgentOrchestration } from '@/services/agentOrchestrator';
-import { buildWinningDemoFallbackResult } from '@/services/demoFallback';
 import { analyzeContentFast, toFriendlyGeminiError } from '@/services/gemini';
-import {
-  getDemoFriendlyAnalysisMessage,
-  scaleDemoMs,
-  shouldUseDemoFallback,
-} from '@/utils/demoPresentation';
 import { AGENT_PIPELINE } from '@/constants/agents';
 import { CINEMATIC_WORKFLOW } from '@/constants/workflowAgents';
 import type { AnalysisResult } from '@/types/analysis';
 import type { AgentTraceEntry, AgentStatus } from '@/types/agents';
 import { UI } from '@/constants/plainLanguage';
-import { DemoStepBar } from '@/components/DemoStepBar';
-import { AnalysisSkeleton } from '@/components/AnalysisSkeleton';
 import { AnimatedEntrance } from '@/components/AnimatedEntrance';
 import { hapticAnalysisStart } from '@/utils/haptics';
 import { colors, spacing, radius, screenContent } from '@/constants/designTokens';
@@ -80,9 +72,6 @@ export default function AnalysisScreen() {
     useCase,
     persistAnalysisToHistory,
     setIsAnalyzing: setGlobalAnalyzing,
-    demoMode,
-    setAnalysisUsedFallback,
-    setDemoActionExecuted,
   } = useAppContext();
 
   const isFullMode = analysisMode === 'full';
@@ -91,7 +80,6 @@ export default function AnalysisScreen() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [preview, setPreview] = useState<AnalysisResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const [fastProgress, setFastProgress] = useState(0);
   const lastRunKey = useRef('');
   const autoNavigated = useRef(false);
@@ -115,31 +103,21 @@ export default function AnalysisScreen() {
     setGlobalAnalyzing(true);
     setPreview(null);
     setErrorMessage(null);
-    setFallbackNotice(null);
-    setAnalysisUsedFallback(false);
-    setDemoActionExecuted(false);
     setFastProgress(4);
     setAgentTrace(buildPendingTrace());
     void hapticAnalysisStart();
 
-    const fastInterval = scaleDemoMs(520, demoMode);
     const fastTimer = !isFullMode
       ? setInterval(() => {
           setFastProgress((p) => Math.min(p + 7, 96));
-        }, fastInterval)
+        }, 520)
       : null;
 
     try {
       const result = isFullMode
-        ? await runAgentOrchestration(
-            uploadedText,
-            industry,
-            (trace) => {
-              setAgentTrace(trace);
-            },
-            useCase,
-            demoMode,
-          )
+        ? await runAgentOrchestration(uploadedText, industry, (trace) => {
+            setAgentTrace(trace);
+          }, useCase)
         : await analyzeContentFast(uploadedText, industry, useCase);
 
       if (fastTimer) clearInterval(fastTimer);
@@ -155,23 +133,7 @@ export default function AnalysisScreen() {
       setGlobalAnalyzing(false);
     } catch (error) {
       if (fastTimer) clearInterval(fastTimer);
-
-      if (shouldUseDemoFallback(demoMode, error)) {
-        const fallback = buildWinningDemoFallbackResult(uploadedText, industry, useCase);
-        setFastProgress(100);
-        setAgentTrace(fallback.agentTrace);
-        setAnalysisResults(fallback);
-        setPreview(fallback);
-        setAnalysisUsedFallback(true);
-        setFallbackNotice(UI.demo.fallbackBanner);
-        setIsAnalyzing(false);
-        setGlobalAnalyzing(false);
-        return;
-      }
-
-      setErrorMessage(
-        demoMode ? getDemoFriendlyAnalysisMessage(error) : toFriendlyGeminiError(error),
-      );
+      setErrorMessage(toFriendlyGeminiError(error));
       setIsAnalyzing(false);
       setGlobalAnalyzing(false);
     }
@@ -181,11 +143,8 @@ export default function AnalysisScreen() {
     industry,
     isFullMode,
     useCase,
-    demoMode,
     setAnalysisResults,
     setGlobalAnalyzing,
-    setAnalysisUsedFallback,
-    setDemoActionExecuted,
   ]);
 
   useEffect(() => {
@@ -196,6 +155,8 @@ export default function AnalysisScreen() {
     const runKey = `${uploadedText}:${analysisMode}:${useCase}`;
     if (lastRunKey.current === runKey) return;
     lastRunKey.current = runKey;
+    autoNavigated.current = false;
+    setAgentTrace(buildPendingTrace());
     startAnalysis();
   }, [uploadedText, analysisMode, useCase, router, startAnalysis]);
 
@@ -215,17 +176,15 @@ export default function AnalysisScreen() {
         await persistAnalysisToHistory();
         router.replace('/results');
       })();
-    }, scaleDemoMs(1200, demoMode));
+    }, 1200);
     return () => clearTimeout(timer);
-  }, [preview, isAnalyzing, persistAnalysisToHistory, router, demoMode]);
+  }, [preview, isAnalyzing, persistAnalysisToHistory, router]);
 
   const isComplete = !!preview && !isAnalyzing;
 
   return (
     <AppScreen>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <DemoStepBar current="analyze" />
-
         <AnimatedEntrance index={0}>
         <View style={styles.hero}>
           <View style={styles.heroIcon}>
@@ -249,32 +208,18 @@ export default function AnalysisScreen() {
         <ProgressBar progress={progress} />
         </AnimatedEntrance>
 
-        {isAnalyzing && !preview ? (
-          <AnalysisSkeleton />
-        ) : (
-          <>
-        <AnimatedEntrance index={1}>
+        <AnimatedEntrance index={1} disabled={isAnalyzing}>
         <View style={styles.workflowPanel}>
           <AgentWorkflowTimeline trace={displayTrace} />
         </View>
         </AnimatedEntrance>
 
-        <AnimatedEntrance index={2}>
+        <AnimatedEntrance index={2} disabled={isAnalyzing}>
         <AgentWorkflowTerminal trace={displayTrace} />
         </AnimatedEntrance>
-          </>
-        )}
-
-        {fallbackNotice ? (
-          <Card variant="alert" title="Demo storyline ready" style={styles.errorCard}>
-            <Typography variant="body" style={styles.fallbackNotice}>
-              {fallbackNotice}
-            </Typography>
-          </Card>
-        ) : null}
 
         {errorMessage ? (
-          <Card variant="alert" title={demoMode ? 'Please try again' : 'Analysis failed'} style={styles.errorCard}>
+          <Card variant="alert" title="Analysis failed" style={styles.errorCard}>
             <Typography variant="body" style={styles.errorMessage}>
               {errorMessage}
             </Typography>
@@ -342,10 +287,6 @@ const styles = StyleSheet.create({
   },
   errorMessage: {
     color: colors.textSecondary,
-    lineHeight: 22,
-  },
-  fallbackNotice: {
-    color: colors.warning,
     lineHeight: 22,
   },
   actionBtn: {

@@ -1,8 +1,7 @@
 import React from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useAppContext } from '@/context/AppContext';
-import { entranceDelay, entranceDurationMs } from '@/utils/microAnimations';
+import { entranceDelay } from '@/utils/microAnimations';
 
 interface AnimatedEntranceProps {
   children: React.ReactNode;
@@ -17,17 +16,15 @@ export function AnimatedEntrance({
   style,
   disabled = false,
 }: AnimatedEntranceProps) {
-  const { demoMode } = useAppContext();
-
   if (disabled) {
     return <>{children}</>;
   }
 
-  const entering = FadeInDown.duration(entranceDurationMs(demoMode))
-    .delay(entranceDelay(index, 48, 280, demoMode))
+  const entering = FadeInDown.duration(360)
+    .delay(entranceDelay(index))
     .springify()
-    .damping(demoMode ? 24 : 22)
-    .stiffness(demoMode ? 380 : 320);
+    .damping(22)
+    .stiffness(320);
 
   return (
     <Animated.View entering={entering} style={style}>

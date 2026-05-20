@@ -10,7 +10,6 @@ import {
   Sparkles,
   ShieldAlert,
   Zap,
-  Play,
 } from 'lucide-react-native';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
@@ -19,27 +18,13 @@ import { HomeDashboardPreview } from '@/components/HomeDashboardPreview';
 import { HomeFeatureCard } from '@/components/HomeFeatureCard';
 import { useAppContext } from '@/context/AppContext';
 import { UI } from '@/constants/plainLanguage';
-import { loadWinningDemoScenario } from '@/utils/loadWinningDemoScenario';
 import { AnimatedEntrance } from '@/components/AnimatedEntrance';
 import { PressableScale } from '@/components/PressableScale';
 import { colors, spacing, radius, screenContent } from '@/constants/designTokens';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const {
-    analysisResults,
-    history,
-    loadHistoryEntry,
-    setDemoMode,
-    setUploadedText,
-    setSourceFileName,
-    setIndustry,
-    setUseCase,
-    setAnalysisMode,
-    setAnalysisResults,
-    setDemoActionExecuted,
-    setAnalysisUsedFallback,
-  } = useAppContext();
+  const { analysisResults, history, loadHistoryEntry } = useAppContext();
 
   const hasLastRun = analysisResults !== null;
   const recentHistory = history.slice(0, 2);
@@ -87,47 +72,6 @@ export default function HomeScreen() {
             iconLeft={<Sparkles size={18} color={colors.white} />}
             style={styles.primaryCta}
           />
-          <Button
-            title={UI.home.winningDemoBtn}
-            variant="secondary"
-            onPress={() =>
-              void loadWinningDemoScenario(
-                {
-                  setDemoMode,
-                  setUploadedText,
-                  setSourceFileName,
-                  setIndustry,
-                  setUseCase,
-                  setAnalysisMode,
-                  setAnalysisResults,
-                  setDemoActionExecuted,
-                  setAnalysisUsedFallback,
-                },
-                router,
-              )
-            }
-            fullWidth
-            iconLeft={<Play size={16} color={colors.accentText} />}
-          />
-          <Typography variant="caption" style={styles.winningHint}>
-            {UI.home.winningDemoHint}
-          </Typography>
-          <View style={styles.altDemoRow}>
-            <Pressable
-              onPress={() =>
-                router.push({
-                  pathname: '/upload',
-                  params: { demo: 'judge' },
-                })
-              }
-              style={({ pressed }) => [styles.judgeLink, pressed && styles.pressed]}
-            >
-              <Play size={14} color={colors.textMuted} />
-              <Typography variant="caption" style={styles.judgeLinkText}>
-                {UI.home.judgeDemoBtn}
-              </Typography>
-            </Pressable>
-          </View>
         </View>
         </AnimatedEntrance>
 
@@ -288,25 +232,6 @@ const styles = StyleSheet.create({
   },
   primaryCta: {
     marginBottom: spacing.xs,
-  },
-  altDemoRow: {
-    alignItems: 'center',
-    marginTop: spacing.xs,
-  },
-  judgeLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: spacing.xs,
-  },
-  judgeLinkText: {
-    color: colors.textMuted,
-    fontWeight: '600',
-  },
-  winningHint: {
-    color: colors.textDim,
-    textAlign: 'center',
-    lineHeight: 18,
   },
   featureRow: {
     flexDirection: 'row',

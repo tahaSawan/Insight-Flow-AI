@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
 import {
   View,
   TextInput,
@@ -19,8 +18,6 @@ import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { useAppContext } from '@/context/AppContext';
 import { SAMPLE_REPORT, MIN_CONTENT_LENGTH } from '@/constants/sampleReport';
-import { WINNING_DEMO_REPORT } from '@/constants/winningDemoScenario';
-import { loadWinningDemoScenario } from '@/utils/loadWinningDemoScenario';
 import { validateAnalysisInput } from '@/services/gemini';
 import { pickAndExtractDocument } from '@/services/document';
 import { AnalysisModePicker } from '@/components/AnalysisModePicker';
@@ -28,7 +25,6 @@ import { UseCasePicker } from '@/components/UseCasePicker';
 import { INDUSTRY_OPTIONS, type IndustryType } from '@/types/analysis';
 import { UI, looksLikeResume } from '@/constants/plainLanguage';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { DemoStepBar } from '@/components/DemoStepBar';
 import { colors, spacing, screenContent, radius } from '@/constants/designTokens';
 import { hapticAnalysisStart } from '@/utils/haptics';
 
@@ -45,10 +41,6 @@ export default function UploadScreen() {
     setAnalysisMode,
     useCase,
     setUseCase,
-    demoMode,
-    setDemoMode,
-    setDemoActionExecuted,
-    setAnalysisUsedFallback,
   } = useAppContext();
 
   const [textInput, setTextInput] = useState('');
@@ -57,7 +49,6 @@ export default function UploadScreen() {
   const [isExtracting, setIsExtracting] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [sampleLoaded, setSampleLoaded] = useState(false);
-  const { demo } = useLocalSearchParams<{ demo?: string }>();
 
   const charCount = textInput.trim().length;
   const canSubmit = charCount >= MIN_CONTENT_LENGTH;
@@ -70,32 +61,6 @@ export default function UploadScreen() {
     setValidationError('');
     setSampleLoaded(true);
   };
-
-  useEffect(() => {
-    if (demo === 'winning') {
-      void setDemoMode(true);
-      setIndustry('general');
-      void setUseCase('crisis');
-      setAnalysisMode('full');
-      setTextInput(WINNING_DEMO_REPORT);
-      setFileName(null);
-      setSourceFileName('Lahore-Regional-Brief.txt');
-      setValidationError('');
-      setSampleLoaded(true);
-      setShowAdvanced(false);
-      return;
-    }
-    if (demo !== 'judge') return;
-    setIndustry('technology');
-    setUseCase('board');
-    setAnalysisMode('full');
-    setTextInput(SAMPLE_REPORT);
-    setFileName(null);
-    setSourceFileName(null);
-    setValidationError('');
-    setSampleLoaded(true);
-    setShowAdvanced(false);
-  }, [demo, setIndustry, setUseCase, setAnalysisMode, setDemoMode, setSourceFileName]);
 
   const handlePickFile = async () => {
     setValidationError('');
@@ -141,12 +106,9 @@ export default function UploadScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <DemoStepBar current="document" />
-
           <ScreenHeader title={UI.upload.title} subtitle={UI.upload.subtitle} />
 
           <Card title="1. Your document">
-
           <Pressable
             style={styles.fileDrop}
             onPress={handlePickFile}
@@ -174,30 +136,6 @@ export default function UploadScreen() {
           </View>
 
           <View style={styles.toolbar}>
-            <Button
-              title={UI.demo.loadWinningBtn}
-              variant="primary"
-              onPress={() =>
-                void loadWinningDemoScenario(
-                  {
-                    setDemoMode,
-                    setUploadedText: (text) => {
-                      setTextInput(text);
-                      setUploadedText(text);
-                    },
-                    setSourceFileName,
-                    setIndustry,
-                    setUseCase,
-                    setAnalysisMode,
-                    setAnalysisResults,
-                    setDemoActionExecuted,
-                    setAnalysisUsedFallback,
-                  },
-                  router,
-                )
-              }
-              style={styles.winningBtn}
-            />
             <Button
               title={UI.upload.sampleBtn}
               variant="secondary"
@@ -236,9 +174,7 @@ export default function UploadScreen() {
 
           {validationError ? (
             <Typography variant="body" style={styles.errorText}>
-              {demoMode && validationError.length > 80
-                ? 'Please check your document and try again.'
-                : validationError}
+              {validationError}
             </Typography>
           ) : null}
           </Card>
@@ -314,7 +250,6 @@ const styles = StyleSheet.create({
     ...screenContent,
     paddingBottom: spacing.md,
   },
-  blockTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: spacing.sm },
   advancedToggle: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -370,17 +305,11 @@ const styles = StyleSheet.create({
   dividerText: { color: colors.textDim },
   toolbar: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 12,
     gap: 12,
   },
-  winningBtn: {
-    flexGrow: 1,
-    minWidth: '100%',
-  },
-  sampleBtn: { paddingVertical: 10, paddingHorizontal: 14 },
   charCount: { color: colors.textDim },
   sampleLoadedText: {
     color: colors.success,
@@ -407,7 +336,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   errorText: { color: colors.danger, textAlign: 'center', fontWeight: '500', marginBottom: 16 },
-  submitBtn: { width: '100%', paddingVertical: 16, marginTop: 8 },
-  submitBtnDisabled: { opacity: 0.45 },
   chipPressed: { opacity: 0.85 },
 });

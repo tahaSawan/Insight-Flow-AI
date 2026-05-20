@@ -19,12 +19,7 @@ import {
   clearAllHistory,
   deleteHistoryEntry,
 } from '@/services/historyStorage';
-import {
-  getDemoMode,
-  setDemoMode as persistDemoMode,
-  getUseCase,
-  setUseCase as persistUseCase,
-} from '@/services/appPreferences';
+import { getUseCase, setUseCase as persistUseCase } from '@/services/appPreferences';
 
 interface AppContextType {
   uploadedText: string;
@@ -46,12 +41,6 @@ interface AppContextType {
   clearHistory: () => Promise<void>;
   removeHistoryEntry: (id: string) => Promise<void>;
   resetSession: () => void;
-  demoMode: boolean;
-  setDemoMode: (on: boolean) => Promise<void>;
-  demoActionExecuted: boolean;
-  setDemoActionExecuted: (value: boolean) => void;
-  analysisUsedFallback: boolean;
-  setAnalysisUsedFallback: (value: boolean) => void;
   useCase: UseCaseType;
   setUseCase: (useCase: UseCaseType) => Promise<void>;
   preferencesLoaded: boolean;
@@ -69,9 +58,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [demoMode, setDemoModeState] = useState(false);
-  const [demoActionExecuted, setDemoActionExecuted] = useState(false);
-  const [analysisUsedFallback, setAnalysisUsedFallback] = useState(false);
   const [useCase, setUseCaseState] = useState<UseCaseType>('board');
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [historyHydrating, setHistoryHydrating] = useState(false);
@@ -87,16 +73,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      const [demo, uc] = await Promise.all([getDemoMode(), getUseCase()]);
-      setDemoModeState(demo);
+      const uc = await getUseCase();
       setUseCaseState(uc);
       setPreferencesLoaded(true);
     })();
-  }, []);
-
-  const setDemoMode = useCallback(async (on: boolean) => {
-    setDemoModeState(on);
-    await persistDemoMode(on);
   }, []);
 
   const setUseCase = useCallback(async (uc: UseCaseType) => {
@@ -154,8 +134,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSourceFileName(null);
     setAnalysisResults(null);
     setIsAnalyzing(false);
-    setDemoActionExecuted(false);
-    setAnalysisUsedFallback(false);
   };
 
   return (
@@ -180,12 +158,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         clearHistory,
         removeHistoryEntry,
         resetSession,
-        demoMode,
-        setDemoMode,
-        demoActionExecuted,
-        setDemoActionExecuted,
-        analysisUsedFallback,
-        setAnalysisUsedFallback,
         useCase,
         setUseCase,
         preferencesLoaded,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Switch } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
@@ -10,8 +10,6 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAppContext } from '@/context/AppContext';
 import { getGeminiConfigError } from '@/services/gemini';
 import { setOnboardingComplete } from '@/services/appPreferences';
-import { UI } from '@/constants/plainLanguage';
-import { loadWinningDemoScenario } from '@/utils/loadWinningDemoScenario';
 import { colors, spacing, screenContent } from '@/constants/designTokens';
 
 type ConfirmKind = 'reset' | 'clear' | null;
@@ -19,21 +17,7 @@ type ConfirmKind = 'reset' | 'clear' | null;
 export default function SettingsScreen() {
   const router = useRouter();
   const [confirmKind, setConfirmKind] = useState<ConfirmKind>(null);
-  const {
-    resetSession,
-    clearHistory,
-    history,
-    demoMode,
-    setDemoMode,
-    setUploadedText,
-    setSourceFileName,
-    setIndustry,
-    setUseCase,
-    setAnalysisMode,
-    setAnalysisResults,
-    setDemoActionExecuted,
-    setAnalysisUsedFallback,
-  } = useAppContext();
+  const { resetSession, clearHistory, history } = useAppContext();
   const apiStatus = getGeminiConfigError();
 
   const handleReset = () => {
@@ -55,54 +39,6 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Card title={UI.demo.settingsTitle} style={styles.card}>
-          <View style={styles.switchRow}>
-            <View style={styles.switchBody}>
-              <Typography style={styles.switchLabel}>Demo mode</Typography>
-              <Typography variant="caption" style={styles.switchHint}>
-                {UI.demo.settingsBody}
-              </Typography>
-            </View>
-            <Switch
-              value={demoMode}
-              onValueChange={setDemoMode}
-              trackColor={{ false: colors.surfaceHighlight, true: colors.accent }}
-              thumbColor={colors.white}
-            />
-          </View>
-          <Button
-            title={UI.demo.loadWinningBtn}
-            onPress={() =>
-              void loadWinningDemoScenario(
-                {
-                  setDemoMode,
-                  setUploadedText,
-                  setSourceFileName,
-                  setIndustry,
-                  setUseCase,
-                  setAnalysisMode,
-                  setAnalysisResults,
-                  setDemoActionExecuted,
-                  setAnalysisUsedFallback,
-                },
-                router,
-              )
-            }
-            fullWidth
-            style={styles.btnSpaced}
-          />
-          <Typography variant="caption" style={styles.switchHint}>
-            {UI.demo.loadWinningHint}
-          </Typography>
-          <Button
-            title="Replay welcome intro"
-            variant="secondary"
-            onPress={handleReplayOnboarding}
-            fullWidth
-            style={styles.btnSpaced}
-          />
-        </Card>
-
         <Card title="App" style={styles.card}>
           <Row label="Version" value={Constants.expoConfig?.version ?? '1.0.0'} />
           <Row label="Saved analyses" value={String(history.length)} />
@@ -116,9 +52,7 @@ export default function SettingsScreen() {
           />
           <Typography variant="caption" style={styles.hint}>
             {apiStatus
-              ? demoMode
-                ? 'API key not set — demo mode will use the curated Lahore storyline.'
-                : apiStatus
+              ? apiStatus
               : 'Using gemini-2.5-flash. Set EXPO_PUBLIC_GEMINI_API_KEY in .env'}
           </Typography>
         </Card>
@@ -134,6 +68,13 @@ export default function SettingsScreen() {
             title="Clear Analysis History"
             variant="danger"
             onPress={() => setConfirmKind('clear')}
+            fullWidth
+            style={styles.btnSpaced}
+          />
+          <Button
+            title="Replay welcome intro"
+            variant="ghost"
+            onPress={handleReplayOnboarding}
             fullWidth
             style={styles.btnSpaced}
           />
@@ -185,15 +126,6 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.bg },
   scroll: screenContent,
   card: { marginBottom: spacing.md },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  switchBody: { flex: 1 },
-  switchLabel: { fontWeight: '700', marginBottom: 4 },
-  switchHint: { color: colors.textMuted, lineHeight: 18 },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',

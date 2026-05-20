@@ -13,7 +13,9 @@ import { AutonomousWorkflowReplay } from '@/components/AutonomousWorkflowReplay'
 import { useAppContext } from '@/context/AppContext';
 import { ANALYSIS_MODE_OPTIONS } from '@/types/analysis';
 import { formatReportAsText } from '@/utils/formatReport';
+import { exportReportPdf } from '@/services/exportReportPdf';
 import { generateExecutiveBrief } from '@/services/gemini';
+import { FileDown } from 'lucide-react-native';
 import { UI, looksLikeResume } from '@/constants/plainLanguage';
 import { ExecutiveAlertHeader } from '@/components/ExecutiveAlertHeader';
 import { ExecutivePathCompare } from '@/components/ExecutivePathCompare';
@@ -25,13 +27,11 @@ import { ExecutiveVoiceBriefing } from '@/components/ExecutiveVoiceBriefing';
 import { AIDecisionScorecard } from '@/components/AIDecisionScorecard';
 import { AIDebateMode } from '@/components/AIDebateMode';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { DemoStepBar } from '@/components/DemoStepBar';
 import { ResultsJumpNav, type ResultsSectionId } from '@/components/ResultsJumpNav';
 import { ScrollSection } from '@/components/ScrollSection';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ResultsSkeleton } from '@/components/ResultsSkeleton';
-import { DemoSummaryCard } from '@/components/DemoSummaryCard';
 import { colors, spacing, screenContent, radius } from '@/constants/designTokens';
 
 export default function ResultsScreen() {
@@ -43,12 +43,11 @@ export default function ResultsScreen() {
     analysisMode,
     historyHydrating,
     setHistoryHydrating,
-    demoMode,
-    analysisUsedFallback,
   } = useAppContext();
   const modeLabel =
     ANALYSIS_MODE_OPTIONS.find((m) => m.id === analysisMode)?.label ?? 'Analysis';
   const [exportMessage, setExportMessage] = useState('');
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [briefBullets, setBriefBullets] = useState<string[] | null>(null);
   const [briefLoading, setBriefLoading] = useState(false);
   const [activeJump, setActiveJump] = useState<ResultsSectionId>('alert');
@@ -118,6 +117,20 @@ export default function ResultsScreen() {
     setTimeout(() => setExportMessage(''), 3000);
   };
 
+  const handleExportPdf = async () => {
+    setPdfLoading(true);
+    setExportMessage('');
+    try {
+      await exportReportPdf(results);
+      setExportMessage(UI.results.exportPdfDone);
+    } catch {
+      setExportMessage(UI.results.exportPdfError);
+    } finally {
+      setPdfLoading(false);
+      setTimeout(() => setExportMessage(''), 4000);
+    }
+  };
+
   const handleExecutiveBrief = async () => {
     setBriefLoading(true);
     setBriefBullets(null);
@@ -125,11 +138,7 @@ export default function ResultsScreen() {
       const bullets = await generateExecutiveBrief(uploadedText, results);
       setBriefBullets(bullets);
     } catch {
-      setExportMessage(
-        demoMode
-          ? 'Brief unavailable right now — use the summary above.'
-          : 'Could not generate brief. Try again.',
-      );
+      setExportMessage('Could not generate brief. Try again.');
       setTimeout(() => setExportMessage(''), 4000);
     } finally {
       setBriefLoading(false);
@@ -144,8 +153,6 @@ export default function ResultsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <DemoStepBar current="decide" />
-
         <ScreenHeader
           title={UI.results.title}
           subtitle={UI.results.subtitle}
@@ -154,17 +161,9 @@ export default function ResultsScreen() {
 
         <ResultsJumpNav active={activeJump} onJump={jumpTo} />
 
-        {analysisUsedFallback ? (
-          <View style={styles.demoStrip}>
-            <Typography variant="caption" style={styles.demoStripText}>
-              {UI.demo.fallbackBanner}
-            </Typography>
-          </View>
-        ) : !demoMode ? (
-          <Typography variant="caption" style={styles.disclaimer}>
-            {UI.results.demoDisclaimer}
-          </Typography>
-        ) : null}
+        <Typography variant="caption" style={styles.disclaimer}>
+          {UI.results.demoDisclaimer}
+        </Typography>
 
         {showResumeTip ? (
           <Card variant="alert" style={styles.resumeBanner}>
@@ -218,7 +217,6 @@ export default function ResultsScreen() {
             </View>
           </Card>
 
-          <DemoSummaryCard results={results} />
         </ScrollSection>
 
         <ScrollSection sectionId="trace" onMeasure={onSectionMeasure}>
@@ -351,6 +349,14 @@ export default function ResultsScreen() {
       </ScrollView>
 
       <View style={[styles.stickyBar, { paddingBottom: Math.max(spacing.md, insets.bottom) }]}>
+        <Button
+          title={pdfLoading ? UI.results.exportPdfLoading : UI.results.exportPdf}
+          onPress={handleExportPdf}
+          isLoading={pdfLoading}
+          fullWidth
+          iconLeft={<FileDown size={18} color={colors.white} />}
+          style={styles.exportPdfBtn}
+        />
         <View style={styles.stickyRow}>
           <Button title={UI.results.share} onPress={handleShare} style={styles.stickyBtn} />
           <Button
@@ -398,20 +404,6 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     fontSize: 12,
   },
-  demoStrip: {
-    marginBottom: spacing.md,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.warningSoft,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.borderWarning,
-  },
-  demoStripText: {
-    color: colors.accentText,
-    fontSize: 12,
-    lineHeight: 17,
-  },
   scrollFooterSpacer: {
     height: 8,
   },
@@ -422,6 +414,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: colors.surfaceElevated,
+  },
+  exportPdfBtn: {
+    marginBottom: spacing.sm,
   },
   stickyRow: {
     flexDirection: 'row',

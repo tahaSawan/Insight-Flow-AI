@@ -90,14 +90,6 @@ export const UI = {
 
     howItWorks: 'How it works',
 
-    judgeDemoBtn: 'Judge demo (90 sec)',
-
-    judgeDemoHint: 'Loads tech sample · board view · 5 helpers',
-
-    winningDemoBtn: 'Load Winning Demo Scenario',
-
-    winningDemoHint: 'Lahore sales · fuel spike · complaints · crisis mode',
-
     lastRunTitle: 'Last decision report',
 
     lastRunTap: 'Tap to reopen',
@@ -393,13 +385,21 @@ export const UI = {
 
     copy: 'Copy report',
 
+    exportPdf: 'Export PDF',
+
+    exportPdfLoading: 'Creating PDF…',
+
+    exportPdfDone: 'PDF ready — save or share from the sheet',
+
+    exportPdfError: 'Could not create PDF. Try again.',
+
     newAnalysis: 'New report',
 
     backHome: 'Back to home',
 
     resumeBanner:
 
-      'Heads up: this looks like a resume. Numbers and “before/after” are just a demo. For judges, use “Try sample report” on Upload.',
+      'Heads up: this looks like a resume. For business analysis, use “Try sample report” on Upload.',
 
   },
 
@@ -407,26 +407,6 @@ export const UI = {
 
     label: 'How should the AI work?',
 
-  },
-
-  demo: {
-    badgeLabel: 'DEMO MODE',
-    summaryTitle: 'Demo Summary',
-    summaryHint: 'Your hackathon storyline at a glance',
-    summaryInput: 'Input analyzed',
-    summaryRisk: 'Risk detected',
-    summaryAction: 'Action executed',
-    summaryOutcome: 'Outcome improved',
-    summaryActionPending: 'Run Execute Action above to complete this step',
-    summaryOutcomePending: 'Shows after demo execution completes',
-    fallbackBanner:
-      'Live AI was unavailable — showing your curated Lahore recovery storyline.',
-    friendlyBusy: 'AI is busy — your prepared demo storyline is loading.',
-    loadWinningBtn: 'Load Winning Demo Scenario',
-    loadWinningHint: 'Lahore sales decline · fuel costs · customer complaints',
-    settingsTitle: 'Hackathon Demo Mode',
-    settingsBody:
-      'Faster animations, friendly errors, and a polished Lahore storyline if the API is down.',
   },
 
 } as const;
