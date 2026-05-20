@@ -4,6 +4,8 @@ import { Volume2, VolumeX, Play, Pause } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
+import { UI } from '@/constants/plainLanguage';
+import { colors, featureSection } from '@/constants/designTokens';
 import type { AnalysisResult } from '@/types/analysis';
 
 /** ~150 wpm at rate 1.1 → keep copy under ~70 words for a sub-30s brief. */
@@ -159,25 +161,25 @@ export function ExecutiveVoiceBriefing({ results }: ExecutiveVoiceBriefingProps)
   };
 
   return (
-    <Card style={styles.card}>
+    <Card style={featureSection}>
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Volume2 size={18} color="#C084FC" />
+          <Volume2 size={18} color={colors.accent} />
           <Typography variant="h3" style={styles.title}>
-            Executive Voice Briefing
+            {UI.results.voiceBriefTitle}
           </Typography>
         </View>
-        
+
         {isPlaying ? (
           <View style={styles.pulseContainer}>
             <View style={styles.pulseDot} />
-            <Typography style={styles.pulseText}>LIVE AUDIO</Typography>
+            <Typography style={styles.pulseText}>{UI.results.voicePlaying}</Typography>
           </View>
         ) : null}
       </View>
 
       <Typography variant="caption" style={styles.subtitle}>
-        Tap to hear a short briefing from your alert, main risk, chosen action, and expected outcome (under 30 seconds).
+        {UI.results.voiceBriefHint}
       </Typography>
 
       <View style={styles.controlRow}>
@@ -225,18 +227,6 @@ export function ExecutiveVoiceBriefing({ results }: ExecutiveVoiceBriefingProps)
 }
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(192, 132, 252, 0.45)', // Premium light violet border
-    backgroundColor: 'rgba(20, 10, 40, 0.45)', // Futuristic glassmorphism
-    shadowColor: '#C084FC',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

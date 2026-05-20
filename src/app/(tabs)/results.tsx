@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, Share, ActivityIndicator, Pressable } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
@@ -26,11 +26,15 @@ import { DemoStepBar } from '@/components/DemoStepBar';
 import { ResultsJumpNav, type ResultsSectionId } from '@/components/ResultsJumpNav';
 import { ScrollSection } from '@/components/ScrollSection';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
-import { colors, spacing } from '@/constants/designTokens';
+import { SectionHeader } from '@/components/SectionHeader';
+import { ResultsSkeleton } from '@/components/ResultsSkeleton';
+import { colors, spacing, featureSection } from '@/constants/designTokens';
 
 export default function ResultsScreen() {
   const router = useRouter();
-  const { analysisResults, uploadedText, analysisMode } = useAppContext();
+  const insets = useSafeAreaInsets();
+  const { analysisResults, uploadedText, analysisMode, historyHydrating, setHistoryHydrating } =
+    useAppContext();
   const modeLabel =
     ANALYSIS_MODE_OPTIONS.find((m) => m.id === analysisMode)?.label ?? 'Analysis';
   const [exportMessage, setExportMessage] = useState('');
@@ -62,12 +66,18 @@ export default function ResultsScreen() {
     }
   }, [analysisResults, uploadedText, router]);
 
+  useEffect(() => {
+    if (!historyHydrating || !analysisResults) return;
+    const timer = setTimeout(() => setHistoryHydrating(false), 500);
+    return () => clearTimeout(timer);
+  }, [historyHydrating, analysisResults, setHistoryHydrating]);
+
   if (!analysisResults) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <View style={styles.emptyState}>
           <Typography variant="h2">{UI.results.emptyTitle}</Typography>
-          <Typography variant="body" style={styles.subtitle}>
+          <Typography variant="body" style={styles.emptySubtitle}>
             {UI.results.emptySubtitle}
           </Typography>
         </View>
@@ -112,25 +122,6 @@ export default function ResultsScreen() {
     }
   };
 
-  const renderMetricBar = (
-    label: string,
-    value: string,
-    percentage: number,
-    colorStyle: object,
-  ) => (
-    <View style={styles.metricContainer}>
-      <View style={styles.metricHeader}>
-        <Typography variant="caption" style={styles.metricLabel}>
-          {label}
-        </Typography>
-        <Typography style={styles.metricValue}>{value}</Typography>
-      </View>
-      <View style={styles.metricBarBg}>
-        <View style={[styles.metricBarFill, colorStyle, { width: `${percentage}%` }]} />
-      </View>
-    </View>
-  );
-
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ScrollView
@@ -161,6 +152,10 @@ export default function ResultsScreen() {
           </Card>
         ) : null}
 
+        {historyHydrating ? (
+          <ResultsSkeleton />
+        ) : (
+          <>
         <ScrollSection sectionId="alert" onMeasure={onSectionMeasure}>
           <DecisionAlert results={results} />
         </ScrollSection>
@@ -174,13 +169,11 @@ export default function ResultsScreen() {
         </ScrollSection>
 
         <ScrollSection sectionId="actions" onMeasure={onSectionMeasure}>
-          <Card style={styles.heroCard}>
-            <Typography variant="h3" style={styles.heroTitle}>
-              Live action simulation
-            </Typography>
-            <Typography variant="caption" style={styles.sectionHint}>
-              Approve steps, then execute — Slack, email, CRM (demo).
-            </Typography>
+          <Card style={[styles.heroCard, featureSection]}>
+            <SectionHeader
+              title={UI.results.actionsSectionTitle}
+              hint={UI.results.actionsSectionHint}
+            />
             <ActionCommander results={results} />
           </Card>
         </ScrollSection>
@@ -204,22 +197,8 @@ export default function ResultsScreen() {
           </Typography>
           <Typography style={styles.executiveSummary}>{results.executiveSummary}</Typography>
 
-          <View style={styles.metricsGroup}>
-            {renderMetricBar(
-              UI.results.problemSeriousness,
-              `${results.riskScore}/100`,
-              results.riskScore,
-              styles.bgRed,
-            )}
-            {renderMetricBar(
-              UI.results.howSure,
-              `${results.confidence}%`,
-              results.confidence,
-              styles.bgEmerald,
-            )}
-          </View>
-          <Typography variant="caption" style={styles.metricFootnote}>
-            {UI.results.problemSeriousnessHint} · {UI.results.howSureHint}
+          <Typography variant="caption" style={styles.detailsMetricsHint}>
+            {UI.results.detailsNoMetricsHint}
           </Typography>
 
           <View style={styles.summaryRow}>
@@ -345,9 +324,11 @@ export default function ResultsScreen() {
         </ScrollSection>
 
         <View style={styles.scrollFooterSpacer} />
+          </>
+        )}
       </ScrollView>
 
-      <View style={styles.stickyBar}>
+      <View style={[styles.stickyBar, { paddingBottom: Math.max(spacing.md, insets.bottom) }]}>
         <View style={styles.stickyRow}>
           <Button title={UI.results.share} onPress={handleShare} style={styles.stickyBtnPrimary} />
           <Button
@@ -379,6 +360,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 32,
     gap: 12,
+  },
+  emptySubtitle: {
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   scrollContent: {
     paddingHorizontal: spacing.lg,
@@ -437,12 +423,12 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     marginBottom: 16,
-    padding: 24,
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 8,
+    padding: spacing.lg,
+  },
+  detailsMetricsHint: {
+    color: colors.textMuted,
+    marginBottom: spacing.md,
+    lineHeight: 18,
   },
   resumeBanner: {
     marginBottom: 16,
@@ -457,22 +443,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   heroCard: {
-    marginBottom: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.45)',
-    backgroundColor: 'rgba(168, 85, 247, 0.08)',
-    shadowColor: '#A855F7',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  heroTitle: {
-    color: '#E9D5FF',
-    fontSize: 18,
-    fontWeight: '800',
-    marginBottom: 4,
+    padding: spacing.md,
   },
   cardTitle: {
     fontSize: 20,
@@ -483,52 +454,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     lineHeight: 18,
   },
-  metricFootnote: {
-    color: '#64748B',
-    marginBottom: 8,
-    fontSize: 11,
-    lineHeight: 16,
-  },
   executiveSummary: {
-    color: '#CBD5E1',
+    color: colors.textSecondary,
     fontSize: 15,
     lineHeight: 24,
-    marginBottom: 20,
-  },
-  metricsGroup: {
-    marginBottom: 16,
-  },
-  metricContainer: {
-    marginBottom: 16,
-  },
-  metricHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  metricLabel: {
-    fontWeight: '500',
-    color: '#94A3B8',
-  },
-  metricValue: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  metricBarBg: {
-    height: 8,
-    backgroundColor: '#1F1F2E',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  metricBarFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  bgRed: {
-    backgroundColor: '#EF4444',
-  },
-  bgEmerald: {
-    backgroundColor: '#10B981',
+    marginBottom: spacing.md,
   },
   summaryRow: {
     flexDirection: 'row',

@@ -32,7 +32,7 @@ export const radius = {
 } as const;
 
 export const fontSize = {
-  title: 28,
+  title: 26,
   heading: 20,
   subheading: 16,
   body: 15,

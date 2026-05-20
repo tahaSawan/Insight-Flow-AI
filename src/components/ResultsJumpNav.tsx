@@ -41,7 +41,11 @@ export function ResultsJumpNav({ active, onJump }: ResultsJumpNavProps) {
           <Pressable
             key={chip.id}
             onPress={() => onJump(chip.id)}
-            style={[styles.chip, isActive && styles.chipActive]}
+            style={({ pressed }) => [
+              styles.chip,
+              isActive && styles.chipActive,
+              pressed && styles.chipPressed,
+            ]}
           >
             <Typography style={[styles.chipText, isActive && styles.chipTextActive]}>
               {chip.label}
@@ -73,6 +77,9 @@ const styles = StyleSheet.create({
   chipActive: {
     backgroundColor: colors.accentSoft,
     borderColor: colors.borderAccent,
+  },
+  chipPressed: {
+    opacity: 0.85,
   },
   chipText: {
     fontSize: fontSize.caption,

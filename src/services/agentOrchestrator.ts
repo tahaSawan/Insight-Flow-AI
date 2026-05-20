@@ -290,6 +290,7 @@ async function runExecutionAgent(
       expectedOutcome: string;
       confidence: number;
     };
+    agentDebate?: unknown;
   }>(`
 You are the Results helper. This is a DEMO — pretend actions only, simple words.
 ${PLAIN_LANGUAGE_AI_RULES}

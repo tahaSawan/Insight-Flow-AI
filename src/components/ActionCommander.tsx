@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, StyleSheet, Vibration, Platform, Pressable } from 'react-native';
-import { Check } from 'lucide-react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
+import { Check, MessageSquare, Mail, Building2, LayoutDashboard } from 'lucide-react-native';
+import { colors, spacing, radius } from '@/constants/designTokens';
+import { hapticLight, hapticSuccess } from '@/utils/haptics';
 import { Button } from '@/components/Button';
 import { Typography } from '@/components/Typography';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -38,9 +40,12 @@ function getChannelMeta(industry: IndustryType) {
   } satisfies Record<ActionChannel, { label: string; header: string; accent: string }>;
 }
 
-function pulse() {
-  if (Platform.OS !== 'web') Vibration.vibrate(40);
-}
+const CHANNEL_ICONS = {
+  slack: MessageSquare,
+  email: Mail,
+  crm: Building2,
+  dashboard: LayoutDashboard,
+} as const;
 
 export function ActionCommander({ results }: ActionCommanderProps) {
   const { demoMode, industry } = useAppContext();
@@ -61,6 +66,7 @@ export function ActionCommander({ results }: ActionCommanderProps) {
 
   const toggleApproved = (index: number) => {
     if (phase === 'running') return;
+    void hapticLight();
     setApproved((prev) => {
       const next = [...prev];
       next[index] = !next[index];
@@ -78,7 +84,7 @@ export function ActionCommander({ results }: ActionCommanderProps) {
       const i = approvedIndices[step];
       setCurrentIndex(i);
       setRunProgress(((step + 0.3) / approvedIndices.length) * 100);
-      pulse();
+      void hapticLight();
       await new Promise((r) => setTimeout(r, stepMs));
       setCompleted((prev) => {
         const next = [...prev];
@@ -91,7 +97,7 @@ export function ActionCommander({ results }: ActionCommanderProps) {
     setCurrentIndex(-1);
     setPhase('done');
     setRunProgress(100);
-    pulse();
+    void hapticSuccess();
   }, [actions, approvedIndices, canRun, stepMs]);
 
   const reset = () => {
@@ -168,30 +174,6 @@ export function ActionCommander({ results }: ActionCommanderProps) {
   );
 }
 
-function getEmojiIcon(icon: string): string {
-  if (!icon || icon.trim() === '') return '✅';
-  const clean = icon.toLowerCase().trim().replace(/[-_]/g, ' ');
-  
-  if (clean.includes('bug') || clean.includes('fix') || clean.includes('software')) return '🛠️';
-  if (clean.includes('support') || clean.includes('headset') || clean.includes('capacity') || clean.includes('customer')) return '📞';
-  if (clean.includes('compliance') || clean.includes('security') || clean.includes('audit') || clean.includes('check')) return '🛡️';
-  if (clean.includes('server') || clean.includes('database') || clean.includes('infra')) return '🖥️';
-  if (clean.includes('email') || clean.includes('mail') || clean.includes('message')) return '✉️';
-  if (clean.includes('slack') || clean.includes('chat') || clean.includes('channel')) return '💬';
-  if (clean.includes('crm') || clean.includes('sales') || clean.includes('hubspot') || clean.includes('salesforce')) return '💼';
-  if (clean.includes('dashboard') || clean.includes('chart') || clean.includes('metric') || clean.includes('kpi')) return '📊';
-  if (clean.includes('alert') || clean.includes('warn') || clean.includes('urgency')) return '🔔';
-  if (clean.includes('brief') || clean.includes('report') || clean.includes('document')) return '📄';
-  if (clean.includes('meeting') || clean.includes('call') || clean.includes('board')) return '👥';
-  if (clean.includes('money') || clean.includes('revenue') || clean.includes('finance') || clean.includes('budget')) return '💰';
-  if (clean.includes('speed') || clean.includes('performance') || clean.includes('fast')) return '⚡';
-  
-  // If it is already a single character or an emoji, return it
-  if ([...icon].length <= 2) return icon;
-  
-  return '✅';
-}
-
 function getIconBgColor(channel: ActionChannel, approved: boolean) {
   if (!approved) return 'rgba(71, 85, 105, 0.08)'; // Grayed out if skipped
   switch (channel) {
@@ -235,6 +217,7 @@ function ActionRow({
 }) {
   const channel = action.channel || (['slack', 'email', 'crm'] as const)[index] || 'dashboard';
   const ch = meta[channel];
+  const ChannelIcon = CHANNEL_ICONS[channel];
 
   return (
     <View style={[styles.row, isActive && styles.rowActive, isDone && styles.rowDone]}>
@@ -242,29 +225,38 @@ function ActionRow({
         {selectable ? (
           <Pressable
             onPress={onToggleApprove}
-            style={[styles.checkbox, approved && styles.checkboxOn]}
+            style={({ pressed }) => [
+              styles.checkbox,
+              approved && styles.checkboxOn,
+              pressed && styles.pressed,
+            ]}
           >
-            {approved ? <Check size={14} color="#FFF" /> : null}
+            {approved ? <Check size={18} color="#FFF" /> : null}
           </Pressable>
         ) : null}
-        
-        <View style={[
-          styles.iconContainer, 
-          { 
-            backgroundColor: getIconBgColor(channel, approved),
-            borderColor: getIconBorderColor(channel, approved),
-          }
-        ]}>
-          <Typography style={[styles.icon, !approved && { opacity: 0.5 }]}>
-            {getEmojiIcon(action.icon)}
-          </Typography>
+
+        <View
+          style={[
+            styles.iconContainer,
+            {
+              backgroundColor: getIconBgColor(channel, approved),
+              borderColor: getIconBorderColor(channel, approved),
+            },
+          ]}
+        >
+          <ChannelIcon size={20} color={approved ? ch.accent : colors.textMuted} />
         </View>
 
         <View style={styles.rowBody}>
-          <Typography style={[styles.title, !approved && { color: '#64748B' }]}>
+          <View style={styles.channelPill}>
+            <Typography style={[styles.channelLabel, { color: ch.accent }]}>
+              {ch.label}
+            </Typography>
+          </View>
+          <Typography style={[styles.title, !approved && styles.titleMuted]}>
             {action.title}
           </Typography>
-          <Typography variant="caption" style={!approved ? { color: '#475569' } : { color: '#94A3B8' }}>
+          <Typography variant="caption" style={!approved ? styles.descMuted : styles.desc}>
             {action.description}
           </Typography>
         </View>
@@ -288,65 +280,75 @@ function ActionRow({
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 10 },
-  progressWrap: { marginBottom: 8, gap: 6 },
-  progressLabel: { color: '#A5B4FC', textAlign: 'center' },
-  approveHint: { color: '#64748B', textAlign: 'center', marginBottom: 4, lineHeight: 18 },
+  wrap: { gap: spacing.sm },
+  progressWrap: { marginBottom: spacing.sm, gap: 6 },
+  progressLabel: { color: colors.accentText, textAlign: 'center' },
+  approveHint: { color: colors.textMuted, textAlign: 'center', marginBottom: 4, lineHeight: 18 },
   runBtn: { paddingVertical: 16, marginTop: 4 },
-  demoNote: { color: '#818CF8', textAlign: 'center' },
+  demoNote: { color: colors.accentText, textAlign: 'center' },
+  pressed: { opacity: 0.85 },
   row: {
-    backgroundColor: '#13131F', // Slightly deeper translucent-looking base
-    borderRadius: 12,
-    padding: 12,
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: radius.md,
+    padding: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: colors.border,
   },
   rowActive: {
-    borderColor: 'rgba(99, 102, 241, 0.6)',
-    backgroundColor: 'rgba(99, 102, 241, 0.08)',
+    borderColor: colors.borderAccent,
+    backgroundColor: colors.accentSoft,
   },
   rowDone: { borderColor: 'rgba(16, 185, 129, 0.35)' },
-  rowHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  rowHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
+    width: 32,
+    height: 32,
+    borderRadius: radius.sm,
     borderWidth: 2,
-    borderColor: '#475569',
+    borderColor: colors.textMuted,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 4,
   },
-  checkboxOn: { backgroundColor: '#6366F1', borderColor: '#6366F1' },
+  checkboxOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   iconContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+    width: 44,
+    height: 44,
+    borderRadius: radius.sm,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  icon: { 
-    fontSize: 18, 
-    textAlign: 'center', 
-    lineHeight: 22,
+    marginTop: 2,
   },
   rowBody: { flex: 1 },
-  title: { fontWeight: '700', marginBottom: 3, fontSize: 14, color: '#F3E8FF' },
-  status: { fontSize: 10, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 },
-  statusDone: { color: '#10B981' },
+  channelPill: {
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: colors.bg,
+  },
+  channelLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 0.4 },
+  title: { fontWeight: '700', marginBottom: 3, fontSize: 15, color: colors.text },
+  titleMuted: { color: colors.textMuted },
+  desc: { color: colors.textSecondary },
+  descMuted: { color: colors.textMuted },
+  status: { fontSize: 10, fontWeight: '800', color: colors.textMuted, letterSpacing: 0.5, marginTop: 6 },
+  statusDone: { color: colors.success },
   mockCard: {
     marginTop: 10,
     padding: 12,
-    backgroundColor: '#0A0A0F',
-    borderRadius: 8,
+    backgroundColor: colors.bg,
+    borderRadius: radius.sm,
     borderLeftWidth: 3,
   },
-  mockChannel: { fontSize: 11, color: '#94A3B8', fontWeight: '600', marginBottom: 6 },
-  mockBody: { color: '#E2E8F0', fontSize: 13, lineHeight: 19 },
+  mockChannel: { fontSize: 11, color: colors.textSecondary, fontWeight: '600', marginBottom: 6 },
+  mockBody: { color: colors.text, fontSize: 13, lineHeight: 19 },
   doneBanner: {
     marginTop: 4,
     padding: 14,
-    borderRadius: 10,
+    borderRadius: radius.sm,
     backgroundColor: 'rgba(16, 185, 129, 0.12)',
     borderWidth: 1,
     borderColor: 'rgba(16, 185, 129, 0.35)',

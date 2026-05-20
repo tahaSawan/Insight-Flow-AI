@@ -71,8 +71,9 @@ export default function TabsLayout() {
           name="analysis"
           options={{
             title: 'Analysis',
-            href: hasUpload ? '/analysis' : null,
-            tabBarIcon: ({ color, size }) => <BrainCircuit color={color} size={size} />,
+            tabBarIcon: ({ color, size }) => (
+              <BrainCircuit color={hasUpload ? color : `${color}88`} size={size} />
+            ),
           }}
           listeners={{
             tabPress: (e) => {
@@ -87,8 +88,9 @@ export default function TabsLayout() {
           name="results"
           options={{
             title: 'Results',
-            href: hasResults ? '/results' : null,
-            tabBarIcon: ({ color, size }) => <BarChart3 color={color} size={size} />,
+            tabBarIcon: ({ color, size }) => (
+              <BarChart3 color={hasResults ? color : `${color}88`} size={size} />
+            ),
           }}
           listeners={{
             tabPress: (e) => {
@@ -107,8 +109,9 @@ export default function TabsLayout() {
           name="history"
           options={{
             title: 'History',
-            href: history.length > 0 ? '/history' : null,
-            tabBarIcon: ({ color, size }) => <History color={color} size={size} />,
+            tabBarIcon: ({ color, size }) => (
+              <History color={history.length > 0 ? color : `${color}88`} size={size} />
+            ),
           }}
           listeners={{
             tabPress: (e) => {

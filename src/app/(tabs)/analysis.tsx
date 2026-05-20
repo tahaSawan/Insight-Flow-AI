@@ -236,26 +236,34 @@ export default function AnalysisScreen() {
         ) : null}
 
         {preview ? (
-          <Card style={styles.previewCard}>
-            <Typography variant="h3" style={styles.previewTitle}>
-              {isFullMode ? UI.analysis.previewTitleFull : UI.analysis.previewTitleFast}
+          <Card variant="accent" style={styles.previewCard}>
+            <Typography variant="caption" style={styles.previewLabel}>
+              {UI.analysis.previewHeroLabel}
             </Typography>
-            <Typography style={styles.previewSummary} numberOfLines={3}>
-              {preview.executiveSummary}
+            <Typography style={styles.previewHeadline} numberOfLines={2}>
+              {preview.urgencyHeadline || preview.executiveSummary}
             </Typography>
-            <View style={styles.previewRow}>
+            <View style={styles.previewMeta}>
               <StatPreviewCard
                 label={UI.home.riskLabel}
                 value={`${preview.riskScore}`}
-                accent="#EF4444"
+                accent={colors.danger}
               />
               <View style={styles.gap} />
               <StatPreviewCard
                 label={UI.home.sureLabel}
                 value={`${preview.confidence}%`}
-                accent="#10B981"
+                accent={colors.success}
               />
             </View>
+            <Typography variant="caption" style={styles.previewActionLabel}>
+              {UI.analysis.previewTopAction}
+            </Typography>
+            <Typography style={styles.previewAction} numberOfLines={2}>
+              {preview.autonomousDecision?.primaryDecision ||
+                preview.recommendedActions[0] ||
+                '—'}
+            </Typography>
             <Button
               title={UI.analysis.viewReport}
               onPress={handleViewResults}
@@ -299,10 +307,18 @@ const styles = StyleSheet.create({
   errorCard: { padding: 20, gap: 12 },
   errorMessage: { color: '#FCA5A5', lineHeight: 22 },
   actionBtn: { paddingVertical: 14 },
-  previewCard: { padding: 20, gap: 12 },
-  previewTitle: { color: '#818CF8', fontSize: 16 },
-  previewSummary: { color: '#CBD5E1', lineHeight: 22, fontSize: 14 },
-  previewRow: { flexDirection: 'row' },
+  previewCard: { padding: 20, gap: 10 },
+  previewLabel: {
+    color: colors.accentText,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  previewHeadline: { color: colors.text, fontSize: 17, fontWeight: '700', lineHeight: 24 },
+  previewMeta: { flexDirection: 'row', marginVertical: 4 },
+  previewActionLabel: { color: colors.textMuted, marginTop: 4, fontWeight: '600' },
+  previewAction: { color: colors.textSecondary, fontSize: 14, lineHeight: 20 },
   gap: { width: 10 },
   viewResultsBtn: { paddingVertical: 16 },
 });

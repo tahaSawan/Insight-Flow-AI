@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { AlertTriangle } from 'lucide-react-native';
 import { Typography } from '@/components/Typography';
+import { featureSection } from '@/constants/designTokens';
 import type { AnalysisResult } from '@/types/analysis';
 
 interface DecisionAlertProps {
@@ -14,7 +15,7 @@ export function DecisionAlert({ results }: DecisionAlertProps) {
   const stake = results.stakeAtRisk;
 
   return (
-    <View style={[styles.wrap, isCritical ? styles.critical : styles.elevated]}>
+    <View style={[styles.wrap, featureSection, isCritical ? styles.critical : styles.elevated]}>
       <View style={styles.row}>
         <AlertTriangle size={22} color={isCritical ? '#FCA5A5' : '#FCD34D'} />
         <View style={styles.body}>
@@ -35,7 +36,6 @@ const styles = StyleSheet.create({
   wrap: {
     borderRadius: 14,
     padding: 16,
-    marginBottom: 16,
     borderWidth: 1,
   },
   critical: {

@@ -51,6 +51,8 @@ interface AppContextType {
   useCase: UseCaseType;
   setUseCase: (useCase: UseCaseType) => Promise<void>;
   preferencesLoaded: boolean;
+  historyHydrating: boolean;
+  setHistoryHydrating: (value: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -66,6 +68,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [demoMode, setDemoModeState] = useState(false);
   const [useCase, setUseCaseState] = useState<UseCaseType>('board');
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [historyHydrating, setHistoryHydrating] = useState(false);
 
   const refreshHistory = useCallback(async () => {
     const entries = await loadHistory();
@@ -118,6 +121,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [analysisResults, uploadedText, industry, analysisMode, sourceFileName, refreshHistory]);
 
   const loadHistoryEntry = useCallback((entry: HistoryEntry) => {
+    setHistoryHydrating(true);
     setUploadedText(entry.documentText);
     setSourceFileName(entry.sourceFileName ?? null);
     setIndustry(entry.industry);
@@ -173,6 +177,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         useCase,
         setUseCase,
         preferencesLoaded,
+        historyHydrating,
+        setHistoryHydrating,
       }}
     >
       {children}

@@ -3,6 +3,8 @@ import { View, StyleSheet, Pressable, Animated, Easing, ScrollView } from 'react
 import { CheckCircle2, RotateCcw, Terminal, Cpu, Sparkles, ShieldAlert, Target, TrendingUp, Zap, FileText } from 'lucide-react-native';
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
+import { UI } from '@/constants/plainLanguage';
+import { colors, featureSection } from '@/constants/designTokens';
 import type { AnalysisResult } from '@/types/analysis';
 import type { AgentStatus } from '@/types/agents';
 
@@ -301,13 +303,12 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
   };
 
   return (
-    <Card style={styles.card}>
-      {/* Header */}
+    <Card style={featureSection}>
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Cpu size={18} color="#818CF8" />
+          <Cpu size={18} color={colors.accent} />
           <Typography variant="h3" style={styles.title}>
-            Autonomous Workflow Replay
+            {UI.results.workflowReplayTitle}
           </Typography>
         </View>
         
@@ -328,7 +329,7 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
       </View>
 
       <Typography variant="caption" style={styles.subtitle}>
-        Real-time audit log of the multi-agent decision cycle executing inside InsightFlow.
+        {UI.results.workflowReplayHint}
       </Typography>
 
       {/* Timeline Scroll */}
@@ -493,18 +494,6 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
 }
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(129, 140, 248, 0.45)', // Premium light indigo glow
-    backgroundColor: 'rgba(15, 12, 35, 0.45)', // Futuristic glassmorphism
-    shadowColor: '#818CF8',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -517,10 +506,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    color: '#E0E7FF',
+    color: colors.text,
     fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: -0.2,
+    fontWeight: '700',
   },
   subtitle: {
     color: '#94A3B8',
@@ -725,7 +713,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   terminalScroll: {
-    height: 90,
+    height: 72,
   },
   terminalContent: {
     padding: 10,

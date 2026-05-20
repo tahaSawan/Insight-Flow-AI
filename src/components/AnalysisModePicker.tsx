@@ -3,6 +3,7 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import { Typography } from '@/components/Typography';
 import { ANALYSIS_MODE_OPTIONS, type AnalysisMode } from '@/types/analysis';
 import { UI } from '@/constants/plainLanguage';
+import { colors, spacing, radius } from '@/constants/designTokens';
 
 interface AnalysisModePickerProps {
   value: AnalysisMode;
@@ -22,7 +23,11 @@ export function AnalysisModePicker({ value, onChange }: AnalysisModePickerProps)
             <Pressable
               key={opt.id}
               onPress={() => onChange(opt.id)}
-              style={[styles.option, selected && styles.optionSelected]}
+              style={({ pressed }) => [
+                styles.option,
+                selected && styles.optionSelected,
+                pressed && styles.pressed,
+              ]}
             >
               <Typography style={[styles.optionLabel, selected && styles.optionLabelSelected]}>
                 {opt.label}
@@ -39,9 +44,9 @@ export function AnalysisModePicker({ value, onChange }: AnalysisModePickerProps)
 }
 
 const styles = StyleSheet.create({
-  container: { marginBottom: 20 },
+  container: { marginBottom: spacing.lg },
   label: {
-    color: '#8A8D98',
+    color: colors.textMuted,
     marginBottom: 10,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -51,26 +56,27 @@ const styles = StyleSheet.create({
   option: {
     flex: 1,
     padding: 14,
-    borderRadius: 14,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#2D2D44',
-    backgroundColor: '#0A0A0F',
+    borderColor: colors.border,
+    backgroundColor: colors.bg,
   },
   optionSelected: {
-    borderColor: '#6366F1',
-    backgroundColor: 'rgba(99, 102, 241, 0.12)',
+    borderColor: colors.borderAccent,
+    backgroundColor: colors.accentSoft,
   },
+  pressed: { opacity: 0.85 },
   optionLabel: {
     fontWeight: '700',
     fontSize: 14,
     marginBottom: 6,
-    color: '#94A3B8',
+    color: colors.textSecondary,
   },
   optionLabelSelected: {
-    color: '#C7D2FE',
+    color: colors.accentText,
   },
   optionDesc: {
-    color: '#64748B',
+    color: colors.textMuted,
     fontSize: 11,
     lineHeight: 16,
   },

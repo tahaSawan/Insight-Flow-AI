@@ -9,6 +9,7 @@ import { Button } from '@/components/Button';
 import { useAppContext } from '@/context/AppContext';
 import { getGeminiConfigError } from '@/services/gemini';
 import { setOnboardingComplete } from '@/services/appPreferences';
+import { colors, spacing } from '@/constants/designTokens';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -54,7 +55,7 @@ export default function SettingsScreen() {
             <View style={styles.switchBody}>
               <Typography style={styles.switchLabel}>Demo mode</Typography>
               <Typography variant="caption" style={styles.switchHint}>
-                Faster action simulation for live pitches (Settings → on before demo).
+                Faster pretend actions during live demos. Turn on before your 90-second pitch.
               </Typography>
             </View>
             <Switch
@@ -133,10 +134,10 @@ function Row({
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0A0A0F' },
-  scroll: { padding: 24, paddingBottom: 40 },
-  card: { padding: 20, marginBottom: 16, gap: 12 },
-  sectionTitle: { color: '#818CF8', marginBottom: 4 },
+  safeArea: { flex: 1, backgroundColor: colors.bg },
+  scroll: { padding: spacing.lg, paddingBottom: 40 },
+  card: { padding: spacing.lg, marginBottom: spacing.md, gap: 12 },
+  sectionTitle: { color: colors.accentText, marginBottom: 4 },
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -145,16 +146,16 @@ const styles = StyleSheet.create({
   },
   switchBody: { flex: 1 },
   switchLabel: { fontWeight: '700', marginBottom: 4 },
-  switchHint: { color: '#64748B', lineHeight: 18 },
+  switchHint: { color: colors.textMuted, lineHeight: 18 },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#1F1F2E',
+    borderBottomColor: colors.border,
   },
-  hint: { color: '#64748B', lineHeight: 18 },
+  hint: { color: colors.textMuted, lineHeight: 18 },
   btnSpaced: { marginTop: 10 },
   backBtn: { marginTop: 8, paddingVertical: 16 },
 });

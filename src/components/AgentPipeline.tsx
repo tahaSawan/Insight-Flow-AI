@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   icon: { fontSize: 22, width: 28 },
   headerText: { flex: 1 },
-  name: { fontWeight: '700', fontSize: 15 },
+  name: { fontWeight: '700', fontSize: 17 },
   role: { color: '#64748B', fontSize: 11, marginTop: 2 },
   badge: {
     paddingHorizontal: 8,

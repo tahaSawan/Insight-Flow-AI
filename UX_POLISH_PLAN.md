@@ -226,12 +226,12 @@ Align with `DEMO_SCRIPT.md`.
 
 ## Success checklist (you’ll feel it when done)
 
-- [ ] New user can explain path: Upload → Analyze → Results in 10 seconds  
-- [ ] Results: first viewport shows **alert + decision** without scrolling  
-- [ ] Jump chips reach **Actions** in one tap  
-- [ ] No more than **2** heavy glow borders visible at once  
-- [ ] Upload: Analyze button always visible without scroll  
-- [ ] Friend test: “where do I tap next?” — never hesitates  
+- [x] New user can explain path: Upload → Analyze → Results in 10 seconds  
+- [x] Results: first viewport shows **alert + decision** without scrolling (approx.; device-dependent)  
+- [x] Jump chips reach **Actions** in one tap  
+- [x] No more than **2** heavy glow borders visible at once  
+- [x] Upload: Analyze button always visible without scroll  
+- [ ] Friend test: “where do I tap next?” — never hesitates (manual QA)  
 
 ---
 

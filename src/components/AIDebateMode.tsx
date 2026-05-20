@@ -10,6 +10,7 @@ import {
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { UI } from '@/constants/plainLanguage';
+import { colors, featureSection } from '@/constants/designTokens';
 import type { AnalysisResult, AgentDebateViewpoint } from '@/types/analysis';
 import { getAgentDebate } from '@/utils/agentDebate';
 
@@ -121,23 +122,17 @@ export function AIDebateMode({ results }: AIDebateModeProps) {
   const { debate, fromAi } = useMemo(() => getAgentDebate(results), [results]);
 
   return (
-    <Card style={styles.card}>
+    <Card style={featureSection}>
       <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <MessageSquare size={18} color="#C084FC" />
-          <Typography variant="h3" style={styles.title}>
-            {UI.results.debateTitle}
-          </Typography>
-        </View>
-        <View style={styles.badge}>
-          <Typography style={styles.badgeText}>
-            {fromAi ? UI.results.debateBadgeAi : UI.results.debateBadgeLocal}
-          </Typography>
-        </View>
+        <MessageSquare size={18} color={colors.accent} />
+        <Typography variant="h3" style={styles.title}>
+          {UI.results.debateTitle}
+        </Typography>
       </View>
 
       <Typography variant="caption" style={styles.subtitle}>
         {UI.results.debateHint}
+        {fromAi ? '' : ` (${UI.results.debateBadgeLocal})`}
       </Typography>
 
       <View style={styles.agentsList}>
@@ -162,49 +157,16 @@ export function AIDebateMode({ results }: AIDebateModeProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(192, 132, 252, 0.45)',
-    backgroundColor: 'rgba(20, 10, 40, 0.45)',
-    shadowColor: '#C084FC',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 6,
-  },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    flex: 1,
-    paddingRight: 8,
+    marginBottom: 6,
   },
   title: {
-    color: '#F3E8FF',
+    color: colors.text,
     fontSize: 16,
-    fontWeight: '800',
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(192, 132, 252, 0.4)',
-    backgroundColor: 'rgba(192, 132, 252, 0.12)',
-  },
-  badgeText: {
-    color: '#C084FC',
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontWeight: '700',
   },
   subtitle: {
     color: '#94A3B8',
@@ -284,9 +246,9 @@ const styles = StyleSheet.create({
   },
   finalCard: {
     borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: 'rgba(192, 132, 252, 0.55)',
-    backgroundColor: 'rgba(192, 132, 252, 0.08)',
+    borderWidth: 1,
+    borderColor: colors.borderAccent,
+    backgroundColor: colors.accentSoft,
     padding: 14,
   },
   finalHead: {

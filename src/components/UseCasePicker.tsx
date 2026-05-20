@@ -3,6 +3,7 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import { Typography } from '@/components/Typography';
 import { USE_CASE_OPTIONS } from '@/constants/useCases';
 import type { UseCaseType } from '@/types/analysis';
+import { colors, spacing, radius } from '@/constants/designTokens';
 
 interface UseCasePickerProps {
   value: UseCaseType;
@@ -22,7 +23,11 @@ export function UseCasePicker({ value, onChange }: UseCasePickerProps) {
             <Pressable
               key={opt.id}
               onPress={() => onChange(opt.id)}
-              style={[styles.chip, selected && styles.chipSelected]}
+              style={({ pressed }) => [
+                styles.chip,
+                selected && styles.chipSelected,
+                pressed && styles.pressed,
+              ]}
             >
               <Typography style={[styles.chipLabel, selected && styles.chipLabelSelected]}>
                 {opt.label}
@@ -39,9 +44,9 @@ export function UseCasePicker({ value, onChange }: UseCasePickerProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { marginBottom: 16 },
+  container: { marginBottom: spacing.md },
   label: {
-    color: '#8A8D98',
+    color: colors.textMuted,
     marginBottom: 10,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -50,16 +55,17 @@ const styles = StyleSheet.create({
   row: { gap: 8 },
   chip: {
     padding: 12,
-    borderRadius: 12,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#2D2D44',
-    backgroundColor: '#0A0A0F',
+    borderColor: colors.border,
+    backgroundColor: colors.bg,
   },
   chipSelected: {
-    borderColor: '#6366F1',
-    backgroundColor: 'rgba(99, 102, 241, 0.12)',
+    borderColor: colors.borderAccent,
+    backgroundColor: colors.accentSoft,
   },
-  chipLabel: { fontWeight: '700', fontSize: 14, color: '#94A3B8', marginBottom: 4 },
-  chipLabelSelected: { color: '#C7D2FE' },
-  chipDesc: { color: '#64748B', fontSize: 12, lineHeight: 16 },
+  pressed: { opacity: 0.85 },
+  chipLabel: { fontWeight: '700', fontSize: 14, color: colors.textSecondary, marginBottom: 4 },
+  chipLabelSelected: { color: colors.accentText },
+  chipDesc: { color: colors.textMuted, fontSize: 12, lineHeight: 16 },
 });

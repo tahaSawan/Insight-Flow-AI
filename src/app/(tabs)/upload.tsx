@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import {
   View,
   TextInput,
@@ -9,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { FileUp } from 'lucide-react-native';
 import { Button } from '@/components/Button';
@@ -29,6 +30,7 @@ import { colors, spacing } from '@/constants/designTokens';
 
 export default function UploadScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const {
     setUploadedText,
     setAnalysisResults,
@@ -46,6 +48,8 @@ export default function UploadScreen() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [sampleLoaded, setSampleLoaded] = useState(false);
+  const { demo } = useLocalSearchParams<{ demo?: string }>();
 
   const charCount = textInput.trim().length;
   const canSubmit = charCount >= MIN_CONTENT_LENGTH;
@@ -56,7 +60,21 @@ export default function UploadScreen() {
     setFileName(null);
     setSourceFileName(null);
     setValidationError('');
+    setSampleLoaded(true);
   };
+
+  useEffect(() => {
+    if (demo !== 'judge') return;
+    setIndustry('technology');
+    setUseCase('board');
+    setAnalysisMode('full');
+    setTextInput(SAMPLE_REPORT);
+    setFileName(null);
+    setSourceFileName(null);
+    setValidationError('');
+    setSampleLoaded(true);
+    setShowAdvanced(false);
+  }, [demo, setIndustry, setUseCase, setAnalysisMode]);
 
   const handlePickFile = async () => {
     setValidationError('');
@@ -66,6 +84,7 @@ export default function UploadScreen() {
       setTextInput(doc.text);
       setFileName(doc.name);
       setSourceFileName(doc.name);
+      setSampleLoaded(false);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to read file';
       if (!msg.includes('No file selected')) {
@@ -147,6 +166,10 @@ export default function UploadScreen() {
             </Typography>
           </View>
 
+          {sampleLoaded ? (
+            <Typography style={styles.sampleLoadedText}>{UI.upload.sampleLoaded}</Typography>
+          ) : null}
+
           <TextInput
             style={styles.textInput}
             placeholder={UI.upload.placeholder}
@@ -156,6 +179,7 @@ export default function UploadScreen() {
             value={textInput}
             onChangeText={(text) => {
               setTextInput(text);
+              setSampleLoaded(false);
               if (validationError && text.trim().length >= MIN_CONTENT_LENGTH) {
                 setValidationError('');
               }
@@ -178,7 +202,7 @@ export default function UploadScreen() {
           <Card style={styles.card}>
             <Pressable
               onPress={() => setShowAdvanced((v) => !v)}
-              style={styles.advancedToggle}
+              style={({ pressed }) => [styles.advancedToggle, pressed && styles.chipPressed]}
             >
               <Typography style={styles.blockTitle}>2. Options</Typography>
               <Typography variant="caption" style={styles.advancedHint}>
@@ -200,7 +224,11 @@ export default function UploadScreen() {
                       <Pressable
                         key={opt.id}
                         onPress={() => setIndustry(opt.id as IndustryType)}
-                        style={[styles.industryChip, selected && styles.industryChipSelected]}
+                        style={({ pressed }) => [
+                          styles.industryChip,
+                          selected && styles.industryChipSelected,
+                          pressed && styles.chipPressed,
+                        ]}
                       >
                         <Typography
                           style={[
@@ -223,7 +251,7 @@ export default function UploadScreen() {
           </Card>
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: Math.max(spacing.md, insets.bottom) }]}>
           <Button
             title={UI.upload.submit}
             onPress={handleSubmit}
@@ -309,6 +337,12 @@ const styles = StyleSheet.create({
   },
   sampleBtn: { paddingVertical: 10, paddingHorizontal: 14 },
   charCount: { color: '#64748B' },
+  sampleLoadedText: {
+    color: colors.success,
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
   textInput: {
     backgroundColor: '#0A0A0F',
     borderColor: 'rgba(100, 116, 139, 0.5)',
@@ -330,4 +364,5 @@ const styles = StyleSheet.create({
   errorText: { color: '#EF4444', textAlign: 'center', fontWeight: '500', marginBottom: 16 },
   submitBtn: { width: '100%', paddingVertical: 16, marginTop: 8 },
   submitBtnDisabled: { opacity: 0.45 },
+  chipPressed: { opacity: 0.85 },
 });

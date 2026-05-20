@@ -76,6 +76,27 @@ export const UI = {
 
     howItWorks: 'How it works',
 
+    judgeDemoBtn: 'Judge demo (90 sec)',
+
+    judgeDemoHint: 'Loads tech sample · board view · 5 helpers',
+
+    lastRunTitle: 'Last decision report',
+
+    lastRunTap: 'Tap to reopen',
+
+    lastRunMeta: (risk: number, confidence: number, priority: string) =>
+      `Seriousness ${risk} · ${confidence}% sure · ${priority} priority`,
+
+  },
+
+  history: {
+    title: 'Past reports',
+    subtitle: 'Reopen saved decision reports on this device.',
+    emptyTitle: 'No saved reports yet',
+    emptyBody: 'Finish an analysis and it is saved here automatically.',
+    emptySteps: '1. Upload a report  →  2. Analyze  →  3. Open from this list',
+    startBtn: 'Add document',
+    clearAll: 'Clear all history',
   },
 
   upload: {
@@ -95,6 +116,8 @@ export const UI = {
     pasteDivider: 'or paste here',
 
     sampleBtn: 'Try sample report',
+
+    sampleLoaded: 'Sample report loaded — tap Analyze when ready.',
 
     placeholder: 'Paste a sales report, team update, or business memo...',
 
@@ -134,6 +157,10 @@ export const UI = {
 
     viewReport: 'See full report',
 
+    previewHeroLabel: 'Report ready',
+
+    previewTopAction: 'Top action',
+
     queued: 'Waiting to start...',
 
     fastRunning: 'Reading everything in one go...',
@@ -147,6 +174,42 @@ export const UI = {
     subtitle: 'Alert → one decision → consequences → demo actions.',
 
     jumpNavHint: 'Jump to a section',
+
+    decisionCenterTitle: 'Autonomous decision',
+
+    decisionCenterHint: 'The one action the AI chose to do first.',
+
+    decisionTopPick: 'Top pick',
+
+    decisionTopAction: 'Top action',
+
+    decisionWhy: 'Why this one',
+
+    decisionExpected: 'Expected result',
+
+    consequenceTitle: 'Consequence simulation',
+
+    consequenceHint: 'What may happen if you wait vs if you follow the plan.',
+
+    pathDoNothing: 'If we do nothing',
+
+    pathActNow: 'If we act now',
+
+    voiceBriefTitle: 'Executive voice brief',
+
+    voiceBriefHint: 'Short spoken summary of alert, risk, action, and outcome.',
+
+    voicePlaying: 'Playing',
+
+    workflowReplayTitle: 'Workflow replay',
+
+    workflowReplayHint: 'Step-by-step log of how the five helpers ran.',
+
+    actionsSectionTitle: 'Live action simulation',
+
+    actionsSectionHint: 'Approve steps, then execute — Slack, email, CRM (demo).',
+
+    detailsNoMetricsHint: 'Scores are in More tools → Decision scorecard.',
 
     demoDisclaimer:
       'AI analysis is real (Gemini). Slack, email, and CRM steps are simulated for this demo.',

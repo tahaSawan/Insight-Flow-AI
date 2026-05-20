@@ -1,8 +1,9 @@
 import React from 'react';
 import { Text, TextProps, StyleSheet } from 'react-native';
+import { colors, fontSize } from '@/constants/designTokens';
 
 interface TypographyProps extends TextProps {
-  variant?: 'h1' | 'h2' | 'h3' | 'body' | 'caption';
+  variant?: 'h1' | 'h2' | 'h3' | 'body' | 'caption' | 'label';
 }
 
 export function Typography({ variant = 'body', style, children, ...props }: TypographyProps) {
@@ -15,28 +16,36 @@ export function Typography({ variant = 'body', style, children, ...props }: Typo
 
 const styles = StyleSheet.create({
   base: {
-    color: '#F8FAFC',
+    color: colors.text,
+    margin: 0,
   },
   h1: {
-    fontSize: 28,
+    fontSize: fontSize.title,
     fontWeight: '800',
     letterSpacing: -0.5,
   },
   h2: {
-    fontSize: 22,
+    fontSize: fontSize.heading,
     fontWeight: '700',
   },
   h3: {
-    fontSize: 17,
+    fontSize: fontSize.subheading,
     fontWeight: '600',
   },
   body: {
-    fontSize: 15,
+    fontSize: fontSize.body,
     lineHeight: 22,
   },
   caption: {
-    fontSize: 13,
-    color: '#94A3B8',
+    fontSize: fontSize.caption,
+    color: colors.textSecondary,
     lineHeight: 18,
+  },
+  label: {
+    fontSize: fontSize.label,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    color: colors.textMuted,
   },
 });

@@ -3,6 +3,8 @@ import { View, StyleSheet } from 'react-native';
 import { Clock, AlertTriangle, CheckCircle } from 'lucide-react-native';
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
+import { UI } from '@/constants/plainLanguage';
+import { colors, featureSection } from '@/constants/designTokens';
 import type { AnalysisResult } from '@/types/analysis';
 
 interface ConsequenceSimulationProps {
@@ -113,23 +115,22 @@ export function ConsequenceSimulation({ results }: ConsequenceSimulationProps) {
   }
 
   return (
-    <Card style={styles.card}>
-      {/* Header */}
+    <Card variant="accent" style={featureSection}>
       <View style={styles.header}>
-        <Clock size={20} color="#EC4899" />
+        <Clock size={20} color={colors.warning} />
         <Typography variant="h3" style={styles.title}>
-          Consequence Simulation
+          {UI.results.consequenceTitle}
         </Typography>
       </View>
       <Typography variant="caption" style={styles.subtitle}>
-        Real-time trend analysis forecasting operational impact over 30 days.
+        {UI.results.consequenceHint}
       </Typography>
 
       {/* Path A: DO NOTHING */}
       <View style={styles.pathContainer}>
         <View style={[styles.pathHeader, styles.borderRed]}>
           <AlertTriangle size={15} color="#EF4444" />
-          <Typography style={styles.pathTitleRed}>PATH A: IF WE DO NOTHING</Typography>
+          <Typography style={styles.pathTitleRed}>{UI.results.pathDoNothing}</Typography>
         </View>
         
         <View style={styles.timeline}>
@@ -210,7 +211,7 @@ export function ConsequenceSimulation({ results }: ConsequenceSimulationProps) {
       <View style={styles.pathContainer}>
         <View style={[styles.pathHeader, styles.borderGreen]}>
           <CheckCircle size={15} color="#10B981" />
-          <Typography style={styles.pathTitleGreen}>PATH B: IF WE ACT NOW</Typography>
+          <Typography style={styles.pathTitleGreen}>{UI.results.pathActNow}</Typography>
         </View>
 
         <View style={styles.timeline}>
@@ -291,18 +292,6 @@ export function ConsequenceSimulation({ results }: ConsequenceSimulationProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(236, 72, 153, 0.45)', // Sleek pink-accented neon border
-    backgroundColor: 'rgba(20, 10, 40, 0.45)', // Premium dark glassmorphism
-    shadowColor: '#EC4899',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -310,10 +299,9 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   title: {
-    color: '#FCE7F3',
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.2,
+    color: colors.text,
+    fontSize: 17,
+    fontWeight: '700',
   },
   subtitle: {
     color: '#94A3B8',
@@ -345,16 +333,14 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(16, 185, 129, 0.15)',
   },
   pathTitleRed: {
-    color: '#F87171',
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 0.6,
+    color: colors.danger,
+    fontSize: 13,
+    fontWeight: '700',
   },
   pathTitleGreen: {
-    color: '#34D399',
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 0.6,
+    color: colors.success,
+    fontSize: 13,
+    fontWeight: '700',
   },
   timeline: {
     paddingLeft: 4,
@@ -436,8 +422,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   riskText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '800',
   },
   nodeDesc: {
     color: '#94A3B8',

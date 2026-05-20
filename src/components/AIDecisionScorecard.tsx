@@ -11,6 +11,7 @@ import {
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { UI } from '@/constants/plainLanguage';
+import { colors, featureSection } from '@/constants/designTokens';
 import type { AnalysisResult } from '@/types/analysis';
 import {
   getDecisionScorecardScores,
@@ -103,23 +104,17 @@ export function AIDecisionScorecard({ results }: AIDecisionScorecardProps) {
   }, [results, scores, animatedScores]);
 
   return (
-    <Card style={styles.card}>
+    <Card style={featureSection}>
       <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <TrendingUp size={18} color="#C084FC" />
-          <Typography variant="h3" style={styles.title}>
-            {UI.results.scorecardTitle}
-          </Typography>
-        </View>
-        <View style={styles.badge}>
-          <Typography style={styles.badgeText}>
-            {fromAi ? UI.results.scorecardBadge : 'ESTIMATED'}
-          </Typography>
-        </View>
+        <TrendingUp size={18} color={colors.accent} />
+        <Typography variant="h3" style={styles.title}>
+          {UI.results.scorecardTitle}
+        </Typography>
       </View>
 
       <Typography variant="caption" style={styles.subtitle}>
         {UI.results.scorecardHint}
+        {!fromAi ? ' (estimated)' : ''}
       </Typography>
 
       <View style={styles.scoreList}>
@@ -184,50 +179,16 @@ export function AIDecisionScorecard({ results }: AIDecisionScorecardProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(192, 132, 252, 0.45)',
-    backgroundColor: 'rgba(20, 10, 40, 0.45)',
-    shadowColor: '#C084FC',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 8,
-  },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    flex: 1,
-    paddingRight: 8,
+    marginBottom: 6,
   },
   title: {
-    color: '#F3E8FF',
+    color: colors.text,
     fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-  },
-  badge: {
-    backgroundColor: 'rgba(192, 132, 252, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(192, 132, 252, 0.35)',
-  },
-  badgeText: {
-    color: '#C084FC',
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 0.6,
+    fontWeight: '700',
   },
   subtitle: {
     color: '#94A3B8',
