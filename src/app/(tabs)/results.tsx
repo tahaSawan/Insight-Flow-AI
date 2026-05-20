@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Share, ActivityIndicator, Pressable } from 'react-native';
+import { View, ScrollView, StyleSheet, Share, Pressable } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppScreen } from '@/components/AppScreen';
@@ -373,10 +373,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
   },
-  stickyBtnPrimary: {
-    flex: 1,
-  },
-  stickyBtnSecondary: {
+  stickyBtn: {
     flex: 1,
   },
   newReportLink: {

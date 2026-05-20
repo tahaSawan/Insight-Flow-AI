@@ -38,6 +38,14 @@ export function Card({
 }: CardProps) {
   const resolved = resolveVariant(variant);
   const hasHeader = !!(title || subtitle || icon);
+  const titleColorStyle =
+    resolved === 'danger'
+      ? styles.titleDanger
+      : resolved === 'success'
+        ? styles.titleSuccess
+        : resolved === 'alert'
+          ? styles.titleAlert
+          : undefined;
 
   return (
     <View
@@ -60,7 +68,7 @@ export function Card({
           {icon ? <View style={styles.iconWrap}>{icon}</View> : null}
           <View style={styles.headerText}>
             {title ? (
-              <Typography variant="h3" style={styles.title}>
+              <Typography variant="h3" style={[styles.title, titleColorStyle]}>
                 {title}
               </Typography>
             ) : null}
@@ -130,6 +138,16 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 0,
+    color: colors.text,
+  },
+  titleAlert: {
+    color: colors.accentText,
+  },
+  titleSuccess: {
+    color: colors.success,
+  },
+  titleDanger: {
+    color: colors.danger,
   },
   subtitle: {
     color: colors.textSecondary,

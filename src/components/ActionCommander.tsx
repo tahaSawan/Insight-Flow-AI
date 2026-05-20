@@ -153,6 +153,8 @@ export function ActionCommander({ results }: ActionCommanderProps) {
           }
         }}
         disabled={phase === 'running' || (phase === 'idle' && !canRun)}
+        isLoading={phase === 'running'}
+        fullWidth
         style={styles.runBtn}
       />
 

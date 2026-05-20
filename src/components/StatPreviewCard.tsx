@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { Card, type CardVariant } from '@/components/Card';
 import { Typography } from '@/components/Typography';
-import { colors, radius, spacing } from '@/constants/designTokens';
+import { colors, spacing } from '@/constants/designTokens';
 
 interface StatPreviewCardProps {
   label: string;
@@ -10,10 +11,16 @@ interface StatPreviewCardProps {
   subtext?: string;
 }
 
+function variantForAccent(accent: string): CardVariant {
+  if (accent === colors.danger || accent === colors.dangerLight) return 'danger';
+  if (accent === colors.success || accent === colors.successLight) return 'success';
+  if (accent === colors.warning) return 'alert';
+  return 'default';
+}
+
 export function StatPreviewCard({ label, value, accent, subtext }: StatPreviewCardProps) {
   return (
-    <View style={[styles.card, { borderColor: `${accent}33`, backgroundColor: `${accent}0A` }]}>
-      <View style={[styles.dot, { backgroundColor: accent }]} />
+    <Card variant={variantForAccent(accent)} style={styles.card} highlighted>
       <Typography variant="label" style={styles.label}>
         {label}
       </Typography>
@@ -23,23 +30,16 @@ export function StatPreviewCard({ label, value, accent, subtext }: StatPreviewCa
           {subtext}
         </Typography>
       ) : null}
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    borderWidth: 1,
     minWidth: 100,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginBottom: spacing.sm,
+    marginBottom: 0,
+    padding: spacing.md,
   },
   label: {
     marginBottom: 4,

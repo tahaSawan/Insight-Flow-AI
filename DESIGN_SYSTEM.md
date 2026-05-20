@@ -30,8 +30,29 @@ import { theme } from '@/constants/theme';
 
 ## Components
 
-- **Buttons:** gradient `accent` → `accentSecondary`
-- **Cards:** `default` | `elevated` | `accent` | `outline`
+### Button (`src/components/Button.tsx`)
+
+| Variant | Use |
+|---------|-----|
+| `primary` | Main CTA — gradient, glow, press scale |
+| `secondary` | Secondary action — accent border |
+| `danger` | Destructive actions |
+| `ghost` | Minimal / tertiary |
+
+Props: `isLoading`, `disabled`, `icon` / `iconLeft` / `iconRight`, `fullWidth`. Legacy `outline` maps to `secondary`.
+
+### Card (`src/components/Card.tsx`)
+
+| Variant | Use |
+|---------|-----|
+| `default` | Standard surface |
+| `elevated` | Raised panels, CTAs |
+| `alert` | Warnings, AI highlights |
+| `success` | Positive outcomes |
+| `danger` | Errors, critical |
+
+Props: `title`, `subtitle`, `icon`, `highlighted`. Legacy `accent` → `alert`.
+
 - **Screens:** wrap with `<AppScreen>` for background atmosphere
 
 ## Rules
