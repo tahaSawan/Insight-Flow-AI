@@ -18,6 +18,7 @@ import { DecisionAlert } from '@/components/DecisionAlert';
 import { ActionCommander } from '@/components/ActionCommander';
 import { AutonomousDecisionCenter } from '@/components/AutonomousDecisionCenter';
 import { ConsequenceSimulation } from '@/components/ConsequenceSimulation';
+import { ExecutiveVoiceBriefing } from '@/components/ExecutiveVoiceBriefing';
 
 export default function ResultsScreen() {
   const router = useRouter();
@@ -131,6 +132,8 @@ export default function ResultsScreen() {
         <DecisionAlert results={results} />
 
         <AutonomousDecisionCenter results={results} />
+
+        <ExecutiveVoiceBriefing results={results} />
 
         <Card style={styles.heroCard}>
           <Typography variant="h3" style={styles.heroTitle}>
