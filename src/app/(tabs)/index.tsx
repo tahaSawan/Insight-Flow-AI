@@ -55,8 +55,8 @@ export default function HomeScreen() {
             style={styles.heroGlow}
           />
           <View style={styles.hero}>
-            <Typography style={styles.heroTitle}>{UI.home.heroTitle}</Typography>
-            <Typography style={styles.heroSubtitle}>{UI.home.heroSubtitle}</Typography>
+            <Typography variant="heroTitle">{UI.home.heroTitle}</Typography>
+            <Typography variant="heroSubtitle">{UI.home.heroSubtitle}</Typography>
           </View>
         </View>
 
@@ -236,18 +236,6 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
     padding: spacing.lg,
     gap: spacing.sm,
-  },
-  heroTitle: {
-    color: colors.text,
-    fontSize: 26,
-    fontWeight: '800',
-    letterSpacing: -0.6,
-    lineHeight: 32,
-  },
-  heroSubtitle: {
-    color: colors.textSecondary,
-    fontSize: 15,
-    lineHeight: 22,
   },
   ctaWrap: {
     marginBottom: spacing.lg,

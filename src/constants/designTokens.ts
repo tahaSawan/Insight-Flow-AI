@@ -80,14 +80,15 @@ export const radius = {
   full: 999,
 } as const;
 
+/** @deprecated Prefer `typography` presets from `@/constants/typography` */
 export const fontSize = {
-  display: 30,
-  title: 26,
-  heading: 20,
-  subheading: 17,
+  display: 28,
+  title: 22,
+  heading: 17,
+  subheading: 16,
   body: 15,
-  caption: 13,
-  label: 11,
+  caption: 12,
+  label: 10,
 } as const;
 
 export const fontWeight = {

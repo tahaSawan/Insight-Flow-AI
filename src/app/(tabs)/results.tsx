@@ -141,13 +141,15 @@ export default function ResultsScreen() {
           badge={modeLabel}
         />
 
-        <Typography variant="caption" style={styles.jumpHint}>
+        <Typography variant="sectionHint" style={styles.jumpHint}>
           {UI.results.jumpNavHint}
         </Typography>
         <ResultsJumpNav active={activeJump} onJump={jumpTo} />
 
         <View style={styles.demoStrip}>
-          <Typography style={styles.demoStripText}>{UI.results.demoDisclaimer}</Typography>
+          <Typography variant="caption" style={styles.demoStripText}>
+            {UI.results.demoDisclaimer}
+          </Typography>
         </View>
 
         {showResumeTip ? (
@@ -228,7 +230,9 @@ export default function ResultsScreen() {
           subtitle={UI.results.summaryHint}
           style={styles.summaryCard}
         >
-          <Typography style={styles.executiveSummary}>{results.executiveSummary}</Typography>
+          <Typography variant="bodyMuted" style={styles.executiveSummary} numberOfLines={8}>
+            {results.executiveSummary}
+          </Typography>
 
           <Typography variant="caption" style={styles.detailsMetricsHint}>
             {UI.results.detailsNoMetricsHint}
@@ -450,9 +454,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   executiveSummary: {
-    color: colors.textSecondary,
-    fontSize: 15,
-    lineHeight: 24,
     marginBottom: spacing.md,
   },
   summaryRow: {

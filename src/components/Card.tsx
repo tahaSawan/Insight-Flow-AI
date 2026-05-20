@@ -2,6 +2,7 @@ import React from 'react';
 import { View, ViewProps, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { Typography } from '@/components/Typography';
 import { colors, radius, spacing, shadows } from '@/constants/designTokens';
+import { textBlock } from '@/constants/typography';
 
 export type CardVariant = 'default' | 'elevated' | 'alert' | 'success' | 'danger';
 
@@ -68,12 +69,12 @@ export function Card({
           {icon ? <View style={styles.iconWrap}>{icon}</View> : null}
           <View style={styles.headerText}>
             {title ? (
-              <Typography variant="h3" style={[styles.title, titleColorStyle]}>
+              <Typography variant="cardTitle" style={[titleColorStyle]}>
                 {title}
               </Typography>
             ) : null}
             {subtitle ? (
-              <Typography variant="body" style={styles.subtitle}>
+              <Typography variant="cardSubtitle" style={styles.subtitle}>
                 {subtitle}
               </Typography>
             ) : null}
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.sm,
-    marginBottom: spacing.md,
+    marginBottom: textBlock.md,
   },
   headerWithPadding: {},
   iconWrap: {
@@ -134,11 +135,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
-    gap: 4,
-  },
-  title: {
-    marginBottom: 0,
-    color: colors.text,
+    gap: textBlock.xs,
   },
   titleAlert: {
     color: colors.accentText,
@@ -150,7 +147,6 @@ const styles = StyleSheet.create({
     color: colors.danger,
   },
   subtitle: {
-    color: colors.textSecondary,
-    lineHeight: 22,
+    marginTop: textBlock.xs,
   },
 });

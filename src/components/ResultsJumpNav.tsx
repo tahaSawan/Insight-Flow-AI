@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, Pressable, StyleSheet } from 'react-native';
 import { Typography } from '@/components/Typography';
-import { colors, spacing, radius, fontSize } from '@/constants/designTokens';
+import { colors, spacing, radius } from '@/constants/designTokens';
 
 export type ResultsSectionId =
   | 'alert'
@@ -45,7 +45,10 @@ export function ResultsJumpNav({ active, onJump }: ResultsJumpNavProps) {
               pressed && styles.chipPressed,
             ]}
           >
-            <Typography style={[styles.chipText, isActive && styles.chipTextActive]}>
+            <Typography
+              variant="badgeText"
+              style={[styles.chipText, isActive && styles.chipTextActive]}
+            >
               {chip.label}
             </Typography>
           </Pressable>
@@ -80,12 +83,10 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   chipText: {
-    fontSize: fontSize.caption,
-    fontWeight: '600',
     color: colors.textSecondary,
+    letterSpacing: 0.4,
   },
   chipTextActive: {
     color: colors.accentText,
-    fontWeight: '800',
   },
 });

@@ -4,6 +4,7 @@ import { AlertTriangle, Gauge } from 'lucide-react-native';
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { colors, spacing, radius } from '@/constants/designTokens';
+import { textBlock } from '@/constants/typography';
 import type { AnalysisResult } from '@/types/analysis';
 
 interface ExecutiveAlertHeaderProps {
@@ -29,30 +30,30 @@ export function ExecutiveAlertHeader({ results }: ExecutiveAlertHeaderProps) {
       title="Leadership Alert"
       style={styles.card}
     >
-      <Typography style={styles.headline}>{headline}</Typography>
+      <Typography variant="alertHeadline">{headline}</Typography>
       {results.stakeAtRisk ? (
-        <Typography style={styles.stake}>At stake: {results.stakeAtRisk}</Typography>
+        <Typography variant="alertStake" style={styles.stake}>
+          At stake: {results.stakeAtRisk}
+        </Typography>
       ) : null}
 
       <View style={styles.metricsRow}>
         <View style={[styles.metricPill, { backgroundColor: severity.bg, borderColor: `${severity.color}55` }]}>
           <Gauge size={14} color={severity.color} />
-          <View>
-            <Typography variant="caption" style={styles.metricLabel}>
-              Severity
-            </Typography>
-            <Typography style={[styles.metricValue, { color: severity.color }]}>
+          <View style={styles.metricText}>
+            <Typography variant="metricLabel">Severity</Typography>
+            <Typography variant="metricValueSm" style={{ color: severity.color }}>
               {severity.label} · {results.riskScore}
             </Typography>
           </View>
         </View>
 
         <View style={[styles.metricPill, styles.confidencePill]}>
-          <View>
-            <Typography variant="caption" style={styles.metricLabel}>
-              Confidence
+          <View style={styles.metricText}>
+            <Typography variant="metricLabel">Confidence</Typography>
+            <Typography variant="metricValue" style={styles.confidenceValue}>
+              {results.confidence}%
             </Typography>
-            <Typography style={styles.confidenceValue}>{results.confidence}%</Typography>
           </View>
         </View>
       </View>
@@ -64,18 +65,9 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: spacing.md,
   },
-  headline: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '700',
-    lineHeight: 23,
-    marginBottom: 6,
-  },
   stake: {
-    color: colors.warning,
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: spacing.md,
+    marginTop: textBlock.sm,
+    marginBottom: textBlock.md,
   },
   metricsRow: {
     flexDirection: 'row',
@@ -95,20 +87,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentSoft,
     borderColor: colors.borderAccent,
   },
-  metricLabel: {
-    color: colors.textDim,
-    fontSize: 10,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-    marginBottom: 2,
-  },
-  metricValue: {
-    fontSize: 13,
-    fontWeight: '800',
+  metricText: {
+    flex: 1,
+    gap: textBlock.xs,
+    minWidth: 0,
   },
   confidenceValue: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: colors.accentText,
+    fontSize: 22,
+    lineHeight: 26,
   },
 });

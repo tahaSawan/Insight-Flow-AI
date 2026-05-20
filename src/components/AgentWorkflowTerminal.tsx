@@ -5,7 +5,7 @@ import { Typography } from '@/components/Typography';
 import { CINEMATIC_WORKFLOW } from '@/constants/workflowAgents';
 import type { AgentTraceEntry } from '@/types/agents';
 import { colors, radius, spacing } from '@/constants/designTokens';
-
+import { textBlock } from '@/constants/typography';
 interface AgentWorkflowTerminalProps {
   trace: AgentTraceEntry[];
 }
@@ -84,7 +84,7 @@ export function AgentWorkflowTerminal({ trace }: AgentWorkflowTerminalProps) {
           <View style={[styles.dot, { backgroundColor: colors.success }]} />
         </View>
         <Terminal size={11} color={colors.textDim} />
-        <Typography style={styles.headerTitle}>AGENT_LOG_STREAM</Typography>
+        <Typography variant="terminalHeader">AGENT_LOG_STREAM</Typography>
       </View>
       <ScrollView
         ref={scrollRef}
@@ -94,10 +94,16 @@ export function AgentWorkflowTerminal({ trace }: AgentWorkflowTerminalProps) {
         showsVerticalScrollIndicator={false}
       >
         {lines.length === 0 ? (
-          <Typography style={styles.line}>_ awaiting agent events…</Typography>
+          <Typography variant="terminalLog" style={styles.placeholder}>
+            _ awaiting agent events…
+          </Typography>
         ) : (
           lines.map((line, i) => (
-            <Typography key={`${i}-${line.slice(0, 12)}`} style={[styles.line, { color: logColor(line) }]}>
+            <Typography
+              key={`${i}-${line.slice(0, 12)}`}
+              variant="terminalLog"
+              style={{ color: logColor(line) }}
+            >
               {line}
             </Typography>
           ))
@@ -134,25 +140,15 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
   },
-  headerTitle: {
-    flex: 1,
-    color: colors.textDim,
-    fontSize: 9,
-    fontWeight: '800',
-    fontFamily: 'monospace',
-    letterSpacing: 0.5,
-  },
   scroll: {
     maxHeight: 108,
   },
   scrollContent: {
     padding: spacing.sm,
-    gap: 3,
+    gap: textBlock.xs,
   },
-  line: {
-    fontFamily: 'monospace',
-    fontSize: 10,
-    lineHeight: 14,
-    color: colors.textSecondary,
+  placeholder: {
+    fontStyle: 'italic',
+    opacity: 0.7,
   },
 });

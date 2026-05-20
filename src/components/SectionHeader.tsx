@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Typography } from '@/components/Typography';
-import { colors, spacing, fontSize } from '@/constants/designTokens';
+import { spacing } from '@/constants/designTokens';
+import { textBlock } from '@/constants/typography';
 
 interface SectionHeaderProps {
   title: string;
@@ -11,11 +12,9 @@ interface SectionHeaderProps {
 export function SectionHeader({ title, hint }: SectionHeaderProps) {
   return (
     <View style={styles.wrap}>
-      <Typography variant="h3" style={styles.title}>
-        {title}
-      </Typography>
+      <Typography variant="sectionTitle">{title}</Typography>
       {hint ? (
-        <Typography variant="caption" style={styles.hint}>
+        <Typography variant="sectionHint" style={styles.hint}>
           {hint}
         </Typography>
       ) : null}
@@ -26,16 +25,9 @@ export function SectionHeader({ title, hint }: SectionHeaderProps) {
 const styles = StyleSheet.create({
   wrap: {
     marginBottom: spacing.md,
-  },
-  title: {
-    fontSize: fontSize.subheading,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 4,
+    gap: textBlock.xs,
   },
   hint: {
-    color: colors.textMuted,
-    fontSize: fontSize.caption,
-    lineHeight: 18,
+    marginTop: 0,
   },
 });

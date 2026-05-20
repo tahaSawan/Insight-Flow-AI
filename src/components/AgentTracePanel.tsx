@@ -29,15 +29,17 @@ export function AgentTracePanel({ trace }: AgentTracePanelProps) {
             <View style={styles.stepHeader}>
               <Typography style={styles.stepIcon}>{def.icon}</Typography>
               <View style={styles.stepMeta}>
-                <Typography style={styles.stepName}>{entry.agentName}</Typography>
-                <Typography variant="caption" style={styles.stepTime}>
+                <Typography variant="cardTitle" style={styles.stepName}>
+                  {entry.agentName}
+                </Typography>
+                <Typography variant="terminalLog" style={styles.stepTime}>
                   {formatTime(entry.startedAt)}
                   {entry.completedAt ? ` → ${formatTime(entry.completedAt)}` : ''}
                 </Typography>
               </View>
               <Typography
+                variant="badgeText"
                 style={[
-                  styles.status,
                   entry.status === 'complete' && styles.statusDone,
                   entry.status === 'error' && styles.statusErr,
                 ]}
@@ -51,9 +53,11 @@ export function AgentTracePanel({ trace }: AgentTracePanelProps) {
                       : 'WAIT'}
               </Typography>
             </View>
-            <Typography style={styles.reasoning}>{entry.reasoning}</Typography>
+            <Typography variant="bodyMuted" style={styles.reasoning} numberOfLines={3}>
+              {entry.reasoning}
+            </Typography>
             {entry.outputSummary ? (
-              <Typography style={[styles.output, { color: def.color }]}>
+              <Typography variant="caption" style={[styles.output, { color: def.color }]}>
                 → {entry.outputSummary}
               </Typography>
             ) : null}
@@ -71,13 +75,12 @@ const styles = StyleSheet.create({
   stepHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   stepIcon: { fontSize: 18, width: 24 },
   stepMeta: { flex: 1 },
-  stepName: { fontWeight: '700', fontSize: 14 },
-  stepTime: { color: colors.textDim, fontSize: 11, marginTop: 2, fontFamily: 'monospace' },
-  status: { fontSize: 10, fontWeight: '800', color: colors.textDim, letterSpacing: 0.5 },
+  stepName: { marginBottom: 0 },
+  stepTime: { marginTop: 2, opacity: 0.9 },
   statusDone: { color: colors.success },
   statusErr: { color: colors.danger },
-  reasoning: { color: colors.textMuted, fontSize: 13, lineHeight: 19, marginTop: 8, marginLeft: 34 },
-  output: { fontSize: 13, fontWeight: '600', marginTop: 6, marginLeft: 34 },
+  reasoning: { marginTop: 8, marginLeft: 34 },
+  output: { marginTop: 6, marginLeft: 34, fontWeight: '600' },
   connector: {
     width: 2,
     height: 12,

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Typography } from '@/components/Typography';
 import { colors, spacing, radius } from '@/constants/designTokens';
+import { textBlock } from '@/constants/typography';
 import type { AnalysisResult } from '@/types/analysis';
 
 interface RecommendedActionCardsProps {
@@ -33,9 +34,11 @@ export function RecommendedActionCards({ results }: RecommendedActionCardsProps)
             style={[styles.card, { backgroundColor: pri.bg, borderColor: pri.border }]}
           >
             <View style={[styles.badge, { borderColor: pri.border }]}>
-              <Typography style={[styles.badgeText, { color: pri.color }]}>{pri.label}</Typography>
+              <Typography variant="badgeText" style={{ color: pri.color }}>
+                {pri.label}
+              </Typography>
             </View>
-            <Typography style={styles.actionText} numberOfLines={3}>
+            <Typography variant="bodyMuted" style={styles.actionText} numberOfLines={3}>
               {action}
             </Typography>
           </View>
@@ -47,7 +50,7 @@ export function RecommendedActionCards({ results }: RecommendedActionCardsProps)
 
 const styles = StyleSheet.create({
   wrap: {
-    gap: spacing.sm,
+    gap: textBlock.sm,
   },
   card: {
     flexDirection: 'row',
@@ -64,16 +67,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     backgroundColor: colors.surfaceElevated,
   },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-  },
   actionText: {
     flex: 1,
-    color: colors.text,
-    fontSize: 14,
     fontWeight: '600',
-    lineHeight: 20,
   },
 });

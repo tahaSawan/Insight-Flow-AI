@@ -1,59 +1,67 @@
 import React from 'react';
-import { Text, TextProps, StyleSheet } from 'react-native';
-import { colors, fontSize } from '@/constants/designTokens';
+import { Text, TextProps, StyleSheet, TextStyle } from 'react-native';
+import { colors } from '@/constants/designTokens';
+import { typography, type TypographyVariant } from '@/constants/typography';
 
-interface TypographyProps extends TextProps {
-  variant?: 'display' | 'h1' | 'h2' | 'h3' | 'body' | 'caption' | 'label';
+/** Legacy variants map to enterprise presets */
+type LegacyVariant = 'display' | 'h1' | 'h2' | 'h3' | 'body' | 'caption' | 'label';
+
+const LEGACY_MAP: Record<LegacyVariant, TypographyVariant> = {
+  display: 'heroTitle',
+  h1: 'screenTitle',
+  h2: 'sectionTitle',
+  h3: 'cardTitle',
+  body: 'body',
+  caption: 'caption',
+  label: 'metricLabel',
+};
+
+export type TypographyProps = TextProps & {
+  variant?: TypographyVariant | LegacyVariant;
+  muted?: boolean;
+};
+
+function resolveVariant(variant: TypographyVariant | LegacyVariant): TypographyVariant {
+  if (variant in LEGACY_MAP) return LEGACY_MAP[variant as LegacyVariant];
+  return variant as TypographyVariant;
 }
 
-export function Typography({ variant = 'body', style, children, ...props }: TypographyProps) {
+export function Typography({
+  variant = 'body',
+  muted = false,
+  style,
+  children,
+  ...props
+}: TypographyProps) {
+  const key = resolveVariant(variant);
+  const preset = typography[key];
+
   return (
-    <Text style={[styles.base, styles[variant], style]} {...props}>
+    <Text
+      style={[
+        styles.base,
+        preset,
+        muted && styles.mutedOverride,
+        style,
+      ]}
+      {...props}
+    >
       {children}
     </Text>
   );
 }
 
+/** Use in StyleSheet when Typography wrapper is not ideal */
+export function textStyle(variant: TypographyVariant): TextStyle {
+  return typography[variant];
+}
+
 const styles = StyleSheet.create({
   base: {
-    color: colors.text,
     margin: 0,
+    padding: 0,
   },
-  display: {
-    fontSize: fontSize.display,
-    fontWeight: '800',
-    letterSpacing: -0.8,
-    lineHeight: 36,
-  },
-  h1: {
-    fontSize: fontSize.title,
-    fontWeight: '800',
-    letterSpacing: -0.4,
-  },
-  h2: {
-    fontSize: fontSize.heading,
-    fontWeight: '700',
-    letterSpacing: -0.2,
-  },
-  h3: {
-    fontSize: fontSize.subheading,
-    fontWeight: '600',
-  },
-  body: {
-    fontSize: fontSize.body,
-    lineHeight: 22,
-    color: colors.text,
-  },
-  caption: {
-    fontSize: fontSize.caption,
-    color: colors.textSecondary,
-    lineHeight: 18,
-  },
-  label: {
-    fontSize: fontSize.label,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
+  mutedOverride: {
     color: colors.textMuted,
   },
 });

@@ -3,7 +3,8 @@ import { View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Sparkles } from 'lucide-react-native';
 import { Typography } from '@/components/Typography';
-import { colors, spacing, fontSize, radius } from '@/constants/designTokens';
+import { colors, spacing, radius } from '@/constants/designTokens';
+import { textBlock } from '@/constants/typography';
 
 interface ScreenHeaderProps {
   title: string;
@@ -20,17 +21,17 @@ export function ScreenHeader({ title, subtitle, badge, showBrand = false }: Scre
           <View style={styles.brandIcon}>
             <Sparkles size={14} color={colors.accentText} />
           </View>
-          <Typography variant="label" style={styles.brandName}>
+          <Typography variant="badgeText" style={styles.brandName}>
             InsightFlow
           </Typography>
         </View>
       ) : null}
       {badge ? (
         <View style={styles.badge}>
-          <Typography style={styles.badgeText}>{badge}</Typography>
+          <Typography variant="badgeText">{badge}</Typography>
         </View>
       ) : null}
-      <Typography variant="h1" style={styles.title}>
+      <Typography variant="screenTitle" style={styles.title}>
         {title}
       </Typography>
       <LinearGradient
@@ -40,7 +41,7 @@ export function ScreenHeader({ title, subtitle, badge, showBrand = false }: Scre
         style={styles.accentLine}
       />
       {subtitle ? (
-        <Typography variant="body" style={styles.subtitle}>
+        <Typography variant="screenSubtitle" style={styles.subtitle}>
           {subtitle}
         </Typography>
       ) : null}
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginBottom: spacing.sm,
+    marginBottom: textBlock.sm,
   },
   brandIcon: {
     width: 28,
@@ -70,7 +71,7 @@ const styles = StyleSheet.create({
   },
   brandName: {
     color: colors.accentText,
-    letterSpacing: 1.2,
+    letterSpacing: 1,
   },
   badge: {
     alignSelf: 'flex-start',
@@ -80,29 +81,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: radius.full,
-    marginBottom: spacing.sm,
-  },
-  badgeText: {
-    color: colors.accentText,
-    fontSize: fontSize.label,
-    fontWeight: '700',
+    marginBottom: textBlock.sm,
   },
   title: {
-    fontSize: fontSize.title,
-    marginBottom: spacing.sm,
-    lineHeight: 32,
-    letterSpacing: -0.3,
+    marginBottom: textBlock.sm,
   },
   accentLine: {
     width: 48,
     height: 3,
     borderRadius: 2,
-    marginBottom: spacing.sm,
+    marginBottom: textBlock.sm,
   },
   subtitle: {
-    color: colors.textSecondary,
-    fontSize: fontSize.body,
-    lineHeight: 22,
     maxWidth: '95%',
   },
 });

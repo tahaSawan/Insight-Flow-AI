@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 import { Card, type CardVariant } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { colors, spacing } from '@/constants/designTokens';
+import { textBlock } from '@/constants/typography';
 
 interface StatPreviewCardProps {
   label: string;
@@ -21,10 +22,12 @@ function variantForAccent(accent: string): CardVariant {
 export function StatPreviewCard({ label, value, accent, subtext }: StatPreviewCardProps) {
   return (
     <Card variant={variantForAccent(accent)} style={styles.card} highlighted>
-      <Typography variant="label" style={styles.label}>
+      <Typography variant="metricLabel" style={styles.label}>
         {label}
       </Typography>
-      <Typography style={[styles.value, { color: accent }]}>{value}</Typography>
+      <Typography variant="metricValue" style={{ color: accent, fontSize: 22, lineHeight: 26 }}>
+        {value}
+      </Typography>
       {subtext ? (
         <Typography variant="caption" style={styles.subtext}>
           {subtext}
@@ -40,17 +43,12 @@ const styles = StyleSheet.create({
     minWidth: 100,
     marginBottom: 0,
     padding: spacing.md,
+    gap: textBlock.xs,
   },
   label: {
-    marginBottom: 4,
-  },
-  value: {
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    marginBottom: 2,
+    marginBottom: 0,
   },
   subtext: {
-    fontSize: 11,
+    marginTop: textBlock.xs,
   },
 });

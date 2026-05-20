@@ -135,7 +135,9 @@ function TimelineStep({
           ) : isRunning ? (
             <ActivityIndicator size="small" color={colors.white} />
           ) : (
-            <Typography style={styles.nodeIndex}>{stepIndex + 1}</Typography>
+            <Typography variant="badgeText" style={styles.nodeIndex}>
+              {stepIndex + 1}
+            </Typography>
           )}
         </View>
         {!isLast ? <View style={[styles.connector, isComplete && styles.connectorDone]} /> : null}
@@ -143,10 +145,14 @@ function TimelineStep({
 
       <View style={[styles.stepBody, isRunning && styles.stepBodyActive]}>
         <View style={styles.stepHeader}>
-          <Typography style={[styles.stepName, isRunning && styles.stepNameActive]}>{name}</Typography>
-          <Typography style={[styles.statusPill, { color: statusColor }]}>{statusLabel}</Typography>
+          <Typography variant="cardTitle" style={isRunning ? styles.stepNameActive : styles.stepName}>
+            {name}
+          </Typography>
+          <Typography variant="badgeText" style={{ color: statusColor }}>
+            {statusLabel}
+          </Typography>
         </View>
-        <Typography style={styles.stepDesc} numberOfLines={2}>
+        <Typography variant="caption" numberOfLines={2}>
           {detail || description}
         </Typography>
         <StepProgress status={status} />
@@ -236,8 +242,7 @@ const styles = StyleSheet.create({
   },
   nodeIndex: {
     color: colors.textDim,
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: 9,
   },
   connector: {
     flex: 1,
@@ -279,23 +284,10 @@ const styles = StyleSheet.create({
   },
   stepName: {
     flex: 1,
-    fontSize: 14,
-    fontWeight: '700',
     color: colors.textSecondary,
   },
   stepNameActive: {
     color: colors.text,
-  },
-  statusPill: {
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 0.6,
-  },
-  stepDesc: {
-    color: colors.textMuted,
-    fontSize: 12,
-    lineHeight: 17,
-    marginBottom: spacing.sm,
   },
   progressTrack: {
     height: 4,

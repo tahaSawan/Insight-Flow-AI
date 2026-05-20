@@ -5,6 +5,7 @@ import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { UI } from '@/constants/plainLanguage';
 import { colors, spacing, radius } from '@/constants/designTokens';
+import { textBlock } from '@/constants/typography';
 import type { AnalysisResult } from '@/types/analysis';
 
 interface BeforeAfterOutcomeProps {
@@ -16,28 +17,28 @@ export function BeforeAfterOutcome({ results }: BeforeAfterOutcomeProps) {
 
   return (
     <Card variant="success" highlighted title={UI.results.beforeAfterTitle} style={styles.card}>
-      <Typography variant="caption" style={styles.hint}>
+      <Typography variant="sectionHint" style={styles.hint}>
         {UI.results.beforeAfterHint}
       </Typography>
       <View style={styles.row}>
         <View style={styles.box}>
-          <Typography variant="caption" style={styles.boxLabel}>
-            Before
+          <Typography variant="metricLabel">Before</Typography>
+          <Typography variant="metricValue" style={styles.boxValue}>
+            {results.beforeMetric}
           </Typography>
-          <Typography style={styles.boxValue}>{results.beforeMetric}</Typography>
-          <Typography variant="caption" style={styles.boxSub}>
-            {label}
-          </Typography>
+          <Typography variant="caption">{label}</Typography>
         </View>
 
         <ArrowRight size={20} color={colors.accentText} />
 
         <View style={[styles.box, styles.boxAfter]}>
-          <Typography variant="caption" style={[styles.boxLabel, styles.boxLabelAfter]}>
+          <Typography variant="metricLabel" style={styles.labelAfter}>
             After
           </Typography>
-          <Typography style={styles.boxValueAfter}>{results.afterMetric}</Typography>
-          <Typography variant="caption" style={styles.boxSubAfter}>
+          <Typography variant="metricValue" style={styles.valueAfter}>
+            {results.afterMetric}
+          </Typography>
+          <Typography variant="caption" style={styles.subAfter}>
             {label}
           </Typography>
         </View>
@@ -52,9 +53,7 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   hint: {
-    color: colors.textMuted,
-    marginBottom: spacing.md,
-    lineHeight: 18,
+    marginBottom: textBlock.md,
   },
   row: {
     flexDirection: 'row',
@@ -69,40 +68,25 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing.md,
     alignItems: 'center',
+    gap: textBlock.xs,
   },
   boxAfter: {
     backgroundColor: colors.successSoft,
     borderColor: 'rgba(16, 185, 129, 0.35)',
   },
-  boxLabel: {
-    color: colors.textDim,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 6,
-  },
-  boxLabelAfter: {
-    color: colors.success,
-  },
   boxValue: {
-    color: colors.text,
     fontSize: 22,
-    fontWeight: '800',
-    marginBottom: 4,
+    lineHeight: 26,
   },
-  boxValueAfter: {
+  labelAfter: {
+    color: colors.success,
+  },
+  valueAfter: {
     color: colors.success,
     fontSize: 22,
-    fontWeight: '800',
-    marginBottom: 4,
+    lineHeight: 26,
   },
-  boxSub: {
-    color: colors.textMuted,
-    fontSize: 11,
-    textAlign: 'center',
-  },
-  boxSubAfter: {
+  subAfter: {
     color: colors.successLight,
-    fontSize: 11,
-    textAlign: 'center',
   },
 });

@@ -49,10 +49,8 @@ function MetricRow({
     <View style={styles.metricRow}>
       <View style={styles.metricIcon}>{icon}</View>
       <View style={styles.metricBody}>
-        <Typography variant="caption" style={styles.metricLabel}>
-          {label}
-        </Typography>
-        <Typography style={[styles.metricValue, { color: valueColor }]} numberOfLines={1}>
+        <Typography variant="metricLabel">{label}</Typography>
+        <Typography variant="metricValueSm" style={{ color: valueColor }} numberOfLines={1}>
           {value}
         </Typography>
         {children}
@@ -114,14 +112,12 @@ export function HomeDashboardPreview({ results }: HomeDashboardPreviewProps) {
           <View style={styles.liveBadge}>
             <Animated.View style={[styles.liveDot, pulseStyle]} />
             <View style={styles.liveDotCore} />
-            <Typography variant="label" style={styles.liveText}>
+            <Typography variant="badgeText" style={styles.liveText}>
               LIVE PREVIEW
             </Typography>
           </View>
           <Animated.View style={scanStyle}>
-            <Typography variant="caption" style={styles.headerMeta}>
-              Ops dashboard
-            </Typography>
+            <Typography variant="terminalHeader">Ops dashboard</Typography>
           </Animated.View>
         </View>
 
@@ -160,11 +156,13 @@ export function HomeDashboardPreview({ results }: HomeDashboardPreviewProps) {
 
         <View style={styles.statusRow}>
           <Activity size={14} color={colors.success} />
-          <Typography variant="caption" style={styles.statusLabel}>
+          <Typography variant="metricLabel" style={styles.statusLabel}>
             System Status
           </Typography>
           <View style={styles.statusPill}>
-            <Typography style={styles.statusValue}>{status}</Typography>
+            <Typography variant="badgeText" style={styles.statusValue}>
+              {status}
+            </Typography>
           </View>
         </View>
       </View>

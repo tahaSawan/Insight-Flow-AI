@@ -188,7 +188,9 @@ export default function AnalysisScreen() {
             <Cpu size={20} color={colors.accent} />
           </View>
           <View style={styles.heroText}>
-            <Typography style={styles.heroTitle}>{UI.analysis.workflowTitle}</Typography>
+            <Typography variant="sectionTitle" style={styles.heroTitle}>
+              {UI.analysis.workflowTitle}
+            </Typography>
             <Typography variant="caption" style={styles.heroSub}>
               {isComplete
                 ? UI.analysis.done
@@ -260,20 +262,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   heroTitle: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-    lineHeight: 22,
+    marginBottom: 2,
   },
   heroSub: {
-    color: colors.textMuted,
     marginTop: 2,
   },
   pct: {
-    color: colors.accentText,
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 22,
+    lineHeight: 26,
   },
   workflowPanel: {
     marginTop: spacing.xs,

@@ -5,6 +5,7 @@ import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { UI } from '@/constants/plainLanguage';
 import { colors, featureSection, spacing, radius } from '@/constants/designTokens';
+import { textBlock } from '@/constants/typography';
 import type { AnalysisResult } from '@/types/analysis';
 
 interface AutonomousDecisionCenterProps {
@@ -49,46 +50,48 @@ export function AutonomousDecisionCenter({ results }: AutonomousDecisionCenterPr
     >
       <View style={styles.headerBadgeRow}>
         <View style={styles.pickBadge}>
-          <Typography style={styles.pickBadgeText}>{UI.results.decisionTopPick}</Typography>
+          <Typography variant="badgeText">{UI.results.decisionTopPick}</Typography>
         </View>
       </View>
 
       <View style={styles.decisionContainer}>
         <View style={styles.decisionHeaderRow}>
           <Sparkles size={14} color={colors.accent} />
-          <Typography style={styles.decisionLabel}>{UI.results.decisionTopAction}</Typography>
+          <Typography variant="decisionLabel">{UI.results.decisionTopAction}</Typography>
         </View>
-        <Typography style={styles.decisionText}>{decision.primaryDecision}</Typography>
+        <Typography variant="decisionText">{decision.primaryDecision}</Typography>
       </View>
 
       <View style={styles.section}>
-        <Typography variant="caption" style={styles.sectionLabel}>
+        <Typography variant="metricLabel" style={styles.sectionLabel}>
           {UI.results.decisionWhy}
         </Typography>
         <View style={styles.reasonBox}>
-          <Typography style={styles.reasonText}>{decision.reason}</Typography>
+          <Typography variant="bodyMuted" numberOfLines={4}>
+            {decision.reason}
+          </Typography>
         </View>
       </View>
 
       <View style={styles.section}>
         <View style={styles.sectionLabelRow}>
           <TrendingUp size={14} color={colors.success} />
-          <Typography variant="caption" style={styles.sectionLabelGreen}>
+          <Typography variant="metricLabel" style={styles.sectionLabelGreen}>
             {UI.results.decisionExpected}
           </Typography>
         </View>
         <View style={styles.outcomeBox}>
-          <Typography style={styles.outcomeText}>{decision.expectedOutcome}</Typography>
+          <Typography variant="bodyMuted" numberOfLines={3}>
+            {decision.expectedOutcome}
+          </Typography>
         </View>
       </View>
 
       <View style={styles.priorityRow}>
-        <Typography variant="caption" style={styles.gridLabel}>
-          Priority
-        </Typography>
+        <Typography variant="metricLabel">Priority</Typography>
         <View style={[styles.priorityBadge, { backgroundColor: priorityBg, borderColor: priorityBorder }]}>
           <ShieldAlert size={12} color={priorityColor} style={styles.priorityIcon} />
-          <Typography style={[styles.priorityText, { color: priorityColor }]}>
+          <Typography variant="badgeText" style={{ color: priorityColor }}>
             {decision.priorityLevel}
           </Typography>
         </View>
@@ -121,11 +124,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderAccent,
   },
-  pickBadgeText: {
-    color: colors.accentText,
-    fontSize: 10,
-    fontWeight: '700',
-  },
   decisionContainer: {
     backgroundColor: colors.surfaceElevated,
     borderRadius: radius.md,
@@ -140,19 +138,8 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: 6,
   },
-  decisionLabel: {
-    color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  decisionText: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '800',
-    lineHeight: 25,
-  },
   section: {
-    marginBottom: 12,
+    marginBottom: textBlock.md,
   },
   sectionLabelRow: {
     flexDirection: 'row',
@@ -160,16 +147,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sectionLabel: {
-    color: colors.textMuted,
-    fontWeight: '700',
-    fontSize: 11,
-    marginBottom: 6,
+    marginBottom: textBlock.sm,
   },
   sectionLabelGreen: {
     color: colors.success,
-    fontWeight: '700',
-    fontSize: 11,
-    marginBottom: 6,
+    marginBottom: textBlock.sm,
   },
   reasonBox: {
     backgroundColor: colors.bg,
@@ -178,22 +160,12 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: radius.sm,
   },
-  reasonText: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    lineHeight: 19,
-  },
   outcomeBox: {
     backgroundColor: colors.bg,
     borderLeftWidth: 3,
     borderLeftColor: colors.success,
     padding: 10,
     borderRadius: radius.sm,
-  },
-  outcomeText: {
-    color: colors.text,
-    fontSize: 13,
-    lineHeight: 19,
   },
   priorityRow: {
     flexDirection: 'row',
@@ -203,12 +175,6 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-  },
-  gridLabel: {
-    color: colors.textMuted,
-    fontWeight: '700',
-    fontSize: 11,
-    marginBottom: 6,
   },
   priorityBadge: {
     flexDirection: 'row',
@@ -221,9 +187,5 @@ const styles = StyleSheet.create({
   },
   priorityIcon: {
     marginRight: 6,
-  },
-  priorityText: {
-    fontSize: 12,
-    fontWeight: '700',
   },
 });

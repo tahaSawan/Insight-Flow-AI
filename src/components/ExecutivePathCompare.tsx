@@ -5,6 +5,7 @@ import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { UI } from '@/constants/plainLanguage';
 import { colors, spacing, radius } from '@/constants/designTokens';
+import { textBlock } from '@/constants/typography';
 import type { AnalysisResult } from '@/types/analysis';
 
 interface ExecutivePathCompareProps {
@@ -21,12 +22,14 @@ export function ExecutivePathCompare({ results }: ExecutivePathCompareProps) {
         <View style={[styles.pathCard, styles.pathBad]}>
           <View style={styles.pathHead}>
             <AlertTriangle size={14} color={colors.danger} />
-            <Typography style={styles.pathTitleBad}>{UI.results.pathDoNothing}</Typography>
+            <Typography variant="badgeText" style={styles.pathTitleBad}>
+              {UI.results.pathDoNothing}
+            </Typography>
           </View>
-          <Typography style={styles.pathBody} numberOfLines={3}>
+          <Typography variant="caption" numberOfLines={3}>
             {doNothing}
           </Typography>
-          <Typography variant="caption" style={styles.pathMeta}>
+          <Typography variant="metricValueSm" style={styles.pathMetaBad} numberOfLines={1}>
             {results.beforeMetric} → worsens
           </Typography>
         </View>
@@ -34,12 +37,14 @@ export function ExecutivePathCompare({ results }: ExecutivePathCompareProps) {
         <View style={[styles.pathCard, styles.pathGood]}>
           <View style={styles.pathHead}>
             <CheckCircle size={14} color={colors.success} />
-            <Typography style={styles.pathTitleGood}>{UI.results.pathActNow}</Typography>
+            <Typography variant="badgeText" style={styles.pathTitleGood}>
+              {UI.results.pathActNow}
+            </Typography>
           </View>
-          <Typography style={styles.pathBody} numberOfLines={3}>
+          <Typography variant="caption" numberOfLines={3}>
             {actNow}
           </Typography>
-          <Typography variant="caption" style={styles.pathMetaGood}>
+          <Typography variant="metricValueSm" style={styles.pathMetaGood} numberOfLines={1}>
             {results.beforeMetric} → {results.afterMetric}
           </Typography>
         </View>
@@ -62,6 +67,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.sm,
     minWidth: 0,
+    gap: textBlock.sm,
   },
   pathBad: {
     backgroundColor: colors.dangerSoft,
@@ -75,32 +81,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: spacing.sm,
   },
   pathTitleBad: {
     color: colors.danger,
-    fontSize: 12,
-    fontWeight: '800',
+    flex: 1,
   },
   pathTitleGood: {
     color: colors.success,
-    fontSize: 12,
-    fontWeight: '800',
+    flex: 1,
   },
-  pathBody: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    lineHeight: 17,
-    marginBottom: spacing.sm,
-  },
-  pathMeta: {
+  pathMetaBad: {
     color: colors.dangerLight,
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 12,
   },
   pathMetaGood: {
     color: colors.successLight,
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 12,
   },
 });

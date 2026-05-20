@@ -20,10 +20,30 @@ Barrel export: **`src/constants/theme.ts`**
 
 Extended semantic shades (timelines, depth): `dangerLight`, `dangerDeep`, `successLight`, `successDeep`, `surfaceInactive`.
 
+## Typography (`src/constants/typography.ts`)
+
+Use `<Typography variant="..." />` — legacy `h1`/`h2`/`h3` map to enterprise presets.
+
+| Variant | Use |
+|---------|-----|
+| `heroTitle` / `heroSubtitle` | Home hero |
+| `screenTitle` / `screenSubtitle` | Screen headers |
+| `sectionTitle` / `sectionHint` | Section blocks |
+| `cardTitle` / `cardSubtitle` | Card headers |
+| `alertHeadline` / `alertStake` | Leadership alert |
+| `decisionText` / `decisionLabel` | Autonomous decision |
+| `metricValue` / `metricValueSm` / `metricLabel` | Scores & KPIs |
+| `body` / `bodyMuted` / `caption` | Copy |
+| `badgeText` | Pills, status, chips |
+| `terminalLog` / `terminalHeader` | Agent logs |
+
+Vertical rhythm: `textBlock` from `@/constants/typography` — `xs` (4) · `sm` (8) · `md` (12) · `lg` (16)
+
 ## Usage
 
 ```tsx
 import { colors, spacing, radius, shadows } from '@/constants/designTokens';
+import { Typography } from '@/components/Typography';
 // or
 import { theme } from '@/constants/theme';
 ```
