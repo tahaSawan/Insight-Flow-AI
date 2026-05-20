@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Typography } from '@/components/Typography';
 import type { AnalysisResult } from '@/types/analysis';
+import { colors } from '@/constants/designTokens';
 
 type InsightType = 'finding' | 'risk' | 'action';
 
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     borderWidth: 1,
-    backgroundColor: '#1A1A24',
+    backgroundColor: colors.surfaceInactive,
   },
   bullet: {
     width: 8,
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listText: {
-    color: '#E2E8F0',
+    color: colors.textSecondary,
     fontSize: 15,
     lineHeight: 22,
   },

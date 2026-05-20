@@ -209,7 +209,7 @@ export default function AnalysisScreen() {
                 <Typography variant="caption">{UI.analysis.fastEngineDesc}</Typography>
               </View>
               {isAnalyzing ? (
-                <ActivityIndicator color="#6366F1" />
+                <ActivityIndicator color={colors.accent} />
               ) : preview ? (
                 <Typography style={styles.fastDone}>DONE</Typography>
               ) : null}
@@ -221,25 +221,22 @@ export default function AnalysisScreen() {
         )}
 
         {errorMessage ? (
-          <Card style={styles.errorCard}>
+          <Card variant="danger" title="Analysis failed" style={styles.errorCard}>
             <Typography variant="body" style={styles.errorMessage}>
               {errorMessage}
             </Typography>
-            <Button title="Retry" onPress={handleRetry} style={styles.actionBtn} />
+            <Button title="Retry" onPress={handleRetry} fullWidth style={styles.actionBtn} />
             <Button
               title="Back to Upload"
-              variant="outline"
+              variant="secondary"
               onPress={() => router.replace('/upload')}
-              style={styles.actionBtn}
+              fullWidth
             />
           </Card>
         ) : null}
 
         {preview ? (
-          <Card variant="accent" style={styles.previewCard}>
-            <Typography variant="caption" style={styles.previewLabel}>
-              {UI.analysis.previewHeroLabel}
-            </Typography>
+          <Card variant="alert" highlighted title={UI.analysis.previewHeroLabel} style={styles.previewCard}>
             <Typography style={styles.previewHeadline} numberOfLines={2}>
               {preview.urgencyHeadline || preview.executiveSummary}
             </Typography>
@@ -267,7 +264,7 @@ export default function AnalysisScreen() {
             <Button
               title={UI.analysis.viewReport}
               onPress={handleViewResults}
-              style={styles.viewResultsBtn}
+              fullWidth
             />
             <Typography variant="caption" style={styles.autoNavHint}>
               Opening decision report…
@@ -293,18 +290,18 @@ const styles = StyleSheet.create({
   },
   progressCard: { padding: 16, gap: 10 },
   progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  progressLabel: { color: '#8A8D98', textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 11 },
-  progressPct: { fontWeight: '800', color: '#818CF8', fontSize: 16 },
-  agentCount: { color: '#64748B' },
+  progressLabel: { color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: 11 },
+  progressPct: { fontWeight: '800', color: colors.accentText, fontSize: 16 },
+  agentCount: { color: colors.textDim },
   fastCard: { padding: 16, gap: 12 },
   fastHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   fastIcon: { fontSize: 28 },
   fastBody: { flex: 1 },
   fastTitle: { fontWeight: '700', fontSize: 16, marginBottom: 4 },
-  fastDone: { color: '#10B981', fontWeight: '800', fontSize: 11 },
-  fastReasoning: { color: '#94A3B8', fontSize: 13, lineHeight: 20 },
+  fastDone: { color: colors.accentSecondary, fontWeight: '800', fontSize: 11 },
+  fastReasoning: { color: colors.textMuted, fontSize: 13, lineHeight: 20 },
   errorCard: { padding: 20, gap: 12 },
-  errorMessage: { color: '#FCA5A5', lineHeight: 22 },
+  errorMessage: { color: colors.danger, lineHeight: 22 },
   actionBtn: { paddingVertical: 14 },
   previewCard: { padding: 20, gap: 10 },
   previewLabel: {

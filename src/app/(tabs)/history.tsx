@@ -55,20 +55,20 @@ export default function HistoryScreen() {
         <ScreenHeader title={UI.history.title} subtitle={UI.history.subtitle} />
 
         {history.length === 0 ? (
-          <Card style={styles.emptyCard}>
-            <UploadCloud size={36} color={colors.accent} />
-            <Typography variant="h3" style={styles.emptyTitle}>
-              {UI.history.emptyTitle}
-            </Typography>
-            <Typography variant="body" style={styles.emptyText}>
-              {UI.history.emptyBody}
-            </Typography>
+          <Card
+            variant="elevated"
+            icon={<UploadCloud size={36} color={colors.accent} />}
+            title={UI.history.emptyTitle}
+            subtitle={UI.history.emptyBody}
+            style={styles.emptyCard}
+          >
             <Typography variant="caption" style={styles.emptySteps}>
               {UI.history.emptySteps}
             </Typography>
             <Button
               title={UI.history.startBtn}
               onPress={() => router.push('/upload')}
+              fullWidth
               style={styles.emptyBtn}
             />
           </Card>
@@ -112,9 +112,9 @@ export default function HistoryScreen() {
             ))}
             <Button
               title={UI.history.clearAll}
-              variant="outline"
+              variant="danger"
               onPress={confirmClearAll}
-              style={styles.clearBtn}
+              fullWidth
             />
           </>
         )}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Typography } from '@/components/Typography';
+import { colors, radius } from '@/constants/designTokens';
 
 interface AnimatedExecutionLogProps {
   lines: string[];
@@ -51,26 +52,26 @@ export function AnimatedExecutionLog({ lines, intervalMs = 400 }: AnimatedExecut
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#05050A',
+    backgroundColor: colors.bg,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#1A1A24',
+    borderColor: colors.border,
   },
   logLine: {
-    color: '#A1A1AA',
+    color: colors.textSecondary,
     fontFamily: 'monospace',
     fontSize: 12,
     marginBottom: 8,
     lineHeight: 18,
   },
   logTime: {
-    color: '#6366F1',
+    color: colors.accent,
     fontFamily: 'monospace',
     fontSize: 12,
   },
   cursor: {
-    color: '#10B981',
+    color: colors.accentSecondary,
     fontFamily: 'monospace',
     fontSize: 12,
   },

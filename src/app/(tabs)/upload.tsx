@@ -124,10 +124,7 @@ export default function UploadScreen() {
 
           <ScreenHeader title={UI.upload.title} subtitle={UI.upload.subtitle} />
 
-          <Card style={styles.card}>
-            <Typography variant="h3" style={styles.blockTitle}>
-              1. Your document
-            </Typography>
+          <Card title="1. Your document" style={styles.card}>
 
           <Pressable
             style={styles.fileDrop}
@@ -135,10 +132,10 @@ export default function UploadScreen() {
             disabled={isExtracting}
           >
             {isExtracting ? (
-              <ActivityIndicator color="#6366F1" />
+              <ActivityIndicator color={colors.accent} />
             ) : (
               <>
-                <FileUp size={28} color="#6366F1" />
+                <FileUp size={28} color={colors.accent} />
                 <Typography style={styles.fileDropTitle}>{UI.upload.fileTitle}</Typography>
                 <Typography variant="caption">
                   {fileName ? UI.upload.fileLoaded(fileName) : UI.upload.fileTap}
@@ -158,9 +155,8 @@ export default function UploadScreen() {
           <View style={styles.toolbar}>
             <Button
               title={UI.upload.sampleBtn}
-              variant="outline"
+              variant="secondary"
               onPress={handleLoadSample}
-              style={styles.sampleBtn}
             />
             <Typography variant="caption" style={styles.charCount}>
               {charCount} / {MIN_CONTENT_LENGTH}+
@@ -174,7 +170,7 @@ export default function UploadScreen() {
           <TextInput
             style={styles.textInput}
             placeholder={UI.upload.placeholder}
-            placeholderTextColor="#64748B"
+            placeholderTextColor={colors.textDim}
             multiline
             textAlignVertical="top"
             value={textInput}
@@ -200,12 +196,11 @@ export default function UploadScreen() {
           ) : null}
           </Card>
 
-          <Card style={styles.card}>
+          <Card title="2. Options" style={styles.card}>
             <Pressable
               onPress={() => setShowAdvanced((v) => !v)}
               style={({ pressed }) => [styles.advancedToggle, pressed && styles.chipPressed]}
             >
-              <Typography style={styles.blockTitle}>2. Options</Typography>
               <Typography variant="caption" style={styles.advancedHint}>
                 {showAdvanced ? 'Hide' : 'Show'} mode, scenario, industry
               </Typography>
@@ -257,7 +252,7 @@ export default function UploadScreen() {
             title={UI.upload.submit}
             onPress={handleSubmit}
             disabled={!canSubmit}
-            style={[styles.submitBtn, !canSubmit && styles.submitBtnDisabled]}
+            fullWidth
           />
         </View>
       </KeyboardAvoidingView>
@@ -292,7 +287,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceElevated,
   },
   industryLabel: {
-    color: '#8A8D98',
+    color: colors.textMuted,
     marginBottom: 10,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -304,30 +299,30 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#2D2D44',
-    backgroundColor: '#0A0A0F',
+    borderColor: colors.border,
+    backgroundColor: colors.bg,
   },
   industryChipSelected: {
-    borderColor: '#6366F1',
-    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    borderColor: colors.borderAccent,
+    backgroundColor: colors.accentSoft,
   },
-  industryChipText: { color: '#94A3B8', fontSize: 13, fontWeight: '500' },
-  industryChipTextSelected: { color: '#A5B4FC' },
+  industryChipText: { color: colors.textMuted, fontSize: 13, fontWeight: '500' },
+  industryChipTextSelected: { color: colors.accentText },
   fileDrop: {
     borderWidth: 2,
-    borderColor: 'rgba(99, 102, 241, 0.35)',
+    borderColor: colors.borderAccent,
     borderStyle: 'dashed',
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
     gap: 8,
     marginBottom: 20,
-    backgroundColor: 'rgba(99, 102, 241, 0.05)',
+    backgroundColor: colors.accentMuted,
   },
   fileDropTitle: { fontWeight: '600', fontSize: 15 },
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 12 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#2D2D44' },
-  dividerText: { color: '#64748B' },
+  dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
+  dividerText: { color: colors.textDim },
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -336,7 +331,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sampleBtn: { paddingVertical: 10, paddingHorizontal: 14 },
-  charCount: { color: '#64748B' },
+  charCount: { color: colors.textDim },
   sampleLoadedText: {
     color: colors.success,
     fontSize: 13,
@@ -344,24 +339,24 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   textInput: {
-    backgroundColor: '#0A0A0F',
-    borderColor: 'rgba(100, 116, 139, 0.5)',
+    backgroundColor: colors.bg,
+    borderColor: colors.borderStrong,
     borderWidth: 1,
     borderRadius: 16,
-    color: '#FFFFFF',
+    color: colors.text,
     padding: 16,
     fontSize: 16,
     minHeight: 180,
     marginBottom: 16,
   },
   resumeTip: {
-    color: '#FCD34D',
+    color: colors.warning,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 12,
     fontSize: 14,
   },
-  errorText: { color: '#EF4444', textAlign: 'center', fontWeight: '500', marginBottom: 16 },
+  errorText: { color: colors.danger, textAlign: 'center', fontWeight: '500', marginBottom: 16 },
   submitBtn: { width: '100%', paddingVertical: 16, marginTop: 8 },
   submitBtnDisabled: { opacity: 0.45 },
   chipPressed: { opacity: 0.85 },

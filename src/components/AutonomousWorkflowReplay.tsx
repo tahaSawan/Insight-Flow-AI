@@ -40,7 +40,7 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
       agentName: 'Reader Agent',
       action: 'Ingested unstructured source documents, verified file integrity, and cleaned character maps.',
       icon: FileText,
-      color: '#60A5FA', // Blue
+      color: colors.info,
       duration: '1.2s',
       logs: [
         '[INGEST] Loading raw unstructured context buffer...',
@@ -53,7 +53,7 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
       agentName: 'Main Points Agent',
       action: 'Extracted high-level semantic insights and constructed baseline context parameters.',
       icon: Sparkles,
-      color: '#6366F1', // Indigo
+      color: colors.accent,
       duration: '2.4s',
       logs: [
         '[INSIGHT] Scanning extracted corpus for semantic hubs...',
@@ -66,7 +66,7 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
       agentName: 'Problems Agent',
       action: 'Scanned risk matrices, estimated potential failure modes, and calculated urgency profiles.',
       icon: ShieldAlert,
-      color: '#F59E0B', // Amber
+      color: colors.warning,
       duration: '3.1s',
       logs: [
         '[RISK] Cross-referencing operational vulnerabilities...',
@@ -79,7 +79,7 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
       agentName: 'Next Steps Agent',
       action: 'Formulated strategic proposals, calibrated risk mitigations, and drafted core resolutions.',
       icon: Target,
-      color: '#10B981', // Emerald
+      color: colors.accentSecondary,
       duration: '1.8s',
       logs: [
         '[ACTION] Generating strategic recommendation arrays...',
@@ -92,7 +92,7 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
       agentName: 'Results Agent',
       action: 'Ran statistical projection algorithms and computed relative 30-day consequence profiles.',
       icon: TrendingUp,
-      color: '#EC4899', // Pink
+      color: colors.accentDeep,
       duration: '2.2s',
       logs: [
         '[SIMULATION] Ingesting action vector to impact projection matrices...',
@@ -105,7 +105,7 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
       agentName: 'Execution Agent',
       action: 'Constructed simulated API payload vectors and completed final decision filter passes.',
       icon: Zap,
-      color: '#A855F7', // Purple
+      color: colors.accent,
       duration: '1.5s',
       logs: [
         '[EXECUTION] Initializing autonomous decision filters...',
@@ -123,12 +123,12 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
     return hasRealTrace 
       ? (results.agentTrace || []).map((entry) => {
           let iconComponent = Cpu;
-          let color = '#818CF8';
-          if (entry.agentId === 'ingestion') { iconComponent = FileText; color = '#60A5FA'; }
-          else if (entry.agentId === 'insight') { iconComponent = Sparkles; color = '#6366F1'; }
-          else if (entry.agentId === 'risk') { iconComponent = ShieldAlert; color = '#F59E0B'; }
-          else if (entry.agentId === 'action') { iconComponent = Target; color = '#10B981'; }
-          else if (entry.agentId === 'execution') { iconComponent = Zap; color = '#A855F7'; }
+          let color: string = colors.accentText;
+          if (entry.agentId === 'ingestion') { iconComponent = FileText; color = colors.info; }
+          else if (entry.agentId === 'insight') { iconComponent = Sparkles; color = colors.accent; }
+          else if (entry.agentId === 'risk') { iconComponent = ShieldAlert; color = colors.warning; }
+          else if (entry.agentId === 'action') { iconComponent = Target; color = colors.accentSecondary; }
+          else if (entry.agentId === 'execution') { iconComponent = Zap; color = colors.accentDeep; }
 
           // Dynamic pseudologs based on the real reasoning
           const truncatedReasoning = entry.reasoning.length > 80 
@@ -321,7 +321,7 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
             pressed && styles.replayBtnPressed
           ]}
         >
-          <RotateCcw size={12} color={isReplaying ? '#4B5563' : '#818CF8'} style={styles.btnIcon} />
+          <RotateCcw size={12} color={isReplaying ? colors.textDim : colors.accent} style={styles.btnIcon} />
           <Typography style={[styles.replayBtnText, isReplaying && styles.replayBtnTextDisabled]}>
             {isReplaying ? 'Replaying...' : 'Replay Run'}
           </Typography>
@@ -377,15 +377,15 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
                   <View 
                     style={[
                       styles.nodeDot, 
-                      { backgroundColor: isPending ? '#1A1A24' : step.color },
+                      { backgroundColor: isPending ? colors.surfaceInactive : step.color },
                       isPending && styles.nodeDotPending,
                       isComplete && styles.nodeDotComplete
                     ]}
                   >
                     {isComplete ? (
-                      <CheckCircle2 size={10} color="#FFFFFF" />
+                      <CheckCircle2 size={10} color={colors.white} />
                     ) : (
-                      <StepIcon size={11} color={isPending ? '#4B5563' : '#FFFFFF'} />
+                      <StepIcon size={11} color={isPending ? colors.textDim : colors.white} />
                     )}
                   </View>
                 </View>
@@ -412,7 +412,7 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
               {/* Right Side: Step Details */}
               <View style={styles.contentCol}>
                 <View style={styles.stepTitleRow}>
-                  <Typography style={[styles.agentName, { color: isPending ? '#4B5563' : '#F3E8FF' }]}>
+                  <Typography style={[styles.agentName, { color: isPending ? colors.textDim : colors.text }]}>
                     {step.agentName}
                   </Typography>
                   
@@ -451,12 +451,12 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
       <View style={styles.terminalContainer}>
         <View style={styles.terminalHeader}>
           <View style={styles.terminalDotRow}>
-            <View style={[styles.terminalDot, { backgroundColor: '#EF4444' }]} />
-            <View style={[styles.terminalDot, { backgroundColor: '#F59E0B' }]} />
-            <View style={[styles.terminalDot, { backgroundColor: '#10B981' }]} />
+            <View style={[styles.terminalDot, { backgroundColor: colors.danger }]} />
+            <View style={[styles.terminalDot, { backgroundColor: colors.warning }]} />
+            <View style={[styles.terminalDot, { backgroundColor: colors.success }]} />
           </View>
           <View style={styles.terminalTitleRow}>
-            <Terminal size={10} color="#8A8D98" style={{ marginRight: 4 }} />
+            <Terminal size={10} color={colors.textDim} style={{ marginRight: 4 }} />
             <Typography style={styles.terminalTitle}>AUDIT_LOG_STREAM // active</Typography>
           </View>
         </View>
@@ -470,16 +470,16 @@ export function AutonomousWorkflowReplay({ results }: AutonomousWorkflowReplayPr
           {terminalLogs.map((log, idx) => {
             const isSystem = log.startsWith('[SYSTEM]');
             const isError = log.includes('[ERROR]');
-            let logColor = '#CBD5E1';
+            let logColor: string = colors.textSecondary;
             
-            if (isSystem) logColor = '#818CF8';
-            else if (isError) logColor = '#F87171';
-            else if (log.includes('[INGEST]')) logColor = '#60A5FA';
-            else if (log.includes('[INSIGHT]')) logColor = '#A5B4FC';
-            else if (log.includes('[RISK]')) logColor = '#FCD34D';
-            else if (log.includes('[ACTION]')) logColor = '#34D399';
-            else if (log.includes('[SIMULATION]')) logColor = '#F472B6';
-            else if (log.includes('[EXECUTION]')) logColor = '#C084FC';
+            if (isSystem) logColor = colors.accentText;
+            else if (isError) logColor = colors.danger;
+            else if (log.includes('[INGEST]')) logColor = colors.info;
+            else if (log.includes('[INSIGHT]')) logColor = colors.accent;
+            else if (log.includes('[RISK]')) logColor = colors.warning;
+            else if (log.includes('[ACTION]')) logColor = colors.accentSecondary;
+            else if (log.includes('[SIMULATION]')) logColor = colors.accentDeep;
+            else if (log.includes('[EXECUTION]')) logColor = colors.accent;
 
             return (
               <Typography key={`log-line-${idx}`} style={[styles.terminalLine, { color: logColor }]}>
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   subtitle: {
-    color: '#94A3B8',
+    color: colors.textMuted,
     lineHeight: 18,
     marginBottom: 16,
     fontSize: 12,
@@ -519,8 +519,8 @@ const styles = StyleSheet.create({
   replayBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(129, 140, 248, 0.12)',
-    borderColor: 'rgba(129, 140, 248, 0.35)',
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.borderAccent,
     borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -530,19 +530,19 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   replayBtnDisabled: {
-    borderColor: 'rgba(75, 85, 99, 0.3)',
-    backgroundColor: 'rgba(75, 85, 99, 0.05)',
+    borderColor: colors.border,
+    backgroundColor: colors.accentMuted,
   },
   btnIcon: {
     marginRight: 4,
   },
   replayBtnText: {
-    color: '#818CF8',
+    color: colors.accent,
     fontSize: 11,
     fontWeight: '700',
   },
   replayBtnTextDisabled: {
-    color: '#4B5563',
+    color: colors.textDim,
   },
   timelineContainer: {
     marginVertical: 8,
@@ -558,13 +558,13 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
   timeText: {
-    color: '#94A3B8',
+    color: colors.textMuted,
     fontFamily: 'monospace',
     fontSize: 10,
     fontWeight: '600',
   },
   durationText: {
-    color: '#4B5563',
+    color: colors.textDim,
     fontSize: 9,
     marginTop: 1,
     fontWeight: '500',
@@ -599,19 +599,19 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   nodeDotPending: {
-    borderColor: '#374151',
+    borderColor: colors.textDim,
     borderStyle: 'dashed',
   },
   nodeDotComplete: {
-    backgroundColor: '#10B981',
-    borderColor: '#34D399',
+    backgroundColor: colors.success,
+    borderColor: colors.successLight,
   },
   lineTrack: {
     position: 'absolute',
     top: 22,
     bottom: -6,
     width: 2,
-    backgroundColor: '#1F1F2E',
+    backgroundColor: colors.track,
     zIndex: 1,
   },
   lineFill: {
@@ -641,15 +641,15 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
   },
   statusPillPending: {
-    backgroundColor: 'rgba(55, 65, 81, 0.1)',
-    borderColor: 'rgba(55, 65, 81, 0.3)',
+    backgroundColor: colors.accentMuted,
+    borderColor: colors.border,
   },
   statusPillActive: {
-    backgroundColor: 'rgba(129, 140, 248, 0.15)',
-    borderColor: 'rgba(129, 140, 248, 0.4)',
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.borderAccent,
   },
   statusPillComplete: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    backgroundColor: colors.successSoft,
     borderColor: 'rgba(16, 185, 129, 0.35)',
   },
   statusPillText: {
@@ -658,27 +658,27 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   statusPillTextPending: {
-    color: '#4B5563',
+    color: colors.textDim,
   },
   statusPillTextActive: {
-    color: '#818CF8',
+    color: colors.accent,
   },
   statusPillTextComplete: {
-    color: '#10B981',
+    color: colors.success,
   },
   actionText: {
-    color: '#94A3B8',
+    color: colors.textMuted,
     fontSize: 11.5,
     lineHeight: 16.5,
   },
   actionTextPending: {
-    color: '#4B5563',
+    color: colors.textDim,
   },
   terminalContainer: {
-    backgroundColor: '#07070F',
+    backgroundColor: colors.bgElevated,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1E1B4B',
+    borderColor: colors.border,
     overflow: 'hidden',
     marginTop: 6,
   },
@@ -686,11 +686,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#0F0F1A',
+    backgroundColor: colors.surface,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E1B4B',
+    borderBottomColor: colors.border,
   },
   terminalDotRow: {
     flexDirection: 'row',
@@ -706,7 +706,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   terminalTitle: {
-    color: '#8A8D98',
+    color: colors.textDim,
     fontSize: 8.5,
     fontWeight: '800',
     fontFamily: 'monospace',

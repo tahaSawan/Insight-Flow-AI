@@ -1,27 +1,77 @@
 import React from 'react';
-import { View, ViewProps, StyleSheet } from 'react-native';
+import { View, ViewProps, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { Typography } from '@/components/Typography';
 import { colors, radius, spacing, shadows } from '@/constants/designTokens';
 
-type CardVariant = 'default' | 'elevated' | 'accent' | 'outline';
+export type CardVariant = 'default' | 'elevated' | 'alert' | 'success' | 'danger';
+
+/** @deprecated `accent` → `alert`, `outline` → `default` */
+export type LegacyCardVariant = CardVariant | 'accent' | 'outline';
 
 interface CardProps extends ViewProps {
-  variant?: CardVariant;
+  variant?: LegacyCardVariant;
+  title?: string;
+  subtitle?: string;
+  icon?: React.ReactNode;
+  highlighted?: boolean;
+  noPadding?: boolean;
+  children?: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
 }
 
-export function Card({ style, children, variant = 'default', ...props }: CardProps) {
+function resolveVariant(variant: LegacyCardVariant): CardVariant {
+  if (variant === 'accent') return 'alert';
+  if (variant === 'outline') return 'default';
+  return variant;
+}
+
+export function Card({
+  style,
+  children,
+  variant = 'default',
+  title,
+  subtitle,
+  icon,
+  highlighted = false,
+  noPadding = false,
+  ...props
+}: CardProps) {
+  const resolved = resolveVariant(variant);
+  const hasHeader = !!(title || subtitle || icon);
+
   return (
     <View
       style={[
         styles.card,
-        variant === 'elevated' && styles.elevated,
-        variant === 'accent' && styles.accent,
-        variant === 'outline' && styles.outline,
-        (variant === 'elevated' || variant === 'accent') && shadows.card,
-        variant === 'accent' && shadows.accent,
+        resolved === 'elevated' && styles.elevated,
+        resolved === 'alert' && styles.alert,
+        resolved === 'success' && styles.success,
+        resolved === 'danger' && styles.danger,
+        highlighted && styles.highlighted,
+        (resolved === 'elevated' || highlighted) && shadows.card,
+        resolved === 'alert' && highlighted && shadows.accent,
+        noPadding && styles.noPadding,
         style,
       ]}
       {...props}
     >
+      {hasHeader ? (
+        <View style={[styles.header, !noPadding && styles.headerWithPadding]}>
+          {icon ? <View style={styles.iconWrap}>{icon}</View> : null}
+          <View style={styles.headerText}>
+            {title ? (
+              <Typography variant="h3" style={styles.title}>
+                {title}
+              </Typography>
+            ) : null}
+            {subtitle ? (
+              <Typography variant="body" style={styles.subtitle}>
+                {subtitle}
+              </Typography>
+            ) : null}
+          </View>
+        </View>
+      ) : null}
       {children}
     </View>
   );
@@ -34,17 +84,55 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
+    marginBottom: spacing.md,
+  },
+  noPadding: {
+    padding: 0,
   },
   elevated: {
     backgroundColor: colors.surfaceElevated,
     borderColor: colors.borderStrong,
   },
-  accent: {
-    borderColor: colors.borderAccent,
+  alert: {
     backgroundColor: colors.accentSoft,
+    borderColor: colors.borderAccent,
   },
-  outline: {
-    backgroundColor: 'transparent',
-    borderColor: colors.borderStrong,
+  success: {
+    backgroundColor: colors.successSoft,
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+  },
+  danger: {
+    backgroundColor: colors.dangerSoft,
+    borderColor: 'rgba(239, 68, 68, 0.35)',
+  },
+  highlighted: {
+    borderColor: colors.borderAccent,
+    borderWidth: 1.5,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  headerWithPadding: {},
+  iconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceHighlight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerText: {
+    flex: 1,
+    gap: 4,
+  },
+  title: {
+    marginBottom: 0,
+  },
+  subtitle: {
+    color: colors.textSecondary,
+    lineHeight: 22,
   },
 });

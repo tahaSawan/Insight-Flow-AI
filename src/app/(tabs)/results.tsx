@@ -149,7 +149,7 @@ export default function ResultsScreen() {
         </View>
 
         {showResumeTip ? (
-          <Card variant="accent" style={styles.resumeBanner}>
+          <Card variant="alert" style={styles.resumeBanner}>
             <Typography style={styles.resumeBannerText}>{UI.results.resumeBanner}</Typography>
           </Card>
         ) : null}
@@ -190,13 +190,11 @@ export default function ResultsScreen() {
             hint="Summary, findings, risks, and recommended steps"
             defaultOpen={false}
           >
-        <Card style={styles.summaryCard}>
-          <Typography variant="h2" style={styles.cardTitle}>
-            {UI.results.summaryTitle}
-          </Typography>
-          <Typography variant="caption" style={styles.sectionHint}>
-            {UI.results.summaryHint}
-          </Typography>
+        <Card
+          title={UI.results.summaryTitle}
+          subtitle={UI.results.summaryHint}
+          style={styles.summaryCard}
+        >
           <Typography style={styles.executiveSummary}>{results.executiveSummary}</Typography>
 
           <Typography variant="caption" style={styles.detailsMetricsHint}>
@@ -216,64 +214,40 @@ export default function ResultsScreen() {
           </View>
         </Card>
 
-        <Card style={styles.sectionCard}>
-          <Typography variant="h3" style={styles.sectionTitleIndigo}>
-            {UI.results.findingsTitle}
-          </Typography>
-          <Typography variant="caption" style={styles.sectionHint}>
-            {UI.results.findingsHint}
-          </Typography>
+        <Card title={UI.results.findingsTitle} subtitle={UI.results.findingsHint} style={styles.sectionCard}>
           <InsightList
             items={results.keyFindings}
             type="finding"
             bulletStyle={styles.bulletIndigo}
-            titleColor="#6366F1"
+            titleColor={colors.accent}
             documentText={uploadedText}
             analysis={results}
           />
         </Card>
 
-        <Card style={styles.sectionCard}>
-          <Typography variant="h3" style={styles.sectionTitleAmber}>
-            {UI.results.problemsTitle}
-          </Typography>
-          <Typography variant="caption" style={styles.sectionHint}>
-            {UI.results.problemsHint}
-          </Typography>
+        <Card title={UI.results.problemsTitle} subtitle={UI.results.problemsHint} variant="alert" style={styles.sectionCard}>
           <InsightList
             items={results.riskAssessment}
             type="risk"
             bulletStyle={styles.bulletAmber}
-            titleColor="#F59E0B"
+            titleColor={colors.warning}
             documentText={uploadedText}
             analysis={results}
           />
         </Card>
 
-        <Card style={styles.sectionCard}>
-          <Typography variant="h3" style={styles.sectionTitleEmerald}>
-            {UI.results.actionsTitle}
-          </Typography>
-          <Typography variant="caption" style={styles.sectionHint}>
-            {UI.results.actionsHint}
-          </Typography>
+        <Card title={UI.results.actionsTitle} subtitle={UI.results.actionsHint} variant="success" style={styles.sectionCard}>
           <InsightList
             items={results.recommendedActions}
             type="action"
             bulletStyle={styles.bulletEmerald}
-            titleColor="#10B981"
+            titleColor={colors.accentSecondary}
             documentText={uploadedText}
             analysis={results}
           />
         </Card>
 
-        <Card style={styles.sectionCard}>
-          <Typography variant="h3" style={styles.sectionTitleLog}>
-            {UI.results.logsTitle}
-          </Typography>
-          <Typography variant="caption" style={styles.sectionHint}>
-            {UI.results.logsHint}
-          </Typography>
+        <Card title={UI.results.logsTitle} subtitle={UI.results.logsHint} style={styles.sectionCard}>
           <AnimatedExecutionLog lines={results.executionLog} />
         </Card>
           </CollapsibleSection>
@@ -288,13 +262,7 @@ export default function ResultsScreen() {
             <AIDecisionScorecard results={results} />
             <ExecutiveVoiceBriefing results={results} />
             <AutonomousWorkflowReplay results={results} />
-        <Card style={styles.briefCard}>
-          <Typography variant="h3" style={styles.sectionTitleIndigo}>
-            {UI.results.ceoBriefTitle}
-          </Typography>
-          <Typography variant="caption" style={styles.briefHint}>
-            {UI.results.ceoBriefHint}
-          </Typography>
+        <Card title={UI.results.ceoBriefTitle} subtitle={UI.results.ceoBriefHint} style={styles.briefCard}>
           {briefBullets ? (
             <View style={styles.briefList}>
               {briefBullets.map((bullet, index) => (
@@ -313,14 +281,12 @@ export default function ResultsScreen() {
                   ? UI.results.ceoBriefBtnAgain
                   : UI.results.ceoBriefBtn
             }
-            variant="outline"
+            variant="secondary"
             onPress={handleExecutiveBrief}
-            disabled={briefLoading}
+            isLoading={briefLoading}
+            fullWidth
             style={styles.briefBtn}
           />
-          {briefLoading ? (
-            <ActivityIndicator size="small" color="#6366F1" style={{ marginTop: 12 }} />
-          ) : null}
         </Card>
           </CollapsibleSection>
         </ScrollSection>
@@ -332,12 +298,12 @@ export default function ResultsScreen() {
 
       <View style={[styles.stickyBar, { paddingBottom: Math.max(spacing.md, insets.bottom) }]}>
         <View style={styles.stickyRow}>
-          <Button title={UI.results.share} onPress={handleShare} style={styles.stickyBtnPrimary} />
+          <Button title={UI.results.share} onPress={handleShare} style={styles.stickyBtn} />
           <Button
             title={UI.results.copy}
-            variant="outline"
+            variant="secondary"
             onPress={handleCopy}
-            style={styles.stickyBtnSecondary}
+            style={styles.stickyBtn}
           />
         </View>
         {exportMessage ? (
@@ -435,12 +401,12 @@ const styles = StyleSheet.create({
   resumeBanner: {
     marginBottom: 16,
     padding: 16,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: colors.warningSoft,
     borderColor: 'rgba(245, 158, 11, 0.35)',
     borderWidth: 1,
   },
   resumeBannerText: {
-    color: '#FCD34D',
+    color: colors.warning,
     fontSize: 14,
     lineHeight: 22,
   },
@@ -452,7 +418,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   sectionHint: {
-    color: '#64748B',
+    color: colors.textMuted,
     marginBottom: 12,
     lineHeight: 18,
   },
@@ -468,10 +434,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: '#1F1F2E',
+    borderTopColor: colors.border,
   },
   priorityBadge: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: colors.dangerSoft,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 8,
@@ -479,7 +445,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   priorityText: {
-    color: '#EF4444',
+    color: colors.danger,
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -506,19 +472,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    backgroundColor: '#1A1A24',
+    backgroundColor: colors.surfaceHighlight,
     padding: 12,
     borderRadius: 10,
   },
   briefNumber: {
-    color: '#6366F1',
+    color: colors.accent,
     fontWeight: '800',
     fontSize: 16,
     width: 20,
   },
   briefText: {
     flex: 1,
-    color: '#E2E8F0',
+    color: colors.text,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -530,32 +496,32 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   sectionTitleIndigo: {
-    color: '#6366F1',
+    color: colors.accent,
     marginBottom: 16,
     fontSize: 18,
   },
   sectionTitleAmber: {
-    color: '#F59E0B',
+    color: colors.warning,
     marginBottom: 16,
     fontSize: 18,
   },
   sectionTitleEmerald: {
-    color: '#10B981',
+    color: colors.accentSecondary,
     marginBottom: 16,
     fontSize: 18,
   },
   sectionTitlePurple: {
-    color: '#A855F7',
+    color: colors.accent,
     marginBottom: 16,
     fontSize: 18,
   },
   sectionTitlePink: {
-    color: '#EC4899',
+    color: colors.accentDeep,
     marginBottom: 16,
     fontSize: 18,
   },
   sectionTitleLog: {
-    color: '#94A3B8',
+    color: colors.textMuted,
     marginBottom: 16,
     fontSize: 18,
   },
@@ -568,25 +534,25 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#6366F1',
+    backgroundColor: colors.accent,
     marginRight: 12,
   },
   bulletAmber: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#F59E0B',
+    backgroundColor: colors.warning,
     marginRight: 12,
   },
   bulletEmerald: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#10B981',
+    backgroundColor: colors.accentSecondary,
     marginRight: 12,
   },
   listText: {
-    color: '#E2E8F0',
+    color: colors.text,
     fontSize: 15,
     lineHeight: 22,
     flex: 1,
@@ -594,7 +560,7 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1A1A24',
+    backgroundColor: colors.surfaceHighlight,
     padding: 12,
     borderRadius: 12,
     marginBottom: 12,
@@ -603,7 +569,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 8,
-    backgroundColor: '#2D2D44',
+    backgroundColor: colors.surfaceElevated,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -631,7 +597,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   actionBadgeText: {
-    color: '#10B981',
+    color: colors.accentSecondary,
     fontSize: 11,
     fontWeight: 'bold',
     letterSpacing: 0.5,
@@ -644,12 +610,12 @@ const styles = StyleSheet.create({
   },
   impactBoxBefore: {
     flex: 1,
-    backgroundColor: '#1A1A24',
+    backgroundColor: colors.surfaceHighlight,
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2D2D44',
+    borderColor: colors.border,
   },
   impactBoxTitle: {
     fontWeight: '600',
@@ -661,11 +627,11 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '800',
     marginBottom: 4,
-    color: '#FFFFFF',
+    color: colors.text,
   },
   impactBoxDesc: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: colors.textMuted,
     textAlign: 'center',
   },
   impactArrow: {
@@ -673,7 +639,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   impactArrowText: {
-    color: '#64748B',
+    color: colors.textDim,
     fontSize: 24,
     fontWeight: '300',
   },
@@ -691,13 +657,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textTransform: 'uppercase',
     fontSize: 13,
-    color: '#10B981',
+    color: colors.accentSecondary,
   },
   impactBoxValueAfter: {
     fontSize: 28,
     fontWeight: '800',
     marginBottom: 4,
-    color: '#10B981',
+    color: colors.accentSecondary,
   },
   bottomActions: {
     marginTop: 8,
@@ -708,7 +674,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   exportMsg: {
-    color: '#10B981',
+    color: colors.accentSecondary,
     textAlign: 'center',
     marginBottom: 8,
     fontSize: 14,
@@ -717,7 +683,7 @@ const styles = StyleSheet.create({
   backBtn: {
     paddingVertical: 16,
     borderRadius: 14,
-    borderColor: '#2D2D44',
+    borderColor: colors.border,
     borderWidth: 1,
   },
 });

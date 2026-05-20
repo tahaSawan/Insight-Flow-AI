@@ -1,13 +1,26 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * InsightFlow global theme — re-exports design tokens as the single source of truth.
+ * Legacy Expo template `Colors` kept below for unused scaffold components only.
  */
-
-// eslint-disable-next-line import/no-unresolved
-import '@/global.css';
+export {
+  colors,
+  spacing,
+  radius,
+  fontSize,
+  fontWeight,
+  borders,
+  shadows,
+  featureSection,
+  navigationTheme,
+  theme,
+  type Theme,
+  type ThemeColors,
+} from './designTokens';
 
 import { Platform } from 'react-native';
+import { colors as ds } from './designTokens';
 
+/** @deprecated Use `colors` from designTokens in app screens */
 export const Colors = {
   light: {
     text: '#000000',
@@ -17,11 +30,11 @@ export const Colors = {
     textSecondary: '#60646C',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: ds.text,
+    background: ds.bg,
+    backgroundElement: ds.surface,
+    backgroundSelected: ds.surfaceElevated,
+    textSecondary: ds.textMuted,
   },
 } as const;
 
@@ -29,13 +42,9 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
@@ -45,10 +54,10 @@ export const Fonts = Platform.select({
     mono: 'monospace',
   },
   web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
+    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    serif: "Georgia, 'Times New Roman', serif",
+    rounded: "'SF Pro Rounded', sans-serif",
+    mono: "SFMono-Regular, Menlo, Monaco, Consolas, monospace",
   },
 });
 

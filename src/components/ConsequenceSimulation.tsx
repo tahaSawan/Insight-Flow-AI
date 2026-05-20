@@ -27,9 +27,9 @@ function parseNumberFromString(str: string): { value: number; prefix: string; su
 }
 
 function getRiskColor(risk: number): string {
-  if (risk >= 70) return '#F87171'; // Red
-  if (risk >= 40) return '#FBBF24'; // Amber
-  return '#34D399'; // Emerald
+  if (risk >= 70) return colors.danger;
+  if (risk >= 40) return colors.warning;
+  return colors.accentSecondary;
 }
 
 function getRiskBg(risk: number): string {
@@ -115,7 +115,7 @@ export function ConsequenceSimulation({ results }: ConsequenceSimulationProps) {
   }
 
   return (
-    <Card variant="accent" style={featureSection}>
+    <Card variant="alert" style={featureSection}>
       <View style={styles.header}>
         <Clock size={20} color={colors.warning} />
         <Typography variant="h3" style={styles.title}>
@@ -129,7 +129,7 @@ export function ConsequenceSimulation({ results }: ConsequenceSimulationProps) {
       {/* Path A: DO NOTHING */}
       <View style={styles.pathContainer}>
         <View style={[styles.pathHeader, styles.borderRed]}>
-          <AlertTriangle size={15} color="#EF4444" />
+          <AlertTriangle size={15} color={colors.danger} />
           <Typography style={styles.pathTitleRed}>{UI.results.pathDoNothing}</Typography>
         </View>
         
@@ -137,8 +137,8 @@ export function ConsequenceSimulation({ results }: ConsequenceSimulationProps) {
           {/* Day 0 */}
           <View style={styles.timelineItem}>
             <View style={styles.timelineLeft}>
-              <View style={[styles.timelineNode, { backgroundColor: '#EF4444' }]} />
-              <View style={[styles.timelineLine, { backgroundColor: 'rgba(239, 68, 68, 0.2)' }]} />
+              <View style={[styles.timelineNode, { backgroundColor: colors.danger }]} />
+              <View style={[styles.timelineLine, { backgroundColor: colors.dangerSoft }]} />
             </View>
             <View style={styles.timelineRight}>
               <View style={styles.nodeHeader}>
@@ -161,8 +161,8 @@ export function ConsequenceSimulation({ results }: ConsequenceSimulationProps) {
           {/* Day 7 */}
           <View style={styles.timelineItem}>
             <View style={styles.timelineLeft}>
-              <View style={[styles.timelineNode, { backgroundColor: '#F87171' }]} />
-              <View style={[styles.timelineLine, { backgroundColor: 'rgba(239, 68, 68, 0.2)' }]} />
+              <View style={[styles.timelineNode, { backgroundColor: colors.dangerLight }]} />
+              <View style={[styles.timelineLine, { backgroundColor: colors.dangerSoft }]} />
             </View>
             <View style={styles.timelineRight}>
               <View style={styles.nodeHeader}>
@@ -185,7 +185,7 @@ export function ConsequenceSimulation({ results }: ConsequenceSimulationProps) {
           {/* Day 30 */}
           <View style={styles.timelineItem}>
             <View style={styles.timelineLeft}>
-              <View style={[styles.timelineNode, { backgroundColor: '#B91C1C' }]} />
+              <View style={[styles.timelineNode, { backgroundColor: colors.dangerDeep }]} />
             </View>
             <View style={styles.timelineRight}>
               <View style={styles.nodeHeader}>
@@ -210,7 +210,7 @@ export function ConsequenceSimulation({ results }: ConsequenceSimulationProps) {
       {/* Path B: ACT NOW */}
       <View style={styles.pathContainer}>
         <View style={[styles.pathHeader, styles.borderGreen]}>
-          <CheckCircle size={15} color="#10B981" />
+          <CheckCircle size={15} color={colors.success} />
           <Typography style={styles.pathTitleGreen}>{UI.results.pathActNow}</Typography>
         </View>
 
@@ -218,8 +218,8 @@ export function ConsequenceSimulation({ results }: ConsequenceSimulationProps) {
           {/* Day 0 */}
           <View style={styles.timelineItem}>
             <View style={styles.timelineLeft}>
-              <View style={[styles.timelineNode, { backgroundColor: '#10B981' }]} />
-              <View style={[styles.timelineLine, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]} />
+              <View style={[styles.timelineNode, { backgroundColor: colors.success }]} />
+              <View style={[styles.timelineLine, { backgroundColor: colors.successSoft }]} />
             </View>
             <View style={styles.timelineRight}>
               <View style={styles.nodeHeader}>
@@ -242,8 +242,8 @@ export function ConsequenceSimulation({ results }: ConsequenceSimulationProps) {
           {/* Day 7 */}
           <View style={styles.timelineItem}>
             <View style={styles.timelineLeft}>
-              <View style={[styles.timelineNode, { backgroundColor: '#34D399' }]} />
-              <View style={[styles.timelineLine, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]} />
+              <View style={[styles.timelineNode, { backgroundColor: colors.successLight }]} />
+              <View style={[styles.timelineLine, { backgroundColor: colors.successSoft }]} />
             </View>
             <View style={styles.timelineRight}>
               <View style={styles.nodeHeader}>
@@ -266,7 +266,7 @@ export function ConsequenceSimulation({ results }: ConsequenceSimulationProps) {
           {/* Day 30 */}
           <View style={styles.timelineItem}>
             <View style={styles.timelineLeft}>
-              <View style={[styles.timelineNode, { backgroundColor: '#047857' }]} />
+              <View style={[styles.timelineNode, { backgroundColor: colors.successDeep }]} />
             </View>
             <View style={styles.timelineRight}>
               <View style={styles.nodeHeader}>
@@ -304,15 +304,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   subtitle: {
-    color: '#94A3B8',
+    color: colors.textMuted,
     lineHeight: 18,
     marginBottom: 20,
   },
   pathContainer: {
-    backgroundColor: 'rgba(10, 10, 20, 0.5)',
+    backgroundColor: colors.accentMuted,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: colors.border,
     padding: 14,
     marginBottom: 16,
   },
@@ -325,12 +325,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   borderRed: {
-    borderColor: 'rgba(239, 68, 68, 0.15)',
-    borderBottomColor: 'rgba(239, 68, 68, 0.15)',
+    borderColor: colors.dangerSoft,
+    borderBottomColor: colors.dangerSoft,
   },
   borderGreen: {
-    borderColor: 'rgba(16, 185, 129, 0.15)',
-    borderBottomColor: 'rgba(16, 185, 129, 0.15)',
+    borderColor: colors.successSoft,
+    borderBottomColor: colors.successSoft,
   },
   pathTitleRed: {
     color: colors.danger,
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   nodeTime: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontWeight: '700',
     fontSize: 13,
   },
@@ -398,22 +398,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   bgRedText: {
-    backgroundColor: 'rgba(239, 68, 68, 0.08)',
-    borderColor: 'rgba(239, 68, 68, 0.25)',
+    backgroundColor: colors.dangerSoft,
+    borderColor: colors.dangerSoft,
   },
   bgGreenText: {
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
-    borderColor: 'rgba(16, 185, 129, 0.25)',
+    backgroundColor: colors.successSoft,
+    borderColor: colors.successSoft,
   },
   metricTextRed: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#F87171',
+    color: colors.dangerLight,
   },
   metricTextGreen: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#34D399',
+    color: colors.successLight,
   },
   riskBadge: {
     paddingHorizontal: 8,
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   nodeDesc: {
-    color: '#94A3B8',
+    color: colors.textMuted,
     fontSize: 12,
     lineHeight: 18,
   },

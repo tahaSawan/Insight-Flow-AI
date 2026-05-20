@@ -1,48 +1,66 @@
 /**
- * InsightFlow design system — executive dark theme.
- * Use these tokens everywhere; avoid one-off hex in screens.
+ * InsightFlow AI — global design system
+ * AI operations dashboard · dark · cyan primary · emerald secondary
+ *
+ * Import: `import { colors, spacing, radius } from '@/constants/designTokens'`
+ * Or:     `import { theme } from '@/constants/theme'`
  */
+
 export const colors = {
-  /** App canvas */
-  bg: '#050508',
-  bgElevated: '#0A0A12',
+  /** Canvas */
+  bg: '#050A12',
+  bgElevated: '#071018',
 
   /** Surfaces */
-  surface: '#0F0F18',
-  surfaceElevated: '#161625',
-  surfaceHighlight: '#1C1C2E',
+  surface: '#0B1220',
+  surfaceElevated: '#111827',
+  surfaceHighlight: '#151F32',
 
   /** Borders */
-  border: 'rgba(148, 163, 184, 0.1)',
-  borderStrong: 'rgba(148, 163, 184, 0.2)',
-  borderAccent: 'rgba(139, 124, 246, 0.45)',
+  border: 'rgba(148, 163, 184, 0.18)',
+  borderStrong: 'rgba(148, 163, 184, 0.28)',
+  borderAccent: 'rgba(34, 211, 238, 0.42)',
 
-  /** Text */
-  text: '#F4F4F5',
-  textSecondary: '#A1A1AA',
-  textMuted: '#71717A',
+  /** Typography */
+  text: '#F8FAFC',
+  textSecondary: '#B8C5D6',
+  textMuted: '#94A3B8',
+  textDim: '#64748B',
 
-  /** Brand — violet-indigo */
-  accent: '#8B7CF8',
-  accentDeep: '#6366F1',
-  accentSoft: 'rgba(139, 124, 246, 0.14)',
-  accentMuted: 'rgba(99, 102, 241, 0.08)',
-  accentText: '#C4B5FD',
-  accentGlow: 'rgba(139, 124, 246, 0.35)',
+  /** Brand */
+  accent: '#22D3EE',
+  accentSecondary: '#10B981',
+  accentDeep: '#06B6D4',
+  accentSoft: 'rgba(34, 211, 238, 0.12)',
+  accentMuted: 'rgba(34, 211, 238, 0.06)',
+  accentSecondarySoft: 'rgba(16, 185, 129, 0.12)',
+  accentText: '#67E8F9',
+  accentGlow: 'rgba(34, 211, 238, 0.22)',
 
-  /** Gradient stops (for LinearGradient) */
-  gradientStart: '#6366F1',
-  gradientEnd: '#A78BFA',
+  /** Gradients (LinearGradient) */
+  gradientStart: '#22D3EE',
+  gradientEnd: '#10B981',
 
   /** Semantic */
-  success: '#34D399',
-  successSoft: 'rgba(52, 211, 153, 0.12)',
-  warning: '#FBBF24',
-  warningSoft: 'rgba(251, 191, 36, 0.12)',
-  danger: '#F87171',
-  dangerSoft: 'rgba(248, 113, 113, 0.12)',
-  info: '#38BDF8',
-  infoSoft: 'rgba(56, 189, 248, 0.12)',
+  success: '#10B981',
+  successSoft: 'rgba(16, 185, 129, 0.12)',
+  warning: '#F59E0B',
+  warningSoft: 'rgba(245, 158, 11, 0.12)',
+  danger: '#EF4444',
+  dangerLight: '#F87171',
+  dangerDeep: '#B91C1C',
+  dangerSoft: 'rgba(239, 68, 68, 0.12)',
+  successLight: '#34D399',
+  successDeep: '#047857',
+  surfaceInactive: '#1A1A24',
+  info: '#22D3EE',
+  infoSoft: 'rgba(34, 211, 238, 0.1)',
+
+  /** Utility */
+  white: '#FFFFFF',
+  black: '#000000',
+  overlay: 'rgba(0, 0, 0, 0.75)',
+  track: '#151F32',
 } as const;
 
 export const spacing = {
@@ -80,33 +98,37 @@ export const fontWeight = {
   heavy: '800' as const,
 };
 
-/** Subtle elevation — use sparingly (CTA + accent cards only). */
+export const borders = {
+  width: 1,
+  widthStrong: 1.5,
+} as const;
+
+/** Elevation — primary CTA and accent cards only */
 export const shadows = {
   card: {
-    shadowColor: '#000000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 6,
   },
   accent: {
     shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.22,
+    shadowOpacity: 0.28,
     shadowRadius: 14,
     elevation: 8,
   },
 } as const;
 
-/** Shared layout for feature blocks on Results. */
 export const featureSection = {
   marginBottom: spacing.md,
 } as const;
 
-/** React Navigation dark theme overrides */
+/** React Navigation */
 export const navigationTheme = {
   dark: {
-    dark: true,
+    dark: true as const,
     colors: {
       primary: colors.accent,
       background: colors.bg,
@@ -117,3 +139,19 @@ export const navigationTheme = {
     },
   },
 };
+
+/** Single object export for `theme.colors.*` usage */
+export const theme = {
+  colors,
+  spacing,
+  radius,
+  fontSize,
+  fontWeight,
+  borders,
+  shadows,
+  featureSection,
+  navigationTheme,
+} as const;
+
+export type Theme = typeof theme;
+export type ThemeColors = typeof colors;

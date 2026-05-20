@@ -4,6 +4,7 @@ import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { getAgentDefinition } from '@/constants/agents';
 import { UI } from '@/constants/plainLanguage';
+import { colors, spacing } from '@/constants/designTokens';
 import type { AgentTraceEntry } from '@/types/agents';
 
 interface AgentTracePanelProps {
@@ -20,14 +21,7 @@ export function AgentTracePanel({ trace }: AgentTracePanelProps) {
   if (!trace.length) return null;
 
   return (
-    <Card style={styles.card}>
-      <Typography variant="h3" style={styles.title}>
-        {UI.results.traceTitle}
-      </Typography>
-      <Typography variant="caption" style={styles.subtitle}>
-        {UI.results.traceHint}
-      </Typography>
-
+    <Card title={UI.results.traceTitle} subtitle={UI.results.traceHint} style={styles.card}>
       {trace.map((entry, index) => {
         const def = getAgentDefinition(entry.agentId);
         return (
@@ -72,24 +66,22 @@ export function AgentTracePanel({ trace }: AgentTracePanelProps) {
 }
 
 const styles = StyleSheet.create({
-  card: { marginBottom: 16, padding: 20 },
-  title: { color: '#818CF8', fontSize: 18, marginBottom: 4 },
-  subtitle: { marginBottom: 16 },
+  card: { marginBottom: 0 },
   step: { marginBottom: 4 },
   stepHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   stepIcon: { fontSize: 18, width: 24 },
   stepMeta: { flex: 1 },
   stepName: { fontWeight: '700', fontSize: 14 },
-  stepTime: { color: '#64748B', fontSize: 11, marginTop: 2, fontFamily: 'monospace' },
-  status: { fontSize: 10, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 },
-  statusDone: { color: '#10B981' },
-  statusErr: { color: '#EF4444' },
-  reasoning: { color: '#94A3B8', fontSize: 13, lineHeight: 19, marginTop: 8, marginLeft: 34 },
+  stepTime: { color: colors.textDim, fontSize: 11, marginTop: 2, fontFamily: 'monospace' },
+  status: { fontSize: 10, fontWeight: '800', color: colors.textDim, letterSpacing: 0.5 },
+  statusDone: { color: colors.success },
+  statusErr: { color: colors.danger },
+  reasoning: { color: colors.textMuted, fontSize: 13, lineHeight: 19, marginTop: 8, marginLeft: 34 },
   output: { fontSize: 13, fontWeight: '600', marginTop: 6, marginLeft: 34 },
   connector: {
     width: 2,
     height: 12,
-    backgroundColor: '#2D2D44',
+    backgroundColor: colors.track,
     marginLeft: 45,
     marginVertical: 4,
   },

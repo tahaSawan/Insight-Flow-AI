@@ -45,7 +45,7 @@ export function AIDecisionScorecard({ results }: AIDecisionScorecardProps) {
         score: metrics.confidence,
         explanation: UI.results.scoreConfidenceHint,
         icon: ShieldCheck,
-        color: '#10B981',
+        color: colors.accentSecondary,
       },
       {
         id: 'urgency',
@@ -53,7 +53,7 @@ export function AIDecisionScorecard({ results }: AIDecisionScorecardProps) {
         score: metrics.urgency,
         explanation: UI.results.scoreUrgencyHint,
         icon: Flame,
-        color: '#EF4444',
+        color: colors.danger,
       },
       {
         id: 'financial',
@@ -61,7 +61,7 @@ export function AIDecisionScorecard({ results }: AIDecisionScorecardProps) {
         score: metrics.financialImpact,
         explanation: UI.results.scoreFinancialHint,
         icon: CircleDollarSign,
-        color: '#EC4899',
+        color: colors.accent,
       },
       {
         id: 'operational',
@@ -69,7 +69,7 @@ export function AIDecisionScorecard({ results }: AIDecisionScorecardProps) {
         score: metrics.operationalRisk,
         explanation: UI.results.scoreOperationalHint,
         icon: AlertOctagon,
-        color: '#F97316',
+        color: colors.warning,
       },
       {
         id: 'execution',
@@ -77,7 +77,7 @@ export function AIDecisionScorecard({ results }: AIDecisionScorecardProps) {
         score: metrics.executionComplexity,
         explanation: UI.results.scoreExecutionHint,
         icon: BarChart3,
-        color: '#8B5CF6',
+        color: colors.accentDeep,
       },
     ],
     [metrics],
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   subtitle: {
-    color: '#94A3B8',
+    color: colors.textMuted,
     lineHeight: 18,
     marginBottom: 16,
     fontSize: 12,
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   itemName: {
-    color: '#E2E8F0',
+    color: colors.text,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   itemDesc: {
-    color: '#94A3B8',
+    color: colors.textMuted,
     fontSize: 11.5,
     lineHeight: 16,
     flex: 1,
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   track: {
     height: 8,
-    backgroundColor: '#1E1E2F',
+    backgroundColor: colors.track,
     borderRadius: 4,
     overflow: 'hidden',
     borderWidth: 0.5,

@@ -1,4 +1,5 @@
 import type { AgentId } from '@/types/agents';
+import { colors } from '@/constants/designTokens';
 
 export interface AgentDefinition {
   id: AgentId;
@@ -14,35 +15,35 @@ export const AGENT_PIPELINE: AgentDefinition[] = [
     name: 'Reader',
     role: 'Reads your document and checks what type it is',
     icon: '📥',
-    color: '#60A5FA',
+    color: colors.info,
   },
   {
     id: 'insight',
     name: 'Main Points',
     role: 'Finds the most important ideas',
     icon: '💡',
-    color: '#6366F1',
+    color: colors.accent,
   },
   {
     id: 'risk',
     name: 'Problems',
     role: 'Spots what could go wrong',
     icon: '⚠️',
-    color: '#F59E0B',
+    color: colors.warning,
   },
   {
     id: 'action',
     name: 'Next Steps',
     role: 'Suggests what to do about it',
     icon: '🎯',
-    color: '#10B981',
+    color: colors.accentSecondary,
   },
   {
     id: 'execution',
     name: 'Results',
     role: 'Shows a simple before-and-after picture',
     icon: '⚡',
-    color: '#A855F7',
+    color: colors.accentDeep,
   },
 ];
 

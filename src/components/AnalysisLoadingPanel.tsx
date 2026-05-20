@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { Typography } from '@/components/Typography';
+import { colors, radius, spacing } from '@/constants/designTokens';
 
 const TIPS = [
   'Reading your document…',
@@ -59,19 +60,19 @@ export function AnalysisLoadingPanel({ active, isFullMode }: AnalysisLoadingPane
 
 const styles = StyleSheet.create({
   wrap: {
-    padding: 16,
-    backgroundColor: 'rgba(99, 102, 241, 0.06)',
-    borderRadius: 14,
+    padding: spacing.md,
+    backgroundColor: colors.accentMuted,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.2)',
-    marginBottom: 12,
+    borderColor: colors.borderAccent,
+    marginBottom: spacing.sm,
   },
   skeletonRow: { gap: 10, marginBottom: 14 },
   skeletonBar: {
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#2D2D44',
+    backgroundColor: colors.surfaceHighlight,
   },
-  tip: { color: '#C7D2FE', fontSize: 15, fontWeight: '600', marginBottom: 4 },
-  sub: { color: '#64748B' },
+  tip: { color: colors.accentText, fontSize: 15, fontWeight: '600', marginBottom: 4 },
+  sub: { color: colors.textDim },
 });

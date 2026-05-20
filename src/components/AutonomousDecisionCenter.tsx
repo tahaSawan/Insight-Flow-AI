@@ -40,22 +40,19 @@ export function AutonomousDecisionCenter({ results }: AutonomousDecisionCenterPr
       : 'rgba(59, 130, 246, 0.35)';
 
   return (
-    <Card variant="accent" style={featureSection}>
-      <View style={styles.header}>
-        <View style={styles.headerTitleRow}>
-          <BrainCircuit size={20} color={colors.accent} />
-          <Typography variant="h3" style={styles.title}>
-            {UI.results.decisionCenterTitle}
-          </Typography>
-        </View>
+    <Card
+      variant="alert"
+      highlighted
+      style={featureSection}
+      icon={<BrainCircuit size={20} color={colors.accent} />}
+      title={UI.results.decisionCenterTitle}
+      subtitle={UI.results.decisionCenterHint}
+    >
+      <View style={styles.headerBadgeRow}>
         <View style={styles.pickBadge}>
           <Typography style={styles.pickBadgeText}>{UI.results.decisionTopPick}</Typography>
         </View>
       </View>
-
-      <Typography variant="caption" style={styles.subtitle}>
-        {UI.results.decisionCenterHint}
-      </Typography>
 
       <View style={styles.decisionContainer}>
         <View style={styles.decisionHeaderRow}>
@@ -116,22 +113,11 @@ export function AutonomousDecisionCenter({ results }: AutonomousDecisionCenterPr
 }
 
 const styles = StyleSheet.create({
-  header: {
+  headerBadgeRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  headerTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: '700',
+    justifyContent: 'flex-end',
+    marginTop: -spacing.sm,
+    marginBottom: spacing.sm,
   },
   pickBadge: {
     backgroundColor: colors.accentSoft,
@@ -145,11 +131,6 @@ const styles = StyleSheet.create({
     color: colors.accentText,
     fontSize: 10,
     fontWeight: '700',
-  },
-  subtitle: {
-    color: colors.textSecondary,
-    lineHeight: 18,
-    marginBottom: spacing.md,
   },
   decisionContainer: {
     backgroundColor: colors.surfaceElevated,

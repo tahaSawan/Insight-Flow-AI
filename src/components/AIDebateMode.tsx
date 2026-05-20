@@ -34,25 +34,25 @@ const AGENT_UI: Record<
   growth: {
     label: UI.results.growthAgent,
     hint: UI.results.growthAgentHint,
-    color: '#10B981',
-    bg: 'rgba(16, 185, 129, 0.1)',
-    border: 'rgba(16, 185, 129, 0.4)',
+    color: colors.accentSecondary,
+    bg: colors.accentSecondarySoft,
+    border: 'rgba(16, 185, 129, 0.35)',
     Icon: TrendingUp,
   },
   risk: {
     label: UI.results.riskAgent,
     hint: UI.results.riskAgentHint,
-    color: '#F97316',
-    bg: 'rgba(249, 115, 22, 0.1)',
-    border: 'rgba(249, 115, 22, 0.4)',
+    color: colors.warning,
+    bg: colors.warningSoft,
+    border: 'rgba(245, 158, 11, 0.35)',
     Icon: ShieldAlert,
   },
   finance: {
     label: UI.results.financeAgent,
     hint: UI.results.financeAgentHint,
-    color: '#A855F7',
-    bg: 'rgba(168, 85, 247, 0.1)',
-    border: 'rgba(168, 85, 247, 0.4)',
+    color: colors.accent,
+    bg: colors.accentSoft,
+    border: colors.borderAccent,
     Icon: CircleDollarSign,
   },
 };
@@ -122,18 +122,12 @@ export function AIDebateMode({ results }: AIDebateModeProps) {
   const { debate, fromAi } = useMemo(() => getAgentDebate(results), [results]);
 
   return (
-    <Card style={featureSection}>
-      <View style={styles.header}>
-        <MessageSquare size={18} color={colors.accent} />
-        <Typography variant="h3" style={styles.title}>
-          {UI.results.debateTitle}
-        </Typography>
-      </View>
-
-      <Typography variant="caption" style={styles.subtitle}>
-        {UI.results.debateHint}
-        {fromAi ? '' : ` (${UI.results.debateBadgeLocal})`}
-      </Typography>
+    <Card
+      style={featureSection}
+      icon={<MessageSquare size={18} color={colors.accent} />}
+      title={UI.results.debateTitle}
+      subtitle={`${UI.results.debateHint}${fromAi ? '' : ` (${UI.results.debateBadgeLocal})`}`}
+    >
 
       <View style={styles.agentsList}>
         <AgentViewpointCard agentKey="growth" viewpoint={debate.growth} />
@@ -169,7 +163,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   subtitle: {
-    color: '#94A3B8',
+    color: colors.textMuted,
     lineHeight: 18,
     marginBottom: 14,
     fontSize: 12,
@@ -206,7 +200,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   agentHint: {
-    color: '#64748B',
+    color: colors.textDim,
     fontSize: 10,
     marginTop: 2,
     lineHeight: 14,
@@ -237,10 +231,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   concernLabel: {
-    color: '#F87171',
+    color: colors.danger,
   },
   fieldBody: {
-    color: '#E2E8F0',
+    color: colors.text,
     fontSize: 12.5,
     lineHeight: 18,
   },
@@ -258,26 +252,26 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   finalTitle: {
-    color: '#E9D5FF',
+    color: colors.accentText,
     fontSize: 13,
     fontWeight: '800',
   },
   finalConclusion: {
-    color: '#F8FAFC',
+    color: colors.text,
     fontSize: 15,
     fontWeight: '800',
     lineHeight: 22,
     marginBottom: 10,
   },
   finalWhyLabel: {
-    color: '#A78BFA',
+    color: colors.accentText,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.4,
     marginBottom: 4,
   },
   finalWhyBody: {
-    color: '#CBD5E1',
+    color: colors.textSecondary,
     fontSize: 12,
     lineHeight: 18,
   },

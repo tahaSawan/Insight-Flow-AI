@@ -36,7 +36,7 @@ function getChannelMeta(industry: IndustryType) {
       header: industry === 'finance' ? 'HubSpot · Deal risk' : 'Salesforce · Account',
       accent: '#00A1E0',
     },
-    dashboard: { label: 'Dashboard', header: 'Executive KPI board', accent: '#6366F1' },
+    dashboard: { label: 'Dashboard', header: 'Executive KPI board', accent: colors.accent },
   } satisfies Record<ActionChannel, { label: string; header: string; accent: string }>;
 }
 
@@ -260,7 +260,7 @@ function ActionRow({
             {action.description}
           </Typography>
         </View>
-        <Typography style={[styles.status, isDone && styles.statusDone, !approved && { color: '#475569' }]}>
+        <Typography style={[styles.status, isDone && styles.statusDone, !approved && styles.statusMuted]}>
           {isDone ? 'SENT' : isActive ? '···' : approved ? 'READY' : 'SKIP'}
         </Typography>
       </View>
@@ -335,7 +335,8 @@ const styles = StyleSheet.create({
   desc: { color: colors.textSecondary },
   descMuted: { color: colors.textMuted },
   status: { fontSize: 10, fontWeight: '800', color: colors.textMuted, letterSpacing: 0.5, marginTop: 6 },
-  statusDone: { color: colors.success },
+  statusDone: { color: colors.accentSecondary },
+  statusMuted: { color: colors.textDim },
   mockCard: {
     marginTop: 10,
     padding: 12,

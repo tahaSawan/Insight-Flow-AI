@@ -40,29 +40,29 @@ export default function HomeScreen() {
 
         <HowItWorks />
 
-        <Card variant="elevated" style={styles.ctaCard}>
-          <Typography variant="h2" style={styles.cardTitle}>
-            {hasLastRun ? UI.home.ctaTitleAgain : UI.home.ctaTitleReady}
-          </Typography>
-          <Typography variant="body" style={styles.cardSubtitle}>
-            {hasLastRun ? UI.home.ctaSubAgain : UI.home.ctaSubReady}
-          </Typography>
-
+        <Card
+          variant="elevated"
+          highlighted
+          title={hasLastRun ? UI.home.ctaTitleAgain : UI.home.ctaTitleReady}
+          subtitle={hasLastRun ? UI.home.ctaSubAgain : UI.home.ctaSubReady}
+          style={styles.ctaCard}
+        >
           <Button
             title={UI.home.startBtn}
             onPress={() => router.push('/upload')}
-            style={styles.button}
+            fullWidth
           />
 
           <Button
             title={UI.home.judgeDemoBtn}
-            variant="outline"
+            variant="secondary"
             onPress={() =>
               router.push({
                 pathname: '/upload',
                 params: { demo: 'judge' },
               })
             }
+            fullWidth
             style={styles.judgeBtn}
           />
           <Typography variant="caption" style={styles.judgeHint}>
@@ -75,11 +75,15 @@ export default function HomeScreen() {
             onPress={() => router.push('/results')}
             style={({ pressed }) => [pressed && styles.pressed]}
           >
-            <Card variant="accent" style={styles.lastRunCard}>
+            <Card
+              variant="alert"
+              highlighted
+              title={UI.home.lastRunTitle}
+              icon={<FileText size={22} color={colors.accent} />}
+              style={styles.lastRunCard}
+            >
               <View style={styles.lastRunRow}>
-                <FileText size={22} color={colors.accent} />
                 <View style={styles.lastRunBody}>
-                  <Typography style={styles.lastRunTitle}>{UI.home.lastRunTitle}</Typography>
                   <Typography style={styles.lastRunHeadline} numberOfLines={2}>
                     {analysisResults.urgencyHeadline ||
                       analysisResults.executiveSummary.slice(0, 100)}
@@ -101,8 +105,7 @@ export default function HomeScreen() {
           </Pressable>
         ) : null}
 
-        <Card style={styles.problemCard}>
-          <Typography variant="label">{UI.home.featureDemo}</Typography>
+        <Card variant="alert" title={UI.home.featureDemo} style={styles.problemCard}>
           <Typography style={styles.problemText}>{REAL_WORLD_PROBLEM.pain}</Typography>
           <Typography variant="caption" style={styles.problemSolution}>
             {REAL_WORLD_PROBLEM.insightFlow}
@@ -168,24 +171,16 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.85 },
   ctaCard: {
     padding: spacing.lg,
-    marginBottom: spacing.md,
   },
-  judgeBtn: { width: '100%', paddingVertical: 14, marginTop: 4 },
+  judgeBtn: { marginTop: spacing.sm },
   judgeHint: { color: colors.textMuted, textAlign: 'center', marginTop: 8 },
-  cardTitle: { fontSize: 20, marginBottom: 8 },
-  cardSubtitle: { color: colors.textSecondary, marginBottom: spacing.lg, lineHeight: 22 },
-  button: { width: '100%', paddingVertical: 16 },
-  lastRunCard: { marginBottom: spacing.md, padding: spacing.md },
+  lastRunCard: { padding: spacing.md },
   lastRunRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   lastRunBody: { flex: 1 },
-  lastRunTitle: { fontWeight: '700', fontSize: 14, marginBottom: 4, color: colors.accentText },
   lastRunHeadline: { color: colors.text, fontSize: 15, lineHeight: 21, marginBottom: 6 },
   lastRunMeta: { color: colors.textSecondary },
   lastRunTap: { color: colors.textMuted, marginTop: spacing.sm, textAlign: 'center' },
   problemCard: {
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-    borderColor: colors.borderAccent,
     gap: 8,
   },
   problemText: { color: colors.text, fontSize: 15, lineHeight: 22 },

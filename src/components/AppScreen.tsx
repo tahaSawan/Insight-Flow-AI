@@ -1,10 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  SafeAreaView,
-  type Edge,
-} from 'react-native-safe-area-context';
+import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import { colors } from '@/constants/designTokens';
 
 interface AppScreenProps {
@@ -13,13 +10,13 @@ interface AppScreenProps {
   style?: ViewStyle;
 }
 
-/** Full-screen shell with brand gradient atmosphere. */
+/** Full-screen shell with ops-dashboard atmosphere. */
 export function AppScreen({ children, edges = ['top', 'left', 'right'], style }: AppScreenProps) {
   return (
     <View style={[styles.root, style]}>
       <LinearGradient
         colors={[colors.bgElevated, colors.bg, colors.bg]}
-        locations={[0, 0.45, 1]}
+        locations={[0, 0.5, 1]}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
@@ -43,20 +40,20 @@ const styles = StyleSheet.create({
   orb: {
     position: 'absolute',
     borderRadius: 999,
-    opacity: 0.55,
+    opacity: 0.5,
   },
   orbTop: {
-    width: 280,
-    height: 280,
-    top: -80,
-    right: -60,
+    width: 260,
+    height: 260,
+    top: -90,
+    right: -50,
     backgroundColor: colors.accentGlow,
   },
   orbBottom: {
-    width: 220,
-    height: 220,
-    bottom: 120,
-    left: -80,
-    backgroundColor: 'rgba(99, 102, 241, 0.12)',
+    width: 200,
+    height: 200,
+    bottom: 100,
+    left: -70,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
   },
 });

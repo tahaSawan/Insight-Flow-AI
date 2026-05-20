@@ -47,10 +47,7 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Card style={styles.card}>
-          <Typography variant="h3" style={styles.sectionTitle}>
-            Demo & presentation
-          </Typography>
+        <Card title="Demo & presentation" style={styles.card}>
           <View style={styles.switchRow}>
             <View style={styles.switchBody}>
               <Typography style={styles.switchLabel}>Demo mode</Typography>
@@ -61,34 +58,29 @@ export default function SettingsScreen() {
             <Switch
               value={demoMode}
               onValueChange={setDemoMode}
-              trackColor={{ false: '#2D2D44', true: '#6366F1' }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: colors.surfaceHighlight, true: colors.accent }}
+              thumbColor={colors.white}
             />
           </View>
           <Button
             title="Replay welcome intro"
-            variant="outline"
+            variant="secondary"
             onPress={handleReplayOnboarding}
+            fullWidth
             style={styles.btnSpaced}
           />
         </Card>
 
-        <Card style={styles.card}>
-          <Typography variant="h3" style={styles.sectionTitle}>
-            App
-          </Typography>
+        <Card title="App" style={styles.card}>
           <Row label="Version" value={Constants.expoConfig?.version ?? '1.0.0'} />
           <Row label="Saved analyses" value={String(history.length)} />
         </Card>
 
-        <Card style={styles.card}>
-          <Typography variant="h3" style={styles.sectionTitle}>
-            AI Configuration
-          </Typography>
+        <Card title="AI Configuration" style={styles.card}>
           <Row
             label="Gemini API"
             value={apiStatus ? 'Not configured' : 'Connected'}
-            valueColor={apiStatus ? '#F87171' : '#10B981'}
+            valueColor={apiStatus ? colors.danger : colors.accentSecondary}
           />
           <Typography variant="caption" style={styles.hint}>
             {apiStatus
@@ -97,20 +89,18 @@ export default function SettingsScreen() {
           </Typography>
         </Card>
 
-        <Card style={styles.card}>
-          <Typography variant="h3" style={styles.sectionTitle}>
-            Data
-          </Typography>
-          <Button title="Reset Current Session" variant="outline" onPress={handleReset} />
+        <Card title="Data" style={styles.card}>
+          <Button title="Reset Current Session" variant="secondary" onPress={handleReset} fullWidth />
           <Button
             title="Clear Analysis History"
-            variant="outline"
+            variant="danger"
             onPress={handleClearHistory}
+            fullWidth
             style={styles.btnSpaced}
           />
         </Card>
 
-        <Button title="Back" onPress={() => router.back()} style={styles.backBtn} />
+        <Button title="Back" variant="ghost" onPress={() => router.back()} fullWidth style={styles.backBtn} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -119,7 +109,7 @@ export default function SettingsScreen() {
 function Row({
   label,
   value,
-  valueColor = '#E2E8F0',
+  valueColor = colors.text,
 }: {
   label: string;
   value: string;
@@ -137,7 +127,6 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: spacing.lg, paddingBottom: 40 },
   card: { padding: spacing.lg, marginBottom: spacing.md, gap: 12 },
-  sectionTitle: { color: colors.accentText, marginBottom: 4 },
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -36,7 +36,7 @@ export function ResultsSkeleton() {
         <SkeletonBar width="95%" />
         <SkeletonBar width="80%" />
       </Card>
-      <Card variant="accent" style={styles.block}>
+      <Card variant="alert" style={styles.block}>
         <SkeletonBar width="35%" />
         <SkeletonBar width="100%" />
         <SkeletonBar width="70%" />
