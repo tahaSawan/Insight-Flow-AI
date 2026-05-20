@@ -9,11 +9,27 @@ import { Button } from '@/components/Button';
 import { useAppContext } from '@/context/AppContext';
 import { getGeminiConfigError } from '@/services/gemini';
 import { setOnboardingComplete } from '@/services/appPreferences';
+import { UI } from '@/constants/plainLanguage';
+import { loadWinningDemoScenario } from '@/utils/loadWinningDemoScenario';
 import { colors, spacing } from '@/constants/designTokens';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { resetSession, clearHistory, history, demoMode, setDemoMode } = useAppContext();
+  const {
+    resetSession,
+    clearHistory,
+    history,
+    demoMode,
+    setDemoMode,
+    setUploadedText,
+    setSourceFileName,
+    setIndustry,
+    setUseCase,
+    setAnalysisMode,
+    setAnalysisResults,
+    setDemoActionExecuted,
+    setAnalysisUsedFallback,
+  } = useAppContext();
   const apiStatus = getGeminiConfigError();
 
   const handleReset = () => {
@@ -47,12 +63,12 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Card title="Demo & presentation" style={styles.card}>
+        <Card title={UI.demo.settingsTitle} style={styles.card}>
           <View style={styles.switchRow}>
             <View style={styles.switchBody}>
               <Typography style={styles.switchLabel}>Demo mode</Typography>
               <Typography variant="caption" style={styles.switchHint}>
-                Faster pretend actions during live demos. Turn on before your 90-second pitch.
+                {UI.demo.settingsBody}
               </Typography>
             </View>
             <Switch
@@ -62,6 +78,30 @@ export default function SettingsScreen() {
               thumbColor={colors.white}
             />
           </View>
+          <Button
+            title={UI.demo.loadWinningBtn}
+            onPress={() =>
+              void loadWinningDemoScenario(
+                {
+                  setDemoMode,
+                  setUploadedText,
+                  setSourceFileName,
+                  setIndustry,
+                  setUseCase,
+                  setAnalysisMode,
+                  setAnalysisResults,
+                  setDemoActionExecuted,
+                  setAnalysisUsedFallback,
+                },
+                router,
+              )
+            }
+            fullWidth
+            style={styles.btnSpaced}
+          />
+          <Typography variant="caption" style={styles.switchHint}>
+            {UI.demo.loadWinningHint}
+          </Typography>
           <Button
             title="Replay welcome intro"
             variant="secondary"
@@ -84,7 +124,9 @@ export default function SettingsScreen() {
           />
           <Typography variant="caption" style={styles.hint}>
             {apiStatus
-              ? apiStatus
+              ? demoMode
+                ? 'API key not set — demo mode will use the curated Lahore storyline.'
+                : apiStatus
               : 'Using gemini-2.5-flash. Set EXPO_PUBLIC_GEMINI_API_KEY in .env'}
           </Typography>
         </Card>

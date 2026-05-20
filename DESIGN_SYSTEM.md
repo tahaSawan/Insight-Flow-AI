@@ -84,6 +84,13 @@ Props: `title`, `subtitle`, `icon`, `highlighted`. Legacy `accent` → `alert`.
 - `SuccessFlash` — brief confirmation when action simulation completes
 - Haptics: `hapticAnalysisStart`, `hapticMedium` (execute), `hapticSuccess`
 
+## Hackathon Demo Mode
+
+- `DemoModeBadge` — visible when demo mode is on (Settings toggle)
+- **Load Winning Demo Scenario** — Lahore sales + fuel + complaints (`winningDemoScenario.ts`)
+- Demo mode speeds animations (~55% duration), uses `demoFallback.ts` if Gemini fails, friendly error copy
+- `DemoSummaryCard` on Results — input → risk → action → outcome checklist
+
 ## Rules
 
 1. No new hex in screens — add a token if needed.

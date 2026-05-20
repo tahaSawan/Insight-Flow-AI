@@ -19,13 +19,27 @@ import { HomeDashboardPreview } from '@/components/HomeDashboardPreview';
 import { HomeFeatureCard } from '@/components/HomeFeatureCard';
 import { useAppContext } from '@/context/AppContext';
 import { UI } from '@/constants/plainLanguage';
+import { loadWinningDemoScenario } from '@/utils/loadWinningDemoScenario';
 import { AnimatedEntrance } from '@/components/AnimatedEntrance';
 import { PressableScale } from '@/components/PressableScale';
 import { colors, spacing, radius } from '@/constants/designTokens';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { analysisResults, history, loadHistoryEntry } = useAppContext();
+  const {
+    analysisResults,
+    history,
+    loadHistoryEntry,
+    setDemoMode,
+    setUploadedText,
+    setSourceFileName,
+    setIndustry,
+    setUseCase,
+    setAnalysisMode,
+    setAnalysisResults,
+    setDemoActionExecuted,
+    setAnalysisUsedFallback,
+  } = useAppContext();
 
   const hasLastRun = analysisResults !== null;
   const recentHistory = history.slice(0, 2);
@@ -73,6 +87,31 @@ export default function HomeScreen() {
             iconLeft={<Sparkles size={18} color={colors.white} />}
             style={styles.primaryCta}
           />
+          <Button
+            title={UI.home.winningDemoBtn}
+            variant="secondary"
+            onPress={() =>
+              void loadWinningDemoScenario(
+                {
+                  setDemoMode,
+                  setUploadedText,
+                  setSourceFileName,
+                  setIndustry,
+                  setUseCase,
+                  setAnalysisMode,
+                  setAnalysisResults,
+                  setDemoActionExecuted,
+                  setAnalysisUsedFallback,
+                },
+                router,
+              )
+            }
+            fullWidth
+            iconLeft={<Play size={16} color={colors.accentText} />}
+          />
+          <Typography variant="caption" style={styles.winningHint}>
+            {UI.home.winningDemoHint}
+          </Typography>
           <Pressable
             onPress={() =>
               router.push({
@@ -269,6 +308,12 @@ const styles = StyleSheet.create({
     color: colors.textDim,
     textAlign: 'center',
     lineHeight: 18,
+  },
+  winningHint: {
+    color: colors.textDim,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: spacing.xs,
   },
   featureRow: {
     flexDirection: 'row',

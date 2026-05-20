@@ -10,6 +10,7 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { BeforeAfterOutcome } from '@/components/BeforeAfterOutcome';
 import { UI } from '@/constants/plainLanguage';
 import { useAppContext } from '@/context/AppContext';
+import { scaleDemoMs } from '@/utils/demoPresentation';
 import type {
   AnalysisResult,
   SimulatedAction,
@@ -51,10 +52,10 @@ const CHANNEL_ICONS = {
 } as const;
 
 export function ActionCommander({ results }: ActionCommanderProps) {
-  const { demoMode, industry } = useAppContext();
+  const { demoMode, industry, setDemoActionExecuted } = useAppContext();
   const channelMeta = useMemo(() => getChannelMeta(industry), [industry]);
   const actions = results.simulatedActions;
-  const stepMs = demoMode ? 700 : 1600;
+  const stepMs = scaleDemoMs(1600, demoMode);
 
   const [phase, setPhase] = useState<'idle' | 'running' | 'done'>('idle');
   const [currentIndex, setCurrentIndex] = useState(-1);
@@ -101,14 +102,16 @@ export function ActionCommander({ results }: ActionCommanderProps) {
     setCurrentIndex(-1);
     setPhase('done');
     setRunProgress(100);
+    setDemoActionExecuted(true);
     void hapticSuccess();
-  }, [actions, approvedIndices, canRun, stepMs]);
+  }, [actions, approvedIndices, canRun, stepMs, setDemoActionExecuted]);
 
   const reset = () => {
     setPhase('idle');
     setCurrentIndex(-1);
     setRunProgress(0);
     setCompleted(actions.map(() => false));
+    setDemoActionExecuted(false);
   };
 
   return (

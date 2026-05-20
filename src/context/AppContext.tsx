@@ -48,6 +48,10 @@ interface AppContextType {
   resetSession: () => void;
   demoMode: boolean;
   setDemoMode: (on: boolean) => Promise<void>;
+  demoActionExecuted: boolean;
+  setDemoActionExecuted: (value: boolean) => void;
+  analysisUsedFallback: boolean;
+  setAnalysisUsedFallback: (value: boolean) => void;
   useCase: UseCaseType;
   setUseCase: (useCase: UseCaseType) => Promise<void>;
   preferencesLoaded: boolean;
@@ -66,6 +70,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [demoMode, setDemoModeState] = useState(false);
+  const [demoActionExecuted, setDemoActionExecuted] = useState(false);
+  const [analysisUsedFallback, setAnalysisUsedFallback] = useState(false);
   const [useCase, setUseCaseState] = useState<UseCaseType>('board');
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [historyHydrating, setHistoryHydrating] = useState(false);
@@ -148,6 +154,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSourceFileName(null);
     setAnalysisResults(null);
     setIsAnalyzing(false);
+    setDemoActionExecuted(false);
+    setAnalysisUsedFallback(false);
   };
 
   return (
@@ -174,6 +182,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         resetSession,
         demoMode,
         setDemoMode,
+        demoActionExecuted,
+        setDemoActionExecuted,
+        analysisUsedFallback,
+        setAnalysisUsedFallback,
         useCase,
         setUseCase,
         preferencesLoaded,

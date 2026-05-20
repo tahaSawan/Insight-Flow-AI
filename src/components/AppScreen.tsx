@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
+import { DemoModeBadge } from '@/components/DemoModeBadge';
 import { colors } from '@/constants/designTokens';
 
 interface AppScreenProps {
@@ -23,6 +24,7 @@ export function AppScreen({ children, edges = ['top', 'left', 'right'], style }:
       <View style={[styles.orb, styles.orbTop]} pointerEvents="none" />
       <View style={[styles.orb, styles.orbBottom]} pointerEvents="none" />
       <SafeAreaView style={styles.safe} edges={edges}>
+        <DemoModeBadge />
         {children}
       </SafeAreaView>
     </View>

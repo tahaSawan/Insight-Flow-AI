@@ -31,13 +31,21 @@ import { ScrollSection } from '@/components/ScrollSection';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ResultsSkeleton } from '@/components/ResultsSkeleton';
+import { DemoSummaryCard } from '@/components/DemoSummaryCard';
 import { colors, spacing } from '@/constants/designTokens';
 
 export default function ResultsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { analysisResults, uploadedText, analysisMode, historyHydrating, setHistoryHydrating } =
-    useAppContext();
+  const {
+    analysisResults,
+    uploadedText,
+    analysisMode,
+    historyHydrating,
+    setHistoryHydrating,
+    demoMode,
+    analysisUsedFallback,
+  } = useAppContext();
   const modeLabel =
     ANALYSIS_MODE_OPTIONS.find((m) => m.id === analysisMode)?.label ?? 'Analysis';
   const [exportMessage, setExportMessage] = useState('');
@@ -116,9 +124,12 @@ export default function ResultsScreen() {
     try {
       const bullets = await generateExecutiveBrief(uploadedText, results);
       setBriefBullets(bullets);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to generate brief';
-      setExportMessage(msg);
+    } catch {
+      setExportMessage(
+        demoMode
+          ? 'Brief unavailable right now — use the summary above.'
+          : 'Could not generate brief. Try again.',
+      );
       setTimeout(() => setExportMessage(''), 4000);
     } finally {
       setBriefLoading(false);
@@ -148,7 +159,7 @@ export default function ResultsScreen() {
 
         <View style={styles.demoStrip}>
           <Typography variant="caption" style={styles.demoStripText}>
-            {UI.results.demoDisclaimer}
+            {analysisUsedFallback ? UI.demo.fallbackBanner : UI.results.demoDisclaimer}
           </Typography>
         </View>
 
@@ -207,6 +218,8 @@ export default function ResultsScreen() {
             )}
           </CollapsibleSection>
         </ScrollSection>
+
+        <DemoSummaryCard results={results} />
 
         <ScrollSection sectionId="more" onMeasure={onSectionMeasure}>
           <CollapsibleSection

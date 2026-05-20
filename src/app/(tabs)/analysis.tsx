@@ -11,7 +11,13 @@ import { AgentWorkflowTimeline } from '@/components/AgentWorkflowTimeline';
 import { AgentWorkflowTerminal } from '@/components/AgentWorkflowTerminal';
 import { useAppContext } from '@/context/AppContext';
 import { runAgentOrchestration } from '@/services/agentOrchestrator';
+import { buildWinningDemoFallbackResult } from '@/services/demoFallback';
 import { analyzeContentFast, toFriendlyGeminiError } from '@/services/gemini';
+import {
+  getDemoFriendlyAnalysisMessage,
+  scaleDemoMs,
+  shouldUseDemoFallback,
+} from '@/utils/demoPresentation';
 import { AGENT_PIPELINE } from '@/constants/agents';
 import { CINEMATIC_WORKFLOW } from '@/constants/workflowAgents';
 import type { AnalysisResult } from '@/types/analysis';
@@ -74,6 +80,9 @@ export default function AnalysisScreen() {
     useCase,
     persistAnalysisToHistory,
     setIsAnalyzing: setGlobalAnalyzing,
+    demoMode,
+    setAnalysisUsedFallback,
+    setDemoActionExecuted,
   } = useAppContext();
 
   const isFullMode = analysisMode === 'full';
@@ -82,6 +91,7 @@ export default function AnalysisScreen() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [preview, setPreview] = useState<AnalysisResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const [fastProgress, setFastProgress] = useState(0);
   const lastRunKey = useRef('');
   const autoNavigated = useRef(false);
@@ -105,21 +115,31 @@ export default function AnalysisScreen() {
     setGlobalAnalyzing(true);
     setPreview(null);
     setErrorMessage(null);
+    setFallbackNotice(null);
+    setAnalysisUsedFallback(false);
+    setDemoActionExecuted(false);
     setFastProgress(4);
     setAgentTrace(buildPendingTrace());
     void hapticAnalysisStart();
 
+    const fastInterval = scaleDemoMs(520, demoMode);
     const fastTimer = !isFullMode
       ? setInterval(() => {
           setFastProgress((p) => Math.min(p + 7, 96));
-        }, 520)
+        }, fastInterval)
       : null;
 
     try {
       const result = isFullMode
-        ? await runAgentOrchestration(uploadedText, industry, (trace) => {
-            setAgentTrace(trace);
-          }, useCase)
+        ? await runAgentOrchestration(
+            uploadedText,
+            industry,
+            (trace) => {
+              setAgentTrace(trace);
+            },
+            useCase,
+            demoMode,
+          )
         : await analyzeContentFast(uploadedText, industry, useCase);
 
       if (fastTimer) clearInterval(fastTimer);
@@ -135,7 +155,23 @@ export default function AnalysisScreen() {
       setGlobalAnalyzing(false);
     } catch (error) {
       if (fastTimer) clearInterval(fastTimer);
-      setErrorMessage(toFriendlyGeminiError(error));
+
+      if (shouldUseDemoFallback(demoMode, error)) {
+        const fallback = buildWinningDemoFallbackResult(uploadedText, industry, useCase);
+        setFastProgress(100);
+        setAgentTrace(fallback.agentTrace);
+        setAnalysisResults(fallback);
+        setPreview(fallback);
+        setAnalysisUsedFallback(true);
+        setFallbackNotice(UI.demo.fallbackBanner);
+        setIsAnalyzing(false);
+        setGlobalAnalyzing(false);
+        return;
+      }
+
+      setErrorMessage(
+        demoMode ? getDemoFriendlyAnalysisMessage(error) : toFriendlyGeminiError(error),
+      );
       setIsAnalyzing(false);
       setGlobalAnalyzing(false);
     }
@@ -145,8 +181,11 @@ export default function AnalysisScreen() {
     industry,
     isFullMode,
     useCase,
+    demoMode,
     setAnalysisResults,
     setGlobalAnalyzing,
+    setAnalysisUsedFallback,
+    setDemoActionExecuted,
   ]);
 
   useEffect(() => {
@@ -176,9 +215,9 @@ export default function AnalysisScreen() {
         await persistAnalysisToHistory();
         router.replace('/results');
       })();
-    }, 1200);
+    }, scaleDemoMs(1200, demoMode));
     return () => clearTimeout(timer);
-  }, [preview, isAnalyzing, persistAnalysisToHistory, router]);
+  }, [preview, isAnalyzing, persistAnalysisToHistory, router, demoMode]);
 
   const isComplete = !!preview && !isAnalyzing;
 
@@ -226,8 +265,16 @@ export default function AnalysisScreen() {
           </>
         )}
 
+        {fallbackNotice ? (
+          <Card variant="alert" title="Demo storyline ready" style={styles.errorCard}>
+            <Typography variant="body" style={styles.fallbackNotice}>
+              {fallbackNotice}
+            </Typography>
+          </Card>
+        ) : null}
+
         {errorMessage ? (
-          <Card variant="danger" title="Analysis failed" style={styles.errorCard}>
+          <Card variant="alert" title={demoMode ? 'Please try again' : 'Analysis failed'} style={styles.errorCard}>
             <Typography variant="body" style={styles.errorMessage}>
               {errorMessage}
             </Typography>
@@ -296,7 +343,11 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   errorMessage: {
-    color: colors.danger,
+    color: colors.textSecondary,
+    lineHeight: 22,
+  },
+  fallbackNotice: {
+    color: colors.warning,
     lineHeight: 22,
   },
   actionBtn: {

@@ -19,6 +19,8 @@ import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { useAppContext } from '@/context/AppContext';
 import { SAMPLE_REPORT, MIN_CONTENT_LENGTH } from '@/constants/sampleReport';
+import { WINNING_DEMO_REPORT } from '@/constants/winningDemoScenario';
+import { loadWinningDemoScenario } from '@/utils/loadWinningDemoScenario';
 import { validateAnalysisInput } from '@/services/gemini';
 import { pickAndExtractDocument } from '@/services/document';
 import { AnalysisModePicker } from '@/components/AnalysisModePicker';
@@ -43,6 +45,10 @@ export default function UploadScreen() {
     setAnalysisMode,
     useCase,
     setUseCase,
+    demoMode,
+    setDemoMode,
+    setDemoActionExecuted,
+    setAnalysisUsedFallback,
   } = useAppContext();
 
   const [textInput, setTextInput] = useState('');
@@ -66,6 +72,19 @@ export default function UploadScreen() {
   };
 
   useEffect(() => {
+    if (demo === 'winning') {
+      void setDemoMode(true);
+      setIndustry('general');
+      void setUseCase('crisis');
+      setAnalysisMode('full');
+      setTextInput(WINNING_DEMO_REPORT);
+      setFileName(null);
+      setSourceFileName('Lahore-Regional-Brief.txt');
+      setValidationError('');
+      setSampleLoaded(true);
+      setShowAdvanced(false);
+      return;
+    }
     if (demo !== 'judge') return;
     setIndustry('technology');
     setUseCase('board');
@@ -76,7 +95,7 @@ export default function UploadScreen() {
     setValidationError('');
     setSampleLoaded(true);
     setShowAdvanced(false);
-  }, [demo, setIndustry, setUseCase, setAnalysisMode]);
+  }, [demo, setIndustry, setUseCase, setAnalysisMode, setDemoMode, setSourceFileName]);
 
   const handlePickFile = async () => {
     setValidationError('');
@@ -156,6 +175,30 @@ export default function UploadScreen() {
 
           <View style={styles.toolbar}>
             <Button
+              title={UI.demo.loadWinningBtn}
+              variant="primary"
+              onPress={() =>
+                void loadWinningDemoScenario(
+                  {
+                    setDemoMode,
+                    setUploadedText: (text) => {
+                      setTextInput(text);
+                      setUploadedText(text);
+                    },
+                    setSourceFileName,
+                    setIndustry,
+                    setUseCase,
+                    setAnalysisMode,
+                    setAnalysisResults,
+                    setDemoActionExecuted,
+                    setAnalysisUsedFallback,
+                  },
+                  router,
+                )
+              }
+              style={styles.winningBtn}
+            />
+            <Button
               title={UI.upload.sampleBtn}
               variant="secondary"
               onPress={handleLoadSample}
@@ -193,7 +236,9 @@ export default function UploadScreen() {
 
           {validationError ? (
             <Typography variant="body" style={styles.errorText}>
-              {validationError}
+              {demoMode && validationError.length > 80
+                ? 'Please check your document and try again.'
+                : validationError}
             </Typography>
           ) : null}
           </Card>
@@ -327,10 +372,15 @@ const styles = StyleSheet.create({
   dividerText: { color: colors.textDim },
   toolbar: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 12,
     gap: 12,
+  },
+  winningBtn: {
+    flexGrow: 1,
+    minWidth: '100%',
   },
   sampleBtn: { paddingVertical: 10, paddingHorizontal: 14 },
   charCount: { color: colors.textDim },

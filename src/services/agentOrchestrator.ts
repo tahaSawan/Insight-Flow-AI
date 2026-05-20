@@ -10,6 +10,7 @@ import {
   toFriendlyGeminiError,
 } from '@/services/gemini';
 import { parseAgentDebate } from '@/utils/agentDebate';
+import { scaleDemoMs } from '@/utils/demoPresentation';
 
 const INDUSTRY_CONTEXT: Record<IndustryType, string> = {
   general: 'general business leadership',
@@ -45,6 +46,7 @@ async function runIngestionAgent(
   scenarioHint: string,
   trace: AgentTraceEntry[],
   onProgress?: OrchestratorCallback,
+  demoMode = false,
 ): Promise<{ documentType: string; signals: string[] }> {
   const def = getAgentDefinition('ingestion');
   const entry: AgentTraceEntry = {
@@ -58,7 +60,7 @@ async function runIngestionAgent(
   updateTrace(trace, entry, onProgress);
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
-  await sleep(600);
+  await sleep(scaleDemoMs(600, demoMode));
 
   const parsed = await generateJson<{ documentType: string; signals: string[] }>(`
 You are the Reader helper. Use very simple English.
@@ -361,6 +363,7 @@ export async function runAgentOrchestration(
   industry: IndustryType = 'general',
   onProgress?: OrchestratorCallback,
   useCase: UseCaseType = 'board',
+  demoMode = false,
 ): Promise<AnalysisResult> {
   const scenarioHint = getUseCaseHint(useCase);
   const configError = getGeminiConfigError();
@@ -380,7 +383,14 @@ export async function runAgentOrchestration(
   onProgress?.([...trace]);
 
   try {
-    const ingestion = await runIngestionAgent(trimmed, industry, scenarioHint, trace, onProgress);
+    const ingestion = await runIngestionAgent(
+      trimmed,
+      industry,
+      scenarioHint,
+      trace,
+      onProgress,
+      demoMode,
+    );
     const insight = await runInsightAgent(
       trimmed,
       industry,
