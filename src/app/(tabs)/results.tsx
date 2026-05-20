@@ -19,6 +19,7 @@ import { DecisionAlert } from '@/components/DecisionAlert';
 import { ScenarioFork } from '@/components/ScenarioFork';
 import { ActionCommander } from '@/components/ActionCommander';
 import { AutonomousDecisionCenter } from '@/components/AutonomousDecisionCenter';
+import { ConsequenceSimulation } from '@/components/ConsequenceSimulation';
 
 export default function ResultsScreen() {
   const router = useRouter();
@@ -175,6 +176,8 @@ export default function ResultsScreen() {
             </View>
           </View>
         </Card>
+
+        <ConsequenceSimulation results={results} />
 
         <Card style={styles.summaryCard}>
           <Typography variant="h2" style={styles.cardTitle}>
