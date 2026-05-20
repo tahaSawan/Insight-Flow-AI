@@ -294,14 +294,6 @@ export async function analyzeContentFast(
   return result;
 }
 
-export async function analyzeContent(
-  text: string,
-  industry: IndustryType = 'general',
-): Promise<AnalysisResult> {
-  const { runAgentOrchestration } = await import('@/services/agentOrchestrator');
-  return runAgentOrchestration(text, industry);
-}
-
 export async function extractTextFromPdf(base64Pdf: string): Promise<string> {
   const configError = getGeminiConfigError();
   if (configError) throw new Error(configError);
@@ -346,62 +338,6 @@ export async function extractTextFromPdf(base64Pdf: string): Promise<string> {
   }
 
   throw new Error(toFriendlyGeminiError(lastError));
-}
-
-export async function explainInsight(
-  documentText: string,
-  analysis: AnalysisResult,
-  insightText: string,
-  insightType: 'finding' | 'risk' | 'action',
-): Promise<string> {
-  const configError = getGeminiConfigError();
-  if (configError) throw new Error(configError);
-
-  const prompt = `
-Explain this in 2-3 very simple sentences (no jargon). Say why it matters and what to do.
-${PLAIN_LANGUAGE_AI_RULES}
-
-DOCUMENT (excerpt):
-${documentText.slice(0, 2500)}
-
-CONTEXT: ${analysis.executiveSummary}
-
-${insightType.toUpperCase()} TO EXPLAIN: ${insightText}
-`;
-
-  return (await generateWithGemini(prompt, false)).trim();
-}
-
-export async function askFollowUp(
-  documentText: string,
-  analysis: AnalysisResult,
-  question: string,
-): Promise<string> {
-  const configError = getGeminiConfigError();
-  if (configError) throw new Error(configError);
-
-  const trimmedQuestion = question.trim();
-  if (!trimmedQuestion) {
-    throw new Error('Please enter a question.');
-  }
-
-  const context = `
-Answer in plain, simple English (2-4 short sentences). Only use the document and analysis below.
-${PLAIN_LANGUAGE_AI_RULES}
-
-DOCUMENT (excerpt):
-${documentText.slice(0, 3000)}
-
-ANALYSIS SUMMARY:
-${analysis.executiveSummary}
-Key findings: ${analysis.keyFindings.join('; ')}
-Risks: ${analysis.riskAssessment.join('; ')}
-Recommended actions: ${analysis.recommendedActions.join('; ')}
-
-USER QUESTION: ${trimmedQuestion}
-`;
-
-  return (await generateWithGemini(context, false)).trim();
 }
 
 export async function generateExecutiveBrief(

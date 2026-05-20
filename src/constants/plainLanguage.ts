@@ -170,7 +170,7 @@ export const UI = {
 
     findingsTitle: 'Main points we noticed',
 
-    findingsHint: 'Tap any line for a simple explanation.',
+    findingsHint: 'Simple, direct points from your document.',
 
     problemsTitle: 'What could go wrong',
 
@@ -210,10 +210,6 @@ export const UI = {
 
     ceoBriefLoading: 'Working...',
 
-    askTitle: 'Ask a question',
-
-    askHint: 'Ask about this report in plain English.',
-
     share: 'Share report',
 
     copy: 'Copy report',
@@ -225,32 +221,6 @@ export const UI = {
     resumeBanner:
 
       'Heads up: this looks like a resume. Numbers and “before/after” are just a demo. For judges, use “Try sample report” on Upload.',
-
-  },
-
-  followUp: {
-
-    title: 'Ask a question',
-
-    subtitle: 'Answers use only your document and this report.',
-
-    placeholder: 'Type your question...',
-
-    send: 'Send',
-
-    suggestions: [
-
-      'What is the biggest problem?',
-
-      'What should we do first this week?',
-
-      'How sure are you about this?',
-
-    ],
-
-    explainHint: 'Tap any line for a simple explanation',
-
-    explainFail: 'Could not explain. Tap to try again.',
 
   },
 

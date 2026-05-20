@@ -7,13 +7,11 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
 import { AnimatedExecutionLog } from '@/components/AnimatedExecutionLog';
-import { FollowUpChat } from '@/components/FollowUpChat';
 import { InsightList } from '@/components/InsightList';
 import { AgentTracePanel } from '@/components/AgentTracePanel';
 import { useAppContext } from '@/context/AppContext';
 import { ANALYSIS_MODE_OPTIONS } from '@/types/analysis';
 import { formatReportAsText } from '@/utils/formatReport';
-import { formatBoardPack } from '@/utils/formatBoardPack';
 import { SeverityTimeline } from '@/components/SeverityTimeline';
 import { generateExecutiveBrief } from '@/services/gemini';
 import { UI, looksLikeResume } from '@/constants/plainLanguage';
@@ -72,18 +70,6 @@ export default function ResultsScreen() {
   const handleCopy = async () => {
     await Clipboard.setStringAsync(formatReportAsText(results));
     setExportMessage('Copied to clipboard');
-    setTimeout(() => setExportMessage(''), 3000);
-  };
-
-  const handleBoardPack = async () => {
-    const pack = formatBoardPack(results);
-    try {
-      await Share.share({ message: pack, title: 'InsightFlow — Board Pack' });
-      setExportMessage('Board pack shared');
-    } catch {
-      await Clipboard.setStringAsync(pack);
-      setExportMessage('Board pack copied');
-    }
     setTimeout(() => setExportMessage(''), 3000);
   };
 
@@ -325,11 +311,8 @@ export default function ResultsScreen() {
           ) : null}
         </Card>
 
-        <FollowUpChat documentText={uploadedText} analysis={results} />
-
         <View style={styles.bottomActions}>
-          <Button title="Export board pack" onPress={handleBoardPack} style={styles.exportBtn} />
-          <Button title={UI.results.share} variant="outline" onPress={handleShare} style={styles.exportBtn} />
+          <Button title={UI.results.share} onPress={handleShare} style={styles.exportBtn} />
           <Button title={UI.results.copy} variant="outline" onPress={handleCopy} style={styles.exportBtn} />
           {exportMessage ? (
             <Typography style={styles.exportMsg}>{exportMessage}</Typography>
