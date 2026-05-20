@@ -15,10 +15,12 @@ import { ANALYSIS_MODE_OPTIONS } from '@/types/analysis';
 import { formatReportAsText } from '@/utils/formatReport';
 import { generateExecutiveBrief } from '@/services/gemini';
 import { UI, looksLikeResume } from '@/constants/plainLanguage';
-import { DecisionAlert } from '@/components/DecisionAlert';
+import { ExecutiveAlertHeader } from '@/components/ExecutiveAlertHeader';
+import { ExecutivePathCompare } from '@/components/ExecutivePathCompare';
+import { RecommendedActionCards } from '@/components/RecommendedActionCards';
 import { ActionCommander } from '@/components/ActionCommander';
 import { AutonomousDecisionCenter } from '@/components/AutonomousDecisionCenter';
-import { ConsequenceSimulation } from '@/components/ConsequenceSimulation';
+import { AgentTracePanel } from '@/components/AgentTracePanel';
 import { ExecutiveVoiceBriefing } from '@/components/ExecutiveVoiceBriefing';
 import { AIDecisionScorecard } from '@/components/AIDecisionScorecard';
 import { AIDebateMode } from '@/components/AIDebateMode';
@@ -29,7 +31,7 @@ import { ScrollSection } from '@/components/ScrollSection';
 import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ResultsSkeleton } from '@/components/ResultsSkeleton';
-import { colors, spacing, featureSection } from '@/constants/designTokens';
+import { colors, spacing } from '@/constants/designTokens';
 
 export default function ResultsScreen() {
   const router = useRouter();
@@ -159,19 +161,27 @@ export default function ResultsScreen() {
         ) : (
           <>
         <ScrollSection sectionId="alert" onMeasure={onSectionMeasure}>
-          <DecisionAlert results={results} />
+          <ExecutiveAlertHeader results={results} />
         </ScrollSection>
 
         <ScrollSection sectionId="decision" onMeasure={onSectionMeasure}>
           <AutonomousDecisionCenter results={results} />
         </ScrollSection>
 
-        <ScrollSection sectionId="consequences" onMeasure={onSectionMeasure}>
-          <ConsequenceSimulation results={results} />
+        <ScrollSection sectionId="compare" onMeasure={onSectionMeasure}>
+          <ExecutivePathCompare results={results} />
         </ScrollSection>
 
         <ScrollSection sectionId="actions" onMeasure={onSectionMeasure}>
-          <Card style={[styles.heroCard, featureSection]}>
+          <Card variant="elevated" style={styles.actionsCard}>
+            <SectionHeader
+              title={UI.results.recommendedTitle}
+              hint={UI.results.recommendedHint}
+            />
+            <RecommendedActionCards results={results} />
+          </Card>
+
+          <Card style={styles.executeCard}>
             <SectionHeader
               title={UI.results.actionsSectionTitle}
               hint={UI.results.actionsSectionHint}
@@ -180,14 +190,37 @@ export default function ResultsScreen() {
           </Card>
         </ScrollSection>
 
-        <ScrollSection sectionId="debate" onMeasure={onSectionMeasure}>
-          <AIDebateMode results={results} />
+        <ScrollSection sectionId="trace" onMeasure={onSectionMeasure}>
+          <CollapsibleSection
+            title={UI.results.agentTraceTitle}
+            hint={UI.results.agentTraceHint}
+            defaultOpen={false}
+          >
+            {results.agentTrace?.length ? (
+              <AgentTracePanel trace={results.agentTrace} />
+            ) : (
+              <Typography variant="caption" style={styles.traceEmpty}>
+                Trace available after step-by-step analysis.
+              </Typography>
+            )}
+          </CollapsibleSection>
         </ScrollSection>
 
-        <ScrollSection sectionId="details" onMeasure={onSectionMeasure}>
+        <ScrollSection sectionId="more" onMeasure={onSectionMeasure}>
+          <CollapsibleSection
+            title={UI.results.moreToolsTitle}
+            hint={UI.results.moreToolsHint}
+            defaultOpen={false}
+          >
+            <AIDebateMode results={results} />
+            <AIDecisionScorecard results={results} />
+            <ExecutiveVoiceBriefing results={results} />
+            <AutonomousWorkflowReplay results={results} />
+          </CollapsibleSection>
+
           <CollapsibleSection
             title="Full report details"
-            hint="Summary, findings, risks, and recommended steps"
+            hint="Summary, findings, risks, and logs"
             defaultOpen={false}
           >
         <Card
@@ -250,18 +283,6 @@ export default function ResultsScreen() {
         <Card title={UI.results.logsTitle} subtitle={UI.results.logsHint} style={styles.sectionCard}>
           <AnimatedExecutionLog lines={results.executionLog} />
         </Card>
-          </CollapsibleSection>
-        </ScrollSection>
-
-        <ScrollSection sectionId="more" onMeasure={onSectionMeasure}>
-          <CollapsibleSection
-            title={UI.results.moreToolsTitle}
-            hint={UI.results.moreToolsHint}
-            defaultOpen={false}
-          >
-            <AIDecisionScorecard results={results} />
-            <ExecutiveVoiceBriefing results={results} />
-            <AutonomousWorkflowReplay results={results} />
         <Card title={UI.results.ceoBriefTitle} subtitle={UI.results.ceoBriefHint} style={styles.briefCard}>
           {briefBullets ? (
             <View style={styles.briefList}>
@@ -407,8 +428,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
   },
-  heroCard: {
+  actionsCard: {
+    marginBottom: spacing.sm,
     padding: spacing.md,
+  },
+  executeCard: {
+    marginBottom: spacing.md,
+    padding: spacing.md,
+  },
+  traceEmpty: {
+    color: colors.textMuted,
+    paddingVertical: spacing.md,
   },
   cardTitle: {
     fontSize: 20,

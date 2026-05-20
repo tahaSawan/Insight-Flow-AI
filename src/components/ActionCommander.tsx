@@ -6,6 +6,8 @@ import { hapticLight, hapticSuccess } from '@/utils/haptics';
 import { Button } from '@/components/Button';
 import { Typography } from '@/components/Typography';
 import { ProgressBar } from '@/components/ProgressBar';
+import { BeforeAfterOutcome } from '@/components/BeforeAfterOutcome';
+import { UI } from '@/constants/plainLanguage';
 import { useAppContext } from '@/context/AppContext';
 import type {
   AnalysisResult,
@@ -119,7 +121,7 @@ export function ActionCommander({ results }: ActionCommanderProps) {
       ) : null}
 
       <Typography variant="caption" style={styles.approveHint}>
-        Approve the actions you want, then run the live demo.
+        {UI.results.executeHint}
       </Typography>
 
       {actions.map((action, index) => (
@@ -139,10 +141,10 @@ export function ActionCommander({ results }: ActionCommanderProps) {
       <Button
         title={
           phase === 'running'
-            ? 'Running…'
+            ? UI.results.executing
             : phase === 'done'
-              ? 'Run again (demo)'
-              : `Execute ${approvedIndices.length} approved action${approvedIndices.length === 1 ? '' : 's'}`
+              ? UI.results.executeAgain
+              : UI.results.executeAction
         }
         onPress={() => {
           if (phase === 'done') {
@@ -165,12 +167,14 @@ export function ActionCommander({ results }: ActionCommanderProps) {
       ) : null}
 
       {phase === 'done' ? (
-        <View style={styles.doneBanner}>
-          <Typography style={styles.doneText}>
-            {approvedIndices.length} action(s) executed (demo) · New state → {results.afterMetric}{' '}
-            {results.impactMetricLabel}
-          </Typography>
-        </View>
+        <>
+          <View style={styles.doneBanner}>
+            <Typography style={styles.doneText}>
+              {UI.results.executeDone(approvedIndices.length)}
+            </Typography>
+          </View>
+          <BeforeAfterOutcome results={results} />
+        </>
       ) : null}
     </View>
   );

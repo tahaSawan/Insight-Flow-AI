@@ -6,19 +6,17 @@ import { colors, spacing, radius, fontSize } from '@/constants/designTokens';
 export type ResultsSectionId =
   | 'alert'
   | 'decision'
-  | 'consequences'
+  | 'compare'
   | 'actions'
-  | 'debate'
-  | 'details'
+  | 'trace'
   | 'more';
 
 const CHIPS: { id: ResultsSectionId; label: string }[] = [
   { id: 'alert', label: 'Alert' },
   { id: 'decision', label: 'Decision' },
-  { id: 'consequences', label: 'Impact' },
+  { id: 'compare', label: 'Paths' },
   { id: 'actions', label: 'Actions' },
-  { id: 'debate', label: 'Debate' },
-  { id: 'details', label: 'Details' },
+  { id: 'trace', label: 'Trace' },
   { id: 'more', label: 'More' },
 ];
 

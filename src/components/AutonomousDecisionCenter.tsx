@@ -3,7 +3,6 @@ import { View, StyleSheet } from 'react-native';
 import { Sparkles, BrainCircuit, ShieldAlert, TrendingUp } from 'lucide-react-native';
 import { Card } from '@/components/Card';
 import { Typography } from '@/components/Typography';
-import { ProgressBar } from '@/components/ProgressBar';
 import { UI } from '@/constants/plainLanguage';
 import { colors, featureSection, spacing, radius } from '@/constants/designTokens';
 import type { AnalysisResult } from '@/types/analysis';
@@ -41,10 +40,10 @@ export function AutonomousDecisionCenter({ results }: AutonomousDecisionCenterPr
 
   return (
     <Card
-      variant="alert"
+      variant="elevated"
       highlighted
-      style={featureSection}
-      icon={<BrainCircuit size={20} color={colors.accent} />}
+      style={[featureSection, styles.prominentCard]}
+      icon={<BrainCircuit size={22} color={colors.accent} />}
       title={UI.results.decisionCenterTitle}
       subtitle={UI.results.decisionCenterHint}
     >
@@ -83,29 +82,15 @@ export function AutonomousDecisionCenter({ results }: AutonomousDecisionCenterPr
         </View>
       </View>
 
-      <View style={styles.divider} />
-
-      <View style={styles.grid}>
-        <View style={styles.gridCol}>
-          <Typography variant="caption" style={styles.gridLabel}>
-            Priority
+      <View style={styles.priorityRow}>
+        <Typography variant="caption" style={styles.gridLabel}>
+          Priority
+        </Typography>
+        <View style={[styles.priorityBadge, { backgroundColor: priorityBg, borderColor: priorityBorder }]}>
+          <ShieldAlert size={12} color={priorityColor} style={styles.priorityIcon} />
+          <Typography style={[styles.priorityText, { color: priorityColor }]}>
+            {decision.priorityLevel}
           </Typography>
-          <View style={[styles.priorityBadge, { backgroundColor: priorityBg, borderColor: priorityBorder }]}>
-            <ShieldAlert size={12} color={priorityColor} style={styles.priorityIcon} />
-            <Typography style={[styles.priorityText, { color: priorityColor }]}>
-              {decision.priorityLevel}
-            </Typography>
-          </View>
-        </View>
-
-        <View style={[styles.gridCol, styles.rightCol]}>
-          <View style={styles.confidenceHeader}>
-            <Typography variant="caption" style={styles.gridLabel}>
-              Confidence
-            </Typography>
-            <Typography style={styles.confidenceVal}>{decision.confidence}%</Typography>
-          </View>
-          <ProgressBar progress={decision.confidence} color={colors.accent} />
         </View>
       </View>
     </Card>
@@ -113,6 +98,15 @@ export function AutonomousDecisionCenter({ results }: AutonomousDecisionCenterPr
 }
 
 const styles = StyleSheet.create({
+  prominentCard: {
+    padding: spacing.lg,
+    borderWidth: 1.5,
+    shadowColor: colors.accent,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.22,
+    shadowRadius: 16,
+    elevation: 10,
+  },
   headerBadgeRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
@@ -153,9 +147,9 @@ const styles = StyleSheet.create({
   },
   decisionText: {
     color: colors.text,
-    fontSize: 16,
-    fontWeight: '700',
-    lineHeight: 22,
+    fontSize: 18,
+    fontWeight: '800',
+    lineHeight: 25,
   },
   section: {
     marginBottom: 12,
@@ -201,22 +195,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
   },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.md,
-  },
-  grid: {
+  priorityRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  gridCol: {
-    flex: 1,
-  },
-  rightCol: {
-    flex: 1.2,
-    marginLeft: 20,
+    justifyContent: 'space-between',
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   gridLabel: {
     color: colors.textMuted,
@@ -239,16 +225,5 @@ const styles = StyleSheet.create({
   priorityText: {
     fontSize: 12,
     fontWeight: '700',
-  },
-  confidenceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  confidenceVal: {
-    color: colors.text,
-    fontSize: 12,
-    fontWeight: '800',
   },
 });

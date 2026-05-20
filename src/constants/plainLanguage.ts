@@ -187,15 +187,41 @@ export const UI = {
 
   results: {
 
-    title: 'Decision report',
+    title: 'Executive Dashboard',
 
-    subtitle: 'Alert → one decision → consequences → demo actions.',
+    subtitle: 'Alert · decision · paths · actions',
 
-    jumpNavHint: 'Jump to a section',
+    jumpNavHint: 'Jump to section',
 
-    decisionCenterTitle: 'Autonomous decision',
+    decisionCenterTitle: 'Autonomous Decision Center',
 
-    decisionCenterHint: 'The one action the AI chose to do first.',
+    decisionCenterHint: 'Top AI-selected move for leadership',
+
+    pathCompareTitle: 'If We Do Nothing vs If We Act',
+
+    pathCompareHint: 'Two paths — wait or execute now',
+
+    recommendedTitle: 'Recommended Actions',
+
+    recommendedHint: 'Prioritized steps from your report',
+
+    executeAction: 'Execute Action',
+
+    executing: 'Executing…',
+
+    executeAgain: 'Execute Again',
+
+    executeHint: 'Approve channels, then run the demo execution',
+
+    executeDone: (n: number) => `${n} action${n === 1 ? '' : 's'} executed (demo)`,
+
+    beforeAfterTitle: 'Before vs After Outcome',
+
+    beforeAfterHint: 'Projected impact after execution',
+
+    agentTraceTitle: 'Agent Trace',
+
+    agentTraceHint: 'How each agent processed your document',
 
     decisionTopPick: 'Top pick',
 
@@ -223,9 +249,9 @@ export const UI = {
 
     workflowReplayHint: 'Step-by-step log of how the five helpers ran.',
 
-    actionsSectionTitle: 'Live action simulation',
+    actionsSectionTitle: 'Execute Actions',
 
-    actionsSectionHint: 'Approve steps, then execute — Slack, email, CRM (demo).',
+    actionsSectionHint: 'Approve channels · run demo execution',
 
     detailsNoMetricsHint: 'Scores are in More tools → Decision scorecard.',
 
