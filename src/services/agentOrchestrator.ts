@@ -1,6 +1,6 @@
 import { AGENT_PIPELINE, getAgentDefinition } from '@/constants/agents';
 import { PLAIN_LANGUAGE_AI_RULES } from '@/constants/plainLanguage';
-import type { AgentId, AgentTraceEntry } from '@/types/agents';
+import type { AgentTraceEntry } from '@/types/agents';
 import type { AnalysisResult, IndustryType, SimulatedAction, UseCaseType } from '@/types/analysis';
 import { getUseCaseHint } from '@/constants/useCases';
 import {
@@ -262,6 +262,7 @@ async function runExecutionAgent(
   impactMetricLabel: string;
   beforeMetric: string;
   afterMetric: string;
+  autonomousDecision?: import('@/types/analysis').AutonomousDecision;
 }> {
   const def = getAgentDefinition('execution');
   const entry: AgentTraceEntry = {
@@ -280,6 +281,13 @@ async function runExecutionAgent(
     impactMetricLabel: string;
     beforeMetric: string;
     afterMetric: string;
+    autonomousDecision?: {
+      primaryDecision: string;
+      reason: string;
+      priorityLevel: string;
+      expectedOutcome: string;
+      confidence: number;
+    };
   }>(`
 You are the Results helper. This is a DEMO — pretend actions only, simple words.
 ${PLAIN_LANGUAGE_AI_RULES}
@@ -289,7 +297,14 @@ Return ONLY JSON:
   "executionLog": ["exactly 6 short log lines, no timestamps, plain English"],
   "impactMetricLabel": "simple name, max 4 words",
   "beforeMetric": "situation now",
-  "afterMetric": "situation after fixes (guess)"
+  "afterMetric": "situation after fixes (guess)",
+  "autonomousDecision": {
+    "primaryDecision": "the single most important action to take first, start with a verb",
+    "reason": "one clear sentence explaining why this specific action was selected over others, plain English",
+    "priorityLevel": "High"|"Medium"|"Low",
+    "expectedOutcome": "one sentence: the specific positive result of this action",
+    "confidence": number 0-100
+  }
 }
 - simulatedActions: exactly 3 pretend steps (e.g. "Team emailed")
 
@@ -302,6 +317,18 @@ Document:
 """${text.slice(0, 2000)}"""
 `);
 
+  let autonomousDecision: import('@/types/analysis').AutonomousDecision | undefined;
+  if (parsed.autonomousDecision && typeof parsed.autonomousDecision === 'object') {
+    const ad = parsed.autonomousDecision as Record<string, unknown>;
+    autonomousDecision = {
+      primaryDecision: String(ad.primaryDecision || ''),
+      reason: String(ad.reason || ''),
+      priorityLevel: String(ad.priorityLevel || 'High'),
+      expectedOutcome: String(ad.expectedOutcome || ''),
+      confidence: Number(ad.confidence) || 80,
+    };
+  }
+
   const completed: AgentTraceEntry = {
     ...entry,
     status: 'complete',
@@ -310,7 +337,10 @@ Document:
     outputSummary: `${parsed.beforeMetric} → ${parsed.afterMetric}`,
   };
   updateTrace(trace, completed, onProgress);
-  return parsed;
+  return {
+    ...parsed,
+    autonomousDecision,
+  };
 }
 
 /** Run the full 5-agent insight-to-action pipeline with live trace updates. */
@@ -385,6 +415,7 @@ export async function runAgentOrchestration(
       simulatedActions: execution.simulatedActions.slice(0, 3),
       executionLog: execution.executionLog.slice(0, 8),
       agentTrace: [...trace],
+      autonomousDecision: execution.autonomousDecision,
     };
   } catch (error) {
     const running = trace.find((t) => t.status === 'running');

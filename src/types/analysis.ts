@@ -26,6 +26,14 @@ export const ANALYSIS_MODE_OPTIONS: {
 
 export type ActionChannel = 'slack' | 'email' | 'crm' | 'dashboard';
 
+export interface AutonomousDecision {
+  primaryDecision: string;
+  reason: string;
+  priorityLevel: string;
+  expectedOutcome: string;
+  confidence: number;
+}
+
 export interface SimulatedAction {
   title: string;
   description: string;
@@ -59,6 +67,8 @@ export interface AnalysisResult {
   simulatedActions: SimulatedAction[];
   executionLog: string[];
   agentTrace: AgentTraceEntry[];
+  /** Detailed single primary action selected automatically by AI */
+  autonomousDecision?: AutonomousDecision;
 }
 
 export const INDUSTRY_OPTIONS: { id: IndustryType; label: string }[] = [

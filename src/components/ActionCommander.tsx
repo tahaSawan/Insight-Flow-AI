@@ -168,6 +168,52 @@ export function ActionCommander({ results }: ActionCommanderProps) {
   );
 }
 
+function getEmojiIcon(icon: string): string {
+  if (!icon || icon.trim() === '') return '✅';
+  const clean = icon.toLowerCase().trim().replace(/[-_]/g, ' ');
+  
+  if (clean.includes('bug') || clean.includes('fix') || clean.includes('software')) return '🛠️';
+  if (clean.includes('support') || clean.includes('headset') || clean.includes('capacity') || clean.includes('customer')) return '📞';
+  if (clean.includes('compliance') || clean.includes('security') || clean.includes('audit') || clean.includes('check')) return '🛡️';
+  if (clean.includes('server') || clean.includes('database') || clean.includes('infra')) return '🖥️';
+  if (clean.includes('email') || clean.includes('mail') || clean.includes('message')) return '✉️';
+  if (clean.includes('slack') || clean.includes('chat') || clean.includes('channel')) return '💬';
+  if (clean.includes('crm') || clean.includes('sales') || clean.includes('hubspot') || clean.includes('salesforce')) return '💼';
+  if (clean.includes('dashboard') || clean.includes('chart') || clean.includes('metric') || clean.includes('kpi')) return '📊';
+  if (clean.includes('alert') || clean.includes('warn') || clean.includes('urgency')) return '🔔';
+  if (clean.includes('brief') || clean.includes('report') || clean.includes('document')) return '📄';
+  if (clean.includes('meeting') || clean.includes('call') || clean.includes('board')) return '👥';
+  if (clean.includes('money') || clean.includes('revenue') || clean.includes('finance') || clean.includes('budget')) return '💰';
+  if (clean.includes('speed') || clean.includes('performance') || clean.includes('fast')) return '⚡';
+  
+  // If it is already a single character or an emoji, return it
+  if ([...icon].length <= 2) return icon;
+  
+  return '✅';
+}
+
+function getIconBgColor(channel: ActionChannel, approved: boolean) {
+  if (!approved) return 'rgba(71, 85, 105, 0.08)'; // Grayed out if skipped
+  switch (channel) {
+    case 'slack': return 'rgba(168, 85, 247, 0.12)'; // Purple/Slack theme
+    case 'email': return 'rgba(59, 130, 246, 0.12)'; // Blue theme
+    case 'crm': return 'rgba(14, 165, 233, 0.12)'; // Sky blue theme
+    case 'dashboard': return 'rgba(236, 72, 153, 0.12)'; // Pink/Magenta theme
+    default: return 'rgba(168, 85, 247, 0.12)';
+  }
+}
+
+function getIconBorderColor(channel: ActionChannel, approved: boolean) {
+  if (!approved) return 'rgba(71, 85, 105, 0.25)';
+  switch (channel) {
+    case 'slack': return 'rgba(168, 85, 247, 0.35)';
+    case 'email': return 'rgba(59, 130, 246, 0.35)';
+    case 'crm': return 'rgba(14, 165, 233, 0.35)';
+    case 'dashboard': return 'rgba(236, 72, 153, 0.35)';
+    default: return 'rgba(168, 85, 247, 0.35)';
+  }
+}
+
 function ActionRow({
   action,
   index,
@@ -201,12 +247,28 @@ function ActionRow({
             {approved ? <Check size={14} color="#FFF" /> : null}
           </Pressable>
         ) : null}
-        <Typography style={styles.icon}>{action.icon}</Typography>
-        <View style={styles.rowBody}>
-          <Typography style={styles.title}>{action.title}</Typography>
-          <Typography variant="caption">{action.description}</Typography>
+        
+        <View style={[
+          styles.iconContainer, 
+          { 
+            backgroundColor: getIconBgColor(channel, approved),
+            borderColor: getIconBorderColor(channel, approved),
+          }
+        ]}>
+          <Typography style={[styles.icon, !approved && { opacity: 0.5 }]}>
+            {getEmojiIcon(action.icon)}
+          </Typography>
         </View>
-        <Typography style={[styles.status, isDone && styles.statusDone]}>
+
+        <View style={styles.rowBody}>
+          <Typography style={[styles.title, !approved && { color: '#64748B' }]}>
+            {action.title}
+          </Typography>
+          <Typography variant="caption" style={!approved ? { color: '#475569' } : { color: '#94A3B8' }}>
+            {action.description}
+          </Typography>
+        </View>
+        <Typography style={[styles.status, isDone && styles.statusDone, !approved && { color: '#475569' }]}>
           {isDone ? 'SENT' : isActive ? '···' : approved ? 'READY' : 'SKIP'}
         </Typography>
       </View>
@@ -233,18 +295,18 @@ const styles = StyleSheet.create({
   runBtn: { paddingVertical: 16, marginTop: 4 },
   demoNote: { color: '#818CF8', textAlign: 'center' },
   row: {
-    backgroundColor: '#1A1A24',
+    backgroundColor: '#13131F', // Slightly deeper translucent-looking base
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#2D2D44',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   rowActive: {
     borderColor: 'rgba(99, 102, 241, 0.6)',
     backgroundColor: 'rgba(99, 102, 241, 0.08)',
   },
   rowDone: { borderColor: 'rgba(16, 185, 129, 0.35)' },
-  rowHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  rowHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   checkbox: {
     width: 22,
     height: 22,
@@ -255,9 +317,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxOn: { backgroundColor: '#6366F1', borderColor: '#6366F1' },
-  icon: { fontSize: 20, width: 26 },
+  iconContainer: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  icon: { 
+    fontSize: 18, 
+    textAlign: 'center', 
+    lineHeight: 22,
+  },
   rowBody: { flex: 1 },
-  title: { fontWeight: '600', marginBottom: 2, fontSize: 15 },
+  title: { fontWeight: '700', marginBottom: 3, fontSize: 14, color: '#F3E8FF' },
   status: { fontSize: 10, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 },
   statusDone: { color: '#10B981' },
   mockCard: {

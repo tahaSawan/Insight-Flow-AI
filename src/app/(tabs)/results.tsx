@@ -18,6 +18,7 @@ import { UI, looksLikeResume } from '@/constants/plainLanguage';
 import { DecisionAlert } from '@/components/DecisionAlert';
 import { ScenarioFork } from '@/components/ScenarioFork';
 import { ActionCommander } from '@/components/ActionCommander';
+import { AutonomousDecisionCenter } from '@/components/AutonomousDecisionCenter';
 
 export default function ResultsScreen() {
   const router = useRouter();
@@ -129,6 +130,8 @@ export default function ResultsScreen() {
         ) : null}
 
         <DecisionAlert results={results} />
+
+        <AutonomousDecisionCenter results={results} />
 
         <Card style={styles.heroCard}>
           <Typography variant="h3" style={styles.heroTitle}>

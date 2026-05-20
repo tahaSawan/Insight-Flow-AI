@@ -81,6 +81,12 @@ Required JSON keys:
 - afterMetric: string (situation after fixes, e.g. "10% drop")
 - simulatedActions: array of exactly 3 objects: { title, description, icon, channel: "slack"|"email"|"crm"|"dashboard", notificationPreview: string (short mock message body) }
 - executionLog: string[] (exactly 6 short log lines, no timestamps, plain English)
+- autonomousDecision: object containing keys:
+  - primaryDecision: string (the single most important action to take first, start with a verb)
+  - reason: string (one clear sentence explaining why this specific action was selected over others, plain English)
+  - priorityLevel: string ("High" | "Medium" | "Low")
+  - expectedOutcome: string (one sentence: the specific positive result of this action)
+  - confidence: number (0-100)
 `;
 
 export async function generateJson<T>(prompt: string): Promise<T> {
@@ -185,6 +191,18 @@ function parseAnalysisResponse(parsedData: Record<string, unknown>): AnalysisRes
         'Report ready',
       ];
 
+  let autonomousDecision: import('@/types/analysis').AutonomousDecision | undefined;
+  if (parsedData.autonomousDecision && typeof parsedData.autonomousDecision === 'object') {
+    const ad = parsedData.autonomousDecision as Record<string, unknown>;
+    autonomousDecision = {
+      primaryDecision: String(ad.primaryDecision || ''),
+      reason: String(ad.reason || ''),
+      priorityLevel: String(ad.priorityLevel || 'High'),
+      expectedOutcome: String(ad.expectedOutcome || ''),
+      confidence: Number(ad.confidence) || 80,
+    };
+  }
+
   return {
     executiveSummary: String(
       parsedData.executiveSummary ||
@@ -227,6 +245,7 @@ function parseAnalysisResponse(parsedData: Record<string, unknown>): AnalysisRes
     simulatedActions: actions,
     executionLog: executionLog.slice(0, 8),
     agentTrace: [],
+    autonomousDecision,
   };
 }
 
@@ -264,7 +283,7 @@ function buildFastModeTrace(): import('@/types/agents').AgentTraceEntry[] {
 }
 
 /** Single API call — faster, fewer 503 failures. Same report structure as full mode. */
-function useCaseBlock(useCase: UseCaseType): string {
+function buildUseCaseBlock(useCase: UseCaseType): string {
   return `Scenario: ${getUseCaseHint(useCase)}`;
 }
 
@@ -279,7 +298,7 @@ export async function analyzeContentFast(
   const inputError = validateAnalysisInput(text);
   if (inputError) throw new Error(inputError);
 
-  const prompt = `${ANALYSIS_PROMPT}\n\nIndustry context: ${INDUSTRY_CONTEXT[industry]}\n${useCaseBlock(useCase)}\n\nDocument:\n"""${text.trim()}"""`;
+  const prompt = `${ANALYSIS_PROMPT}\n\nIndustry context: ${INDUSTRY_CONTEXT[industry]}\n${buildUseCaseBlock(useCase)}\n\nDocument:\n"""${text.trim()}"""`;
 
   const responseText = await generateWithGemini(prompt, true);
   let parsedData: Record<string, unknown>;
