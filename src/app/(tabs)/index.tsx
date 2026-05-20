@@ -22,7 +22,7 @@ import { UI } from '@/constants/plainLanguage';
 import { loadWinningDemoScenario } from '@/utils/loadWinningDemoScenario';
 import { AnimatedEntrance } from '@/components/AnimatedEntrance';
 import { PressableScale } from '@/components/PressableScale';
-import { colors, spacing, radius } from '@/constants/designTokens';
+import { colors, spacing, radius, screenContent } from '@/constants/designTokens';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -112,21 +112,22 @@ export default function HomeScreen() {
           <Typography variant="caption" style={styles.winningHint}>
             {UI.home.winningDemoHint}
           </Typography>
-          <Pressable
-            onPress={() =>
-              router.push({
-                pathname: '/upload',
-                params: { demo: 'judge' },
-              })
-            }
-            style={({ pressed }) => [styles.judgeLink, pressed && styles.pressed]}
-          >
-            <Play size={14} color={colors.accentText} />
-            <Typography style={styles.judgeLinkText}>{UI.home.judgeDemoBtn}</Typography>
-          </Pressable>
-          <Typography variant="caption" style={styles.judgeHint}>
-            {UI.home.judgeDemoHint}
-          </Typography>
+          <View style={styles.altDemoRow}>
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: '/upload',
+                  params: { demo: 'judge' },
+                })
+              }
+              style={({ pressed }) => [styles.judgeLink, pressed && styles.pressed]}
+            >
+              <Play size={14} color={colors.textMuted} />
+              <Typography variant="caption" style={styles.judgeLinkText}>
+                {UI.home.judgeDemoBtn}
+              </Typography>
+            </Pressable>
+          </View>
         </View>
         </AnimatedEntrance>
 
@@ -233,11 +234,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  scroll: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: 40,
-  },
+  scroll: screenContent,
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -292,28 +289,24 @@ const styles = StyleSheet.create({
   primaryCta: {
     marginBottom: spacing.xs,
   },
+  altDemoRow: {
+    alignItems: 'center',
+    marginTop: spacing.xs,
+  },
   judgeLink: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 6,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   judgeLinkText: {
-    color: colors.accentText,
-    fontSize: 14,
+    color: colors.textMuted,
     fontWeight: '600',
-  },
-  judgeHint: {
-    color: colors.textDim,
-    textAlign: 'center',
-    lineHeight: 18,
   },
   winningHint: {
     color: colors.textDim,
     textAlign: 'center',
     lineHeight: 18,
-    marginBottom: spacing.xs,
   },
   featureRow: {
     flexDirection: 'row',

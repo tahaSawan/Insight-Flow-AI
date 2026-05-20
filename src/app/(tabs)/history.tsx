@@ -1,15 +1,16 @@
-import React from 'react';
-import { View, ScrollView, StyleSheet, Pressable, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { AppScreen } from '@/components/AppScreen';
 import { useRouter } from 'expo-router';
-import { Clock, Trash2, ChevronRight, UploadCloud } from 'lucide-react-native';
+import { Trash2, ChevronRight, UploadCloud } from 'lucide-react-native';
 import { Typography } from '@/components/Typography';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { useAppContext } from '@/context/AppContext';
 import { UI } from '@/constants/plainLanguage';
-import { colors, spacing } from '@/constants/designTokens';
+import { colors, spacing, screenContent } from '@/constants/designTokens';
 import type { HistoryEntry } from '@/types/analysis';
 
 function formatDate(iso: string): string {
@@ -22,31 +23,19 @@ function formatDate(iso: string): string {
   });
 }
 
+type ConfirmState =
+  | { kind: 'delete'; entry: HistoryEntry }
+  | { kind: 'clearAll' }
+  | null;
+
 export default function HistoryScreen() {
   const router = useRouter();
   const { history, loadHistoryEntry, removeHistoryEntry, clearHistory } = useAppContext();
+  const [confirm, setConfirm] = useState<ConfirmState>(null);
 
   const openEntry = (entry: HistoryEntry) => {
     loadHistoryEntry(entry);
     router.push('/results');
-  };
-
-  const confirmDelete = (entry: HistoryEntry) => {
-    Alert.alert('Delete analysis?', entry.title, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => removeHistoryEntry(entry.id),
-      },
-    ]);
-  };
-
-  const confirmClearAll = () => {
-    Alert.alert('Clear all history?', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Clear', style: 'destructive', onPress: clearHistory },
-    ]);
   };
 
   return (
@@ -69,7 +58,6 @@ export default function HistoryScreen() {
               title={UI.history.startBtn}
               onPress={() => router.push('/upload')}
               fullWidth
-              style={styles.emptyBtn}
             />
           </Card>
         ) : (
@@ -101,7 +89,7 @@ export default function HistoryScreen() {
                     Risk {entry.results.riskScore}
                   </Typography>
                   <Pressable
-                    onPress={() => confirmDelete(entry)}
+                    onPress={() => setConfirm({ kind: 'delete', entry })}
                     hitSlop={12}
                     style={({ pressed }) => pressed && styles.pressed}
                   >
@@ -113,30 +101,52 @@ export default function HistoryScreen() {
             <Button
               title={UI.history.clearAll}
               variant="danger"
-              onPress={confirmClearAll}
+              onPress={() => setConfirm({ kind: 'clearAll' })}
               fullWidth
             />
           </>
         )}
       </ScrollView>
+
+      <ConfirmDialog
+        visible={confirm?.kind === 'delete'}
+        title="Delete this report?"
+        message={confirm?.kind === 'delete' ? confirm.entry.title : undefined}
+        confirmLabel="Delete"
+        destructive
+        onConfirm={() => {
+          if (confirm?.kind === 'delete') void removeHistoryEntry(confirm.entry.id);
+          setConfirm(null);
+        }}
+        onCancel={() => setConfirm(null)}
+      />
+      <ConfirmDialog
+        visible={confirm?.kind === 'clearAll'}
+        title="Clear all history?"
+        message="This cannot be undone."
+        confirmLabel="Clear all"
+        destructive
+        onConfirm={() => {
+          void clearHistory();
+          setConfirm(null);
+        }}
+        onCancel={() => setConfirm(null)}
+      />
     </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: 40 },
+  scroll: screenContent,
   pressed: { opacity: 0.85 },
-  emptyCard: { padding: spacing.xl, alignItems: 'center', gap: spacing.sm },
-  emptyTitle: { marginTop: spacing.sm, textAlign: 'center' },
-  emptyText: { color: colors.textSecondary, textAlign: 'center', lineHeight: 22 },
+  emptyCard: { alignItems: 'center' },
   emptySteps: {
     color: colors.accentText,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: spacing.md,
   },
-  emptyBtn: { marginTop: spacing.sm, paddingVertical: 14, width: '100%' },
-  entryCard: { marginBottom: spacing.sm, padding: spacing.md },
+  entryCard: { padding: spacing.md },
   entryHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
   entryMeta: { flex: 1, marginRight: spacing.sm },
   entryTitle: { fontWeight: '700', fontSize: 16, marginBottom: 4 },
@@ -150,10 +160,11 @@ const styles = StyleSheet.create({
     color: colors.danger,
     fontSize: 12,
     fontWeight: '700',
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    backgroundColor: colors.dangerSoft,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.borderDanger,
   },
-  clearBtn: { marginTop: spacing.md, paddingVertical: 14 },
 });

@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   boxAfter: {
     backgroundColor: colors.successSoft,
-    borderColor: 'rgba(16, 185, 129, 0.35)',
+    borderColor: colors.borderSuccess,
   },
   boxValue: {
     fontSize: 22,

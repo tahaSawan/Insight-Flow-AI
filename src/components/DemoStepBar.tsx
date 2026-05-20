@@ -126,6 +126,7 @@ const styles = StyleSheet.create({
     zIndex: -1,
   },
   connectorDone: {
-    backgroundColor: 'rgba(52, 211, 153, 0.45)',
+    backgroundColor: colors.success,
+    opacity: 0.45,
   },
 });

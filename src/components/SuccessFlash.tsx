@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     backgroundColor: colors.successSoft,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.4)',
+    borderColor: colors.borderSuccess,
     borderRadius: radius.md,
     padding: spacing.md,
     marginBottom: spacing.sm,

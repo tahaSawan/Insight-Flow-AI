@@ -3,7 +3,8 @@ import { View, StyleSheet, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import { DemoModeBadge } from '@/components/DemoModeBadge';
-import { colors } from '@/constants/designTokens';
+import { useAppContext } from '@/context/AppContext';
+import { colors, spacing } from '@/constants/designTokens';
 
 interface AppScreenProps {
   children: React.ReactNode;
@@ -13,6 +14,8 @@ interface AppScreenProps {
 
 /** Full-screen shell with ops-dashboard atmosphere. */
 export function AppScreen({ children, edges = ['top', 'left', 'right'], style }: AppScreenProps) {
+  const { demoMode } = useAppContext();
+
   return (
     <View style={[styles.root, style]}>
       <LinearGradient
@@ -23,7 +26,7 @@ export function AppScreen({ children, edges = ['top', 'left', 'right'], style }:
       />
       <View style={[styles.orb, styles.orbTop]} pointerEvents="none" />
       <View style={[styles.orb, styles.orbBottom]} pointerEvents="none" />
-      <SafeAreaView style={styles.safe} edges={edges}>
+      <SafeAreaView style={[styles.safe, demoMode && styles.safeDemo]} edges={edges}>
         <DemoModeBadge />
         {children}
       </SafeAreaView>
@@ -38,6 +41,9 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
+  },
+  safeDemo: {
+    paddingTop: spacing.lg,
   },
   orb: {
     position: 'absolute',

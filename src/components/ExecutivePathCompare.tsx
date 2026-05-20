@@ -76,11 +76,11 @@ const styles = StyleSheet.create({
   },
   pathBad: {
     backgroundColor: colors.dangerSoft,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: colors.borderDanger,
   },
   pathGood: {
     backgroundColor: colors.successSoft,
-    borderColor: 'rgba(16, 185, 129, 0.35)',
+    borderColor: colors.borderSuccess,
   },
   pathHead: {
     flexDirection: 'row',

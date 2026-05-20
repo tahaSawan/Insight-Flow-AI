@@ -207,7 +207,7 @@ export const UI = {
 
     recommendedTitle: 'Recommended Actions',
 
-    recommendedHint: 'Prioritized steps from your report',
+    recommendedHint: 'Supporting steps — primary action is above',
 
     executeAction: 'Execute Action',
 

@@ -13,15 +13,16 @@ function priorityForIndex(index: number, overall: string): { label: string; colo
   if (index === 0) {
     const p = overall.toLowerCase();
     if (p === 'high' || p === 'critical')
-      return { label: 'P1', color: colors.danger, bg: colors.dangerSoft, border: 'rgba(239, 68, 68, 0.35)' };
-    return { label: 'P1', color: colors.warning, bg: colors.warningSoft, border: 'rgba(245, 158, 11, 0.35)' };
+      return { label: 'P1', color: colors.danger, bg: colors.dangerSoft, border: colors.borderDanger };
+    return { label: 'P1', color: colors.warning, bg: colors.warningSoft, border: colors.borderWarning };
   }
   if (index === 1) return { label: 'P2', color: colors.accent, bg: colors.accentSoft, border: colors.borderAccent };
   return { label: 'P3', color: colors.textMuted, bg: colors.surfaceHighlight, border: colors.border };
 }
 
 export function RecommendedActionCards({ results }: RecommendedActionCardsProps) {
-  const actions = results.recommendedActions.slice(0, 5);
+  /** P1 lives in Autonomous Decision Center — list supporting steps only */
+  const actions = results.recommendedActions.slice(1, 4);
   if (!actions.length) return null;
 
   return (

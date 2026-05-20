@@ -27,7 +27,7 @@ import { DemoStepBar } from '@/components/DemoStepBar';
 import { AnalysisSkeleton } from '@/components/AnalysisSkeleton';
 import { AnimatedEntrance } from '@/components/AnimatedEntrance';
 import { hapticAnalysisStart } from '@/utils/haptics';
-import { colors, spacing, radius } from '@/constants/designTokens';
+import { colors, spacing, radius, screenContent } from '@/constants/designTokens';
 
 const TOTAL_AGENTS = AGENT_PIPELINE.length;
 
@@ -303,9 +303,7 @@ export default function AnalysisScreen() {
 
 const styles = StyleSheet.create({
   scrollContent: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    paddingBottom: 40,
+    ...screenContent,
     gap: spacing.md,
   },
   hero: {

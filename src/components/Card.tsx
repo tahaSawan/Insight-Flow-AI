@@ -138,11 +138,11 @@ const styles = StyleSheet.create({
   },
   success: {
     backgroundColor: colors.successSoft,
-    borderColor: 'rgba(16, 185, 129, 0.35)',
+    borderColor: colors.borderSuccess,
   },
   danger: {
     backgroundColor: colors.dangerSoft,
-    borderColor: 'rgba(239, 68, 68, 0.35)',
+    borderColor: colors.borderDanger,
   },
   highlighted: {
     borderColor: colors.borderAccent,

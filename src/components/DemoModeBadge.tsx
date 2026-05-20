@@ -26,8 +26,8 @@ export function DemoModeBadge() {
 const styles = StyleSheet.create({
   wrap: {
     position: 'absolute',
-    top: spacing.sm,
-    left: spacing.lg,
+    top: 0,
+    right: spacing.lg,
     zIndex: 20,
   },
   badge: {

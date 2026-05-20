@@ -15,7 +15,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { colors, radius, spacing, shadows } from '@/constants/designTokens';
+import { colors, spacing, shadows, buttonMetrics } from '@/constants/designTokens';
 import { hapticMedium } from '@/utils/haptics';
 import { pressSpring } from '@/utils/microAnimations';
 
@@ -173,8 +173,8 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 50,
-    borderRadius: radius.md,
+    minHeight: buttonMetrics.minHeight,
+    borderRadius: buttonMetrics.borderRadius,
     overflow: 'hidden',
   },
   fullWidth: {
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   },
   glowRing: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: radius.md,
+    borderRadius: buttonMetrics.borderRadius,
     borderWidth: 1,
     borderColor: colors.accentGlow,
     opacity: 0.85,
@@ -198,16 +198,16 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
   gradient: {
-    minHeight: 50,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    minHeight: buttonMetrics.minHeight,
+    paddingVertical: buttonMetrics.paddingVertical,
+    paddingHorizontal: buttonMetrics.paddingHorizontal,
     alignItems: 'center',
     justifyContent: 'center',
   },
   inner: {
-    minHeight: 50,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    minHeight: buttonMetrics.minHeight,
+    paddingVertical: buttonMetrics.paddingVertical,
+    paddingHorizontal: buttonMetrics.paddingHorizontal,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -232,11 +232,12 @@ const styles = StyleSheet.create({
   danger: {
     backgroundColor: colors.dangerSoft,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.4)',
+    borderColor: colors.borderDanger,
   },
   ghost: {
     backgroundColor: 'transparent',
     minHeight: 44,
+    paddingVertical: 10,
   },
   disabled: {
     opacity: 0.45,

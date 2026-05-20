@@ -32,7 +32,7 @@ import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ResultsSkeleton } from '@/components/ResultsSkeleton';
 import { DemoSummaryCard } from '@/components/DemoSummaryCard';
-import { colors, spacing } from '@/constants/designTokens';
+import { colors, spacing, screenContent, radius } from '@/constants/designTokens';
 
 export default function ResultsScreen() {
   const router = useRouter();
@@ -152,16 +152,19 @@ export default function ResultsScreen() {
           badge={modeLabel}
         />
 
-        <Typography variant="sectionHint" style={styles.jumpHint}>
-          {UI.results.jumpNavHint}
-        </Typography>
         <ResultsJumpNav active={activeJump} onJump={jumpTo} />
 
-        <View style={styles.demoStrip}>
-          <Typography variant="caption" style={styles.demoStripText}>
-            {analysisUsedFallback ? UI.demo.fallbackBanner : UI.results.demoDisclaimer}
+        {analysisUsedFallback ? (
+          <View style={styles.demoStrip}>
+            <Typography variant="caption" style={styles.demoStripText}>
+              {UI.demo.fallbackBanner}
+            </Typography>
+          </View>
+        ) : !demoMode ? (
+          <Typography variant="caption" style={styles.disclaimer}>
+            {UI.results.demoDisclaimer}
           </Typography>
-        </View>
+        ) : null}
 
         {showResumeTip ? (
           <Card variant="alert" style={styles.resumeBanner}>
@@ -186,21 +189,36 @@ export default function ResultsScreen() {
         </ScrollSection>
 
         <ScrollSection sectionId="actions" onMeasure={onSectionMeasure}>
-          <Card variant="elevated" entranceIndex={3} style={styles.actionsCard}>
-            <SectionHeader
-              title={UI.results.recommendedTitle}
-              hint={UI.results.recommendedHint}
-            />
-            <RecommendedActionCards results={results} />
+          {results.recommendedActions.length > 1 ? (
+            <Card variant="elevated" entranceIndex={3} noPadding style={styles.sectionCardInner}>
+              <View style={styles.sectionCardBody}>
+                <SectionHeader
+                  title={UI.results.recommendedTitle}
+                  hint={UI.results.recommendedHint}
+                />
+                <RecommendedActionCards results={results} />
+              </View>
+            </Card>
+          ) : null}
+
+          <Card
+            variant="elevated"
+            highlighted
+            glowActive
+            entranceIndex={4}
+            noPadding
+            style={styles.executeCard}
+          >
+            <View style={styles.sectionCardBody}>
+              <SectionHeader
+                title={UI.results.actionsSectionTitle}
+                hint={UI.results.actionsSectionHint}
+              />
+              <ActionCommander results={results} />
+            </View>
           </Card>
 
-          <Card entranceIndex={4} style={styles.executeCard}>
-            <SectionHeader
-              title={UI.results.actionsSectionTitle}
-              hint={UI.results.actionsSectionHint}
-            />
-            <ActionCommander results={results} />
-          </Card>
+          <DemoSummaryCard results={results} />
         </ScrollSection>
 
         <ScrollSection sectionId="trace" onMeasure={onSectionMeasure}>
@@ -218,8 +236,6 @@ export default function ResultsScreen() {
             )}
           </CollapsibleSection>
         </ScrollSection>
-
-        <DemoSummaryCard results={results} />
 
         <ScrollSection sectionId="more" onMeasure={onSectionMeasure}>
           <CollapsibleSection
@@ -373,23 +389,23 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   scrollContent: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    ...screenContent,
     paddingBottom: spacing.md,
   },
-  jumpHint: {
+  disclaimer: {
     color: colors.textMuted,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
+    lineHeight: 17,
     fontSize: 12,
   },
   demoStrip: {
     marginBottom: spacing.md,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    backgroundColor: colors.accentSoft,
-    borderRadius: 8,
+    backgroundColor: colors.warningSoft,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.borderAccent,
+    borderColor: colors.borderWarning,
   },
   demoStripText: {
     color: colors.accentText,
@@ -434,24 +450,22 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   resumeBanner: {
-    marginBottom: 16,
-    padding: 16,
     backgroundColor: colors.warningSoft,
-    borderColor: 'rgba(245, 158, 11, 0.35)',
-    borderWidth: 1,
+    borderColor: colors.borderWarning,
   },
   resumeBannerText: {
     color: colors.warning,
     fontSize: 14,
     lineHeight: 22,
   },
-  actionsCard: {
+  sectionCardInner: {
     marginBottom: spacing.sm,
+  },
+  sectionCardBody: {
     padding: spacing.md,
   },
   executeCard: {
     marginBottom: spacing.md,
-    padding: spacing.md,
   },
   traceEmpty: {
     color: colors.textMuted,
@@ -481,9 +495,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.dangerSoft,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: colors.borderDanger,
   },
   priorityText: {
     color: colors.danger,

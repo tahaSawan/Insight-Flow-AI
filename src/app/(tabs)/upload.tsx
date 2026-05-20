@@ -29,7 +29,7 @@ import { INDUSTRY_OPTIONS, type IndustryType } from '@/types/analysis';
 import { UI, looksLikeResume } from '@/constants/plainLanguage';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { DemoStepBar } from '@/components/DemoStepBar';
-import { colors, spacing } from '@/constants/designTokens';
+import { colors, spacing, screenContent, radius } from '@/constants/designTokens';
 import { hapticAnalysisStart } from '@/utils/haptics';
 
 export default function UploadScreen() {
@@ -145,7 +145,7 @@ export default function UploadScreen() {
 
           <ScreenHeader title={UI.upload.title} subtitle={UI.upload.subtitle} />
 
-          <Card title="1. Your document" style={styles.card}>
+          <Card title="1. Your document">
 
           <Pressable
             style={styles.fileDrop}
@@ -243,7 +243,7 @@ export default function UploadScreen() {
           ) : null}
           </Card>
 
-          <Card title="2. Options" style={styles.card}>
+          <Card title="2. Options">
             <Pressable
               onPress={() => setShowAdvanced((v) => !v)}
               style={({ pressed }) => [styles.advancedToggle, pressed && styles.chipPressed]}
@@ -311,11 +311,9 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    ...screenContent,
     paddingBottom: spacing.md,
   },
-  card: { padding: spacing.lg, marginBottom: spacing.md },
   blockTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: spacing.sm },
   advancedToggle: {
     flexDirection: 'row',
@@ -359,7 +357,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.borderAccent,
     borderStyle: 'dashed',
-    borderRadius: 16,
+    borderRadius: radius.lg,
     padding: 24,
     alignItems: 'center',
     gap: 8,
@@ -394,7 +392,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
     borderColor: colors.borderStrong,
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     color: colors.text,
     padding: 16,
     fontSize: 16,

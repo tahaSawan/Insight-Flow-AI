@@ -165,12 +165,6 @@ export function ActionCommander({ results }: ActionCommanderProps) {
         style={styles.runBtn}
       />
 
-      {demoMode && phase === 'idle' ? (
-        <Typography variant="caption" style={styles.demoNote}>
-          Demo mode on — faster execution for live pitches
-        </Typography>
-      ) : null}
-
       {phase === 'done' ? (
         <>
           <SuccessFlash message={UI.results.executeDone(approvedIndices.length)} />
@@ -292,7 +286,6 @@ const styles = StyleSheet.create({
   progressLabel: { color: colors.accentText, textAlign: 'center' },
   approveHint: { color: colors.textMuted, textAlign: 'center', marginBottom: 4, lineHeight: 18 },
   runBtn: { paddingVertical: 16, marginTop: 4 },
-  demoNote: { color: colors.accentText, textAlign: 'center' },
   pressed: { opacity: 0.85 },
   row: {
     backgroundColor: colors.surfaceElevated,

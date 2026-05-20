@@ -51,7 +51,7 @@ export function ScreenHeader({ title, subtitle, badge, showBrand = false }: Scre
 
 const styles = StyleSheet.create({
   wrap: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   brandRow: {
     flexDirection: 'row',

@@ -1,20 +1,24 @@
-import React from 'react';
-import { View, ScrollView, StyleSheet, Alert, Switch } from 'react-native';
+import React, { useState } from 'react';
+import { View, ScrollView, StyleSheet, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import { Typography } from '@/components/Typography';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAppContext } from '@/context/AppContext';
 import { getGeminiConfigError } from '@/services/gemini';
 import { setOnboardingComplete } from '@/services/appPreferences';
 import { UI } from '@/constants/plainLanguage';
 import { loadWinningDemoScenario } from '@/utils/loadWinningDemoScenario';
-import { colors, spacing } from '@/constants/designTokens';
+import { colors, spacing, screenContent } from '@/constants/designTokens';
+
+type ConfirmKind = 'reset' | 'clear' | null;
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const [confirmKind, setConfirmKind] = useState<ConfirmKind>(null);
   const {
     resetSession,
     clearHistory,
@@ -33,31 +37,19 @@ export default function SettingsScreen() {
   const apiStatus = getGeminiConfigError();
 
   const handleReset = () => {
-    Alert.alert('Reset current session?', 'Clears in-progress upload and results.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Reset',
-        style: 'destructive',
-        onPress: () => {
-          resetSession();
-          router.replace('/');
-        },
-      },
-    ]);
+    resetSession();
+    setConfirmKind(null);
+    router.replace('/');
   };
 
   const handleClearHistory = () => {
-    Alert.alert('Clear all saved analyses?', undefined, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Clear', style: 'destructive', onPress: clearHistory },
-    ]);
+    void clearHistory();
+    setConfirmKind(null);
   };
 
   const handleReplayOnboarding = async () => {
     await setOnboardingComplete(false);
-    Alert.alert('Intro replay', 'Go to Home tab — the welcome slides will show again.', [
-      { text: 'OK', onPress: () => router.replace('/') },
-    ]);
+    router.replace('/');
   };
 
   return (
@@ -132,11 +124,16 @@ export default function SettingsScreen() {
         </Card>
 
         <Card title="Data" style={styles.card}>
-          <Button title="Reset Current Session" variant="secondary" onPress={handleReset} fullWidth />
+          <Button
+            title="Reset Current Session"
+            variant="secondary"
+            onPress={() => setConfirmKind('reset')}
+            fullWidth
+          />
           <Button
             title="Clear Analysis History"
             variant="danger"
-            onPress={handleClearHistory}
+            onPress={() => setConfirmKind('clear')}
             fullWidth
             style={styles.btnSpaced}
           />
@@ -144,6 +141,25 @@ export default function SettingsScreen() {
 
         <Button title="Back" variant="ghost" onPress={() => router.back()} fullWidth style={styles.backBtn} />
       </ScrollView>
+
+      <ConfirmDialog
+        visible={confirmKind === 'reset'}
+        title="Reset current session?"
+        message="Clears in-progress upload and results."
+        confirmLabel="Reset"
+        destructive
+        onConfirm={handleReset}
+        onCancel={() => setConfirmKind(null)}
+      />
+      <ConfirmDialog
+        visible={confirmKind === 'clear'}
+        title="Clear all saved analyses?"
+        message="This cannot be undone."
+        confirmLabel="Clear"
+        destructive
+        onConfirm={handleClearHistory}
+        onCancel={() => setConfirmKind(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -167,13 +183,13 @@ function Row({
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.lg, paddingBottom: 40 },
-  card: { padding: spacing.lg, marginBottom: spacing.md, gap: 12 },
+  scroll: screenContent,
+  card: { marginBottom: spacing.md },
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 8,
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
   },
   switchBody: { flex: 1 },
   switchLabel: { fontWeight: '700', marginBottom: 4 },
@@ -182,11 +198,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   hint: { color: colors.textMuted, lineHeight: 18 },
-  btnSpaced: { marginTop: 10 },
-  backBtn: { marginTop: 8, paddingVertical: 16 },
+  btnSpaced: { marginTop: spacing.sm },
+  backBtn: { marginTop: spacing.sm },
 });

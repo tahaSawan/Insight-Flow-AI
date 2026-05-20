@@ -29,21 +29,21 @@ export function AutonomousDecisionCenter({ results }: AutonomousDecisionCenterPr
 
   const priorityColor = isHighPriority ? colors.danger : isMediumPriority ? colors.warning : colors.info;
   const priorityBg = isHighPriority
-    ? 'rgba(239, 68, 68, 0.12)'
+    ? colors.dangerSoft
     : isMediumPriority
-      ? 'rgba(245, 158, 11, 0.12)'
-      : 'rgba(59, 130, 246, 0.12)';
+      ? colors.warningSoft
+      : colors.accentSoft;
   const priorityBorder = isHighPriority
-    ? 'rgba(239, 68, 68, 0.35)'
+    ? colors.borderDanger
     : isMediumPriority
-      ? 'rgba(245, 158, 11, 0.35)'
-      : 'rgba(59, 130, 246, 0.35)';
+      ? colors.borderWarning
+      : colors.borderAccent;
 
   return (
     <Card
       variant="elevated"
       highlighted
-      glowActive
+      glowActive={isHighPriority}
       entranceIndex={1}
       style={featureSection}
       icon={<BrainCircuit size={22} color={colors.accent} />}

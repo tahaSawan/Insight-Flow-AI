@@ -50,6 +50,9 @@ export const colors = {
   dangerLight: '#F87171',
   dangerDeep: '#B91C1C',
   dangerSoft: 'rgba(239, 68, 68, 0.12)',
+  borderSuccess: 'rgba(16, 185, 129, 0.35)',
+  borderDanger: 'rgba(239, 68, 68, 0.35)',
+  borderWarning: 'rgba(245, 158, 11, 0.35)',
   successLight: '#34D399',
   successDeep: '#047857',
   surfaceInactive: '#1A1A24',
@@ -124,6 +127,21 @@ export const shadows = {
 
 export const featureSection = {
   marginBottom: spacing.md,
+} as const;
+
+/** Shared screen scroll padding — use on all tab screens */
+export const screenContent = {
+  paddingHorizontal: spacing.lg,
+  paddingTop: spacing.md,
+  paddingBottom: spacing.xxl,
+} as const;
+
+/** Primary / secondary button shell — keep heights aligned */
+export const buttonMetrics = {
+  minHeight: 48,
+  paddingVertical: 14,
+  paddingHorizontal: spacing.lg,
+  borderRadius: radius.md,
 } as const;
 
 /** React Navigation */
