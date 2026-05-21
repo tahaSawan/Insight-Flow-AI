@@ -1,128 +1,143 @@
+import { PDFDocument, StandardFonts, rgb, type PDFPage, type PDFFont } from 'pdf-lib';
 import type { AnalysisResult } from '@/types/analysis';
 import { getDecisionScorecardScores } from '@/utils/decisionScorecard';
 import { getAgentDebate } from '@/utils/agentDebate';
 
-const JSPDF_CDN =
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';
-
+const PAGE_WIDTH = 612;
+const PAGE_HEIGHT = 792;
 const MARGIN = 54;
-const BODY = 13;
-const H2 = 12;
-const TITLE = 18;
+const BODY_SIZE = 10;
+const BODY_LINE = 14;
+const H2_SIZE = 12;
+const TITLE_SIZE = 18;
 
-/** Minimal jsPDF surface used by this module (loaded from CDN in browser only). */
-interface JsPDFDoc {
-  internal: { pageSize: { getWidth: () => number; getHeight: () => number } };
-  setFontSize: (size: number) => void;
-  setFont: (font: string, style: string) => void;
-  setTextColor: (r: number, g?: number, b?: number) => void;
-  setDrawColor: (r: number, g?: number, b?: number) => void;
-  setLineWidth: (width: number) => void;
-  splitTextToSize: (text: string, maxWidth: number) => string | string[];
-  text: (text: string | string[], x: number, y: number) => void;
-  line: (x1: number, y1: number, x2: number, y2: number) => void;
-  addPage: () => void;
-  save: (filename: string) => void;
+const TEXT_COLOR = rgb(0.06, 0.09, 0.15);
+const MUTED_COLOR = rgb(0.39, 0.45, 0.55);
+const ACCENT_COLOR = rgb(0.05, 0.45, 0.56);
+
+/** Keep PDF fonts happy (Helvetica WinAnsi). */
+function sanitizeForPdf(text: string): string {
+  return text
+    .replace(/\u2022/g, '- ')
+    .replace(/\u2192/g, '->')
+    .replace(/\u2014/g, '-')
+    .replace(/\u2013/g, '-')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, ' ');
 }
 
-type JsPDFConstructor = new (opts?: object) => JsPDFDoc;
+function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
+  const safe = sanitizeForPdf(text);
+  const words = safe.split(/\s+/).filter(Boolean);
+  if (!words.length) return [''];
 
-function loadJsPDF(): Promise<JsPDFConstructor> {
-  if (typeof window === 'undefined') {
-    return Promise.reject(new Error('PDF export is only available in the browser.'));
+  const lines: string[] = [];
+  let line = '';
+
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    const width = font.widthOfTextAtSize(candidate, size);
+    if (width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
   }
+  if (line) lines.push(line);
+  return lines;
+}
 
-  const win = window as Window & { jspdf?: { jsPDF: JsPDFConstructor } };
-  if (win.jspdf?.jsPDF) {
-    return Promise.resolve(win.jspdf.jsPDF);
-  }
+type PdfWriter = {
+  drawLines: (
+    text: string,
+    opts?: { bold?: boolean; size?: number; color?: ReturnType<typeof rgb>; gapAfter?: number },
+  ) => void;
+  section: (title: string) => void;
+  bullets: (items: string[]) => void;
+};
 
-  return new Promise((resolve, reject) => {
-    const existing = document.getElementById('insightflow-jspdf');
-    if (existing) {
-      existing.addEventListener('load', () => {
-        if (win.jspdf?.jsPDF) resolve(win.jspdf.jsPDF);
-        else reject(new Error('PDF library failed to initialize.'));
+function createPdfWriter(
+  page: PDFPage,
+  font: PDFFont,
+  bold: PDFFont,
+  addPage: () => PDFPage,
+): { writer: PdfWriter; getPage: () => PDFPage } {
+  let currentPage = page;
+  let y = PAGE_HEIGHT - MARGIN;
+  const maxWidth = PAGE_WIDTH - MARGIN * 2;
+
+  const ensureSpace = (need: number) => {
+    if (y - need < MARGIN) {
+      currentPage = addPage();
+      y = PAGE_HEIGHT - MARGIN;
+    }
+  };
+
+  const drawLines: PdfWriter['drawLines'] = (text, opts) => {
+    const size = opts?.size ?? BODY_SIZE;
+    const f = opts?.bold ? bold : font;
+    const color = opts?.color ?? TEXT_COLOR;
+    for (const line of wrapText(text, f, size, maxWidth)) {
+      ensureSpace(BODY_LINE);
+      currentPage.drawText(line, {
+        x: MARGIN,
+        y: y - size,
+        size,
+        font: f,
+        color,
       });
-      return;
+      y -= BODY_LINE;
     }
+    y -= opts?.gapAfter ?? 6;
+  };
 
-    const script = document.createElement('script');
-    script.id = 'insightflow-jspdf';
-    script.src = JSPDF_CDN;
-    script.async = true;
-    script.onload = () => {
-      if (win.jspdf?.jsPDF) resolve(win.jspdf.jsPDF);
-      else reject(new Error('PDF library failed to initialize.'));
-    };
-    script.onerror = () => reject(new Error('Could not load PDF library. Check your connection.'));
-    document.head.appendChild(script);
-  });
+  const section: PdfWriter['section'] = (title) => {
+    ensureSpace(28);
+    y -= 4;
+    currentPage.drawText(sanitizeForPdf(title), {
+      x: MARGIN,
+      y: y - H2_SIZE,
+      size: H2_SIZE,
+      font: bold,
+      color: ACCENT_COLOR,
+    });
+    y -= H2_SIZE + 6;
+    currentPage.drawLine({
+      start: { x: MARGIN, y: y },
+      end: { x: PAGE_WIDTH - MARGIN, y: y },
+      thickness: 1,
+      color: rgb(0.13, 0.83, 0.93),
+    });
+    y -= 14;
+  };
+
+  const bullets: PdfWriter['bullets'] = (items) => {
+    for (const item of items) {
+      for (const line of wrapText(item, font, BODY_SIZE, maxWidth - 14)) {
+        ensureSpace(BODY_LINE);
+        currentPage.drawText(`- ${line}`, {
+          x: MARGIN + 8,
+          y: y - BODY_SIZE,
+          size: BODY_SIZE,
+          font,
+          color: TEXT_COLOR,
+        });
+        y -= BODY_LINE;
+      }
+      y -= 2;
+    }
+    y -= 4;
+  };
+
+  return {
+    writer: { drawLines, section, bullets },
+    getPage: () => currentPage,
+  };
 }
 
-function buildPdfDocument(JsPDF: JsPDFConstructor, results: AnalysisResult): JsPDFDoc {
-  const pdf = new JsPDF({ unit: 'pt', format: 'letter', orientation: 'portrait' });
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
-  const maxW = pageW - MARGIN * 2;
-  let y = MARGIN;
-
-  const ensureSpace = (extra = BODY) => {
-    if (y + extra > pageH - MARGIN) {
-      pdf.addPage();
-      y = MARGIN;
-    }
-  };
-
-  const writeLines = (
-    content: string,
-    opts?: { bold?: boolean; size?: number; gapAfter?: number },
-  ) => {
-    const size = opts?.size ?? 10;
-    pdf.setFontSize(size);
-    pdf.setFont('helvetica', opts?.bold ? 'bold' : 'normal');
-    pdf.setTextColor(15, 23, 42);
-    const lines = pdf.splitTextToSize(content, maxW);
-    const lineArr = Array.isArray(lines) ? lines : [lines];
-    for (const line of lineArr) {
-      ensureSpace();
-      pdf.text(line, MARGIN, y);
-      y += BODY;
-    }
-    y += opts?.gapAfter ?? 4;
-  };
-
-  const section = (title: string) => {
-    ensureSpace(H2 + 16);
-    y += 6;
-    pdf.setFontSize(H2);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(14, 116, 144);
-    pdf.text(title, MARGIN, y);
-    y += 10;
-    pdf.setDrawColor(34, 211, 238);
-    pdf.setLineWidth(0.75);
-    pdf.line(MARGIN, y, pageW - MARGIN, y);
-    y += 12;
-  };
-
-  const bullets = (items: string[]) => {
-    for (const item of items) {
-      const wrapped = pdf.splitTextToSize(`• ${item}`, maxW - 12);
-      const lineArr = Array.isArray(wrapped) ? wrapped : [wrapped];
-      for (let i = 0; i < lineArr.length; i++) {
-        ensureSpace();
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(30, 41, 59);
-        pdf.text(lineArr[i], MARGIN + (i === 0 ? 0 : 12), y);
-        y += BODY;
-      }
-      y += 2;
-    }
-    y += 4;
-  };
-
+function buildReportContent(writer: PdfWriter, results: AnalysisResult): void {
   const scores = getDecisionScorecardScores(results);
   const { debate } = getAgentDebate(results);
   const decision = results.autonomousDecision;
@@ -131,96 +146,89 @@ function buildPdfDocument(JsPDF: JsPDFConstructor, results: AnalysisResult): JsP
     timeStyle: 'short',
   });
 
-  writeLines('InsightFlow AI', { bold: true, size: TITLE, gapAfter: 2 });
-  writeLines(`Executive Decision Report · ${generatedAt}`, { size: 9, gapAfter: 10 });
-  writeLines(
+  writer.drawLines('InsightFlow AI', { bold: true, size: TITLE_SIZE, gapAfter: 4 });
+  writer.drawLines(`Executive Decision Report - ${generatedAt}`, {
+    size: 9,
+    color: MUTED_COLOR,
+    gapAfter: 10,
+  });
+  writer.drawLines(
     `Risk score ${results.riskScore} · Confidence ${results.confidence}% · Priority ${results.priorityLevel}`,
     { gapAfter: 8 },
   );
 
   if (results.urgencyHeadline) {
-    section('Leadership alert');
-    writeLines(results.urgencyHeadline, { bold: true, size: 11 });
-    if (results.stakeAtRisk) writeLines(`At stake: ${results.stakeAtRisk}`);
+    writer.section('Leadership alert');
+    writer.drawLines(results.urgencyHeadline, { bold: true, size: 11 });
+    if (results.stakeAtRisk) writer.drawLines(`At stake: ${results.stakeAtRisk}`);
   }
 
-  section('Executive summary');
-  writeLines(results.executiveSummary);
-  writeLines(`If nothing is done: ${results.estimatedImpact}`, { gapAfter: 6 });
+  writer.section('Executive summary');
+  writer.drawLines(results.executiveSummary);
+  writer.drawLines(`If nothing is done: ${results.estimatedImpact}`, { gapAfter: 6 });
 
   if (decision) {
-    section('Autonomous decision');
-    writeLines(decision.primaryDecision, { bold: true, size: 11 });
-    writeLines(decision.reason);
-    writeLines(
+    writer.section('Autonomous decision');
+    writer.drawLines(decision.primaryDecision, { bold: true, size: 11 });
+    writer.drawLines(decision.reason);
+    writer.drawLines(
       `Priority: ${decision.priorityLevel} · Confidence: ${decision.confidence}%`,
     );
-    writeLines(`Expected outcome: ${decision.expectedOutcome}`);
+    writer.drawLines(`Expected outcome: ${decision.expectedOutcome}`);
   }
 
   if (results.doNothingOutlook || results.doActionOutlook) {
-    section('Consequence paths');
-    writeLines(`Path A — Do nothing: ${results.doNothingOutlook || 'Risk compounds.'}`);
-    writeLines(
-      `Path B — Act now: ${results.doActionOutlook || 'Metrics improve with the plan.'}`,
+    writer.section('Consequence paths');
+    writer.drawLines(`Path A - Do nothing: ${results.doNothingOutlook || 'Risk compounds.'}`);
+    writer.drawLines(
+      `Path B - Act now: ${results.doActionOutlook || 'Metrics improve with the plan.'}`,
     );
-    writeLines(
-      `${results.impactMetricLabel}: ${results.beforeMetric} → ${results.afterMetric}`,
+    writer.drawLines(
+      `${results.impactMetricLabel}: ${results.beforeMetric} -> ${results.afterMetric}`,
     );
   }
 
-  section('Key findings');
-  bullets(results.keyFindings);
+  writer.section('Key findings');
+  writer.bullets(results.keyFindings);
 
-  section('Risk assessment');
-  bullets(results.riskAssessment);
+  writer.section('Risk assessment');
+  writer.bullets(results.riskAssessment);
 
-  section('Recommended actions');
-  bullets(results.recommendedActions);
+  writer.section('Recommended actions');
+  writer.bullets(results.recommendedActions);
 
-  section('Decision scorecard (0–100)');
-  writeLines(
+  writer.section('Decision scorecard (0-100)');
+  writer.drawLines(
     `Confidence ${scores.confidence} · Urgency ${scores.urgency} · Financial impact ${scores.financialImpact}`,
   );
-  writeLines(
+  writer.drawLines(
     `Operational risk ${scores.operationalRisk} · Execution complexity ${scores.executionComplexity}`,
   );
 
-  section('AI advisor debate');
-  writeLines(`Growth: ${debate.growth.recommendedApproach}`);
-  writeLines(`Growth concern: ${debate.growth.concern}`);
-  writeLines(`Risk: ${debate.risk.recommendedApproach}`);
-  writeLines(`Risk concern: ${debate.risk.concern}`);
-  writeLines(`Finance: ${debate.finance.recommendedApproach}`);
-  writeLines(`Finance concern: ${debate.finance.concern}`);
-  writeLines(`Final decision: ${debate.finalConclusion}`);
-  writeLines(debate.balanceExplanation);
+  writer.section('AI advisor debate');
+  writer.drawLines(`Growth: ${debate.growth.recommendedApproach}`);
+  writer.drawLines(`Growth concern: ${debate.growth.concern}`);
+  writer.drawLines(`Risk: ${debate.risk.recommendedApproach}`);
+  writer.drawLines(`Risk concern: ${debate.risk.concern}`);
+  writer.drawLines(`Finance: ${debate.finance.recommendedApproach}`);
+  writer.drawLines(`Finance concern: ${debate.finance.concern}`);
+  writer.drawLines(`Final decision: ${debate.finalConclusion}`);
+  writer.drawLines(debate.balanceExplanation);
 
   if (results.agentTrace?.length) {
-    section('Agent workflow trace');
+    writer.section('Agent workflow trace');
     for (const entry of results.agentTrace) {
-      writeLines(
+      writer.drawLines(
         `${entry.agentName} [${entry.status}]: ${entry.outputSummary || entry.reasoning}`,
         { size: 9 },
       );
     }
   }
 
-  section('Simulated actions (demo only)');
+  writer.section('Simulated actions (demo only)');
   for (const action of results.simulatedActions) {
-    writeLines(`${action.title}: ${action.description}`, { size: 9 });
+    writer.drawLines(`${action.title}: ${action.description}`, { size: 9 });
   }
-
-  ensureSpace(24);
-  pdf.setFontSize(8);
-  pdf.setTextColor(148, 163, 184);
-  pdf.text(
-    'InsightFlow AI · Analysis powered by Gemini · Simulated channels were not sent to live systems.',
-    MARGIN,
-    pageH - MARGIN,
-  );
-
-  return pdf;
 }
 
 /** Builds and downloads a text-based executive report PDF in the browser. */
@@ -228,7 +236,42 @@ export async function downloadReportPdfWeb(
   results: AnalysisResult,
   filename: string,
 ): Promise<void> {
-  const JsPDF = await loadJsPDF();
-  const pdf = buildPdfDocument(JsPDF, results);
-  pdf.save(filename);
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    throw new Error('PDF export is only available in the browser.');
+  }
+
+  const pdfDoc = await PDFDocument.create();
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  let page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+  const { writer, getPage } = createPdfWriter(page, font, bold, () => {
+    page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+    return page;
+  });
+
+  buildReportContent(writer, results);
+
+  const footer = sanitizeForPdf(
+    'InsightFlow AI · Analysis powered by Gemini · Simulated channels were not sent to live systems.',
+  );
+  getPage().drawText(footer, {
+    x: MARGIN,
+    y: MARGIN - 8,
+    size: 8,
+    font,
+    color: MUTED_COLOR,
+  });
+
+  const bytes = await pdfDoc.save();
+  const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.rel = 'noopener';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
