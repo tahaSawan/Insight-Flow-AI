@@ -1,6 +1,8 @@
 import { Tabs, useRouter, useFocusEffect } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
-import { colors } from '@/constants/designTokens';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors, spacing } from '@/constants/designTokens';
 import { LayoutDashboard, UploadCloud, BrainCircuit, BarChart3, History } from 'lucide-react-native';
 import { useAppContext } from '@/context/AppContext';
 import { OnboardingModal } from '@/components/OnboardingModal';
@@ -12,7 +14,40 @@ import {
 export default function TabsLayout() {
   const { uploadedText, analysisResults, history, preferencesLoaded } = useAppContext();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [showOnboarding, setShowOnboarding] = useState(false);
+
+  const tabBarScreenOptions = useMemo(() => {
+    const isWeb = Platform.OS === 'web';
+    const bottomPad = isWeb ? spacing.md : Math.max(spacing.sm, insets.bottom);
+    const barHeight = (isWeb ? 72 : 64) + bottomPad;
+
+    return {
+      headerShown: false,
+      tabBarStyle: {
+        backgroundColor: colors.surface,
+        borderTopColor: colors.borderStrong,
+        borderTopWidth: 1,
+        height: barHeight,
+        paddingTop: spacing.sm,
+        paddingBottom: bottomPad,
+      },
+      tabBarItemStyle: {
+        paddingVertical: isWeb ? 2 : 0,
+      },
+      tabBarLabelStyle: {
+        fontSize: 11,
+        fontWeight: '600' as const,
+        lineHeight: 14,
+        marginBottom: isWeb ? 2 : 0,
+      },
+      tabBarIconStyle: {
+        marginBottom: 2,
+      },
+      tabBarActiveTintColor: colors.accent,
+      tabBarInactiveTintColor: colors.textMuted,
+    };
+  }, [insets.bottom]);
 
   const hasUpload = uploadedText.trim().length > 0;
   const hasResults = analysisResults !== null;
@@ -40,25 +75,7 @@ export default function TabsLayout() {
   return (
     <>
       <OnboardingModal visible={showOnboarding} onComplete={finishOnboarding} />
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarStyle: {
-            backgroundColor: colors.surface,
-            borderTopColor: colors.borderStrong,
-            borderTopWidth: 1,
-            height: 62,
-            paddingTop: 6,
-            paddingBottom: 8,
-          },
-          tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: '600',
-          },
-          tabBarActiveTintColor: colors.accent,
-          tabBarInactiveTintColor: colors.textMuted,
-        }}
-      >
+      <Tabs screenOptions={tabBarScreenOptions}>
         <Tabs.Screen
           name="index"
           options={{
