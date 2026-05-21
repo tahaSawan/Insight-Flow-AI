@@ -1,16 +1,67 @@
-import { jsPDF } from 'jspdf';
 import type { AnalysisResult } from '@/types/analysis';
 import { getDecisionScorecardScores } from '@/utils/decisionScorecard';
 import { getAgentDebate } from '@/utils/agentDebate';
+
+const JSPDF_CDN =
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';
 
 const MARGIN = 54;
 const BODY = 13;
 const H2 = 12;
 const TITLE = 18;
 
-/** Builds and downloads a text-based executive report PDF in the browser. */
-export function downloadReportPdfWeb(results: AnalysisResult, filename: string): void {
-  const pdf = new jsPDF({ unit: 'pt', format: 'letter', orientation: 'portrait' });
+/** Minimal jsPDF surface used by this module (loaded from CDN in browser only). */
+interface JsPDFDoc {
+  internal: { pageSize: { getWidth: () => number; getHeight: () => number } };
+  setFontSize: (size: number) => void;
+  setFont: (font: string, style: string) => void;
+  setTextColor: (r: number, g?: number, b?: number) => void;
+  setDrawColor: (r: number, g?: number, b?: number) => void;
+  setLineWidth: (width: number) => void;
+  splitTextToSize: (text: string, maxWidth: number) => string | string[];
+  text: (text: string | string[], x: number, y: number) => void;
+  line: (x1: number, y1: number, x2: number, y2: number) => void;
+  addPage: () => void;
+  save: (filename: string) => void;
+}
+
+type JsPDFConstructor = new (opts?: object) => JsPDFDoc;
+
+function loadJsPDF(): Promise<JsPDFConstructor> {
+  if (typeof window === 'undefined') {
+    return Promise.reject(new Error('PDF export is only available in the browser.'));
+  }
+
+  const win = window as Window & { jspdf?: { jsPDF: JsPDFConstructor } };
+  if (win.jspdf?.jsPDF) {
+    return Promise.resolve(win.jspdf.jsPDF);
+  }
+
+  return new Promise((resolve, reject) => {
+    const existing = document.getElementById('insightflow-jspdf');
+    if (existing) {
+      existing.addEventListener('load', () => {
+        if (win.jspdf?.jsPDF) resolve(win.jspdf.jsPDF);
+        else reject(new Error('PDF library failed to initialize.'));
+      });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = 'insightflow-jspdf';
+    script.src = JSPDF_CDN;
+    script.async = true;
+    script.onload = () => {
+      if (win.jspdf?.jsPDF) resolve(win.jspdf.jsPDF);
+      else reject(new Error('PDF library failed to initialize.'));
+    };
+    script.onerror = () => reject(new Error('Could not load PDF library. Check your connection.'));
+    document.head.appendChild(script);
+  });
+}
+
+function buildPdfDocument(JsPDF: JsPDFConstructor, results: AnalysisResult): JsPDFDoc {
+  const pdf = new JsPDF({ unit: 'pt', format: 'letter', orientation: 'portrait' });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
   const maxW = pageW - MARGIN * 2;
@@ -31,8 +82,9 @@ export function downloadReportPdfWeb(results: AnalysisResult, filename: string):
     pdf.setFontSize(size);
     pdf.setFont('helvetica', opts?.bold ? 'bold' : 'normal');
     pdf.setTextColor(15, 23, 42);
-    const lines = pdf.splitTextToSize(content, maxW) as string[];
-    for (const line of lines) {
+    const lines = pdf.splitTextToSize(content, maxW);
+    const lineArr = Array.isArray(lines) ? lines : [lines];
+    for (const line of lineArr) {
       ensureSpace();
       pdf.text(line, MARGIN, y);
       y += BODY;
@@ -56,13 +108,14 @@ export function downloadReportPdfWeb(results: AnalysisResult, filename: string):
 
   const bullets = (items: string[]) => {
     for (const item of items) {
-      const lines = pdf.splitTextToSize(`• ${item}`, maxW - 12) as string[];
-      for (let i = 0; i < lines.length; i++) {
+      const wrapped = pdf.splitTextToSize(`• ${item}`, maxW - 12);
+      const lineArr = Array.isArray(wrapped) ? wrapped : [wrapped];
+      for (let i = 0; i < lineArr.length; i++) {
         ensureSpace();
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'normal');
         pdf.setTextColor(30, 41, 59);
-        pdf.text(lines[i], MARGIN + (i === 0 ? 0 : 12), y);
+        pdf.text(lineArr[i], MARGIN + (i === 0 ? 0 : 12), y);
         y += BODY;
       }
       y += 2;
@@ -167,5 +220,15 @@ export function downloadReportPdfWeb(results: AnalysisResult, filename: string):
     pageH - MARGIN,
   );
 
+  return pdf;
+}
+
+/** Builds and downloads a text-based executive report PDF in the browser. */
+export async function downloadReportPdfWeb(
+  results: AnalysisResult,
+  filename: string,
+): Promise<void> {
+  const JsPDF = await loadJsPDF();
+  const pdf = buildPdfDocument(JsPDF, results);
   pdf.save(filename);
 }

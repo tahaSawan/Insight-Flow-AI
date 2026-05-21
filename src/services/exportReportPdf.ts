@@ -35,8 +35,9 @@ export async function exportReportPdf(results: AnalysisResult): Promise<void> {
   const filename = buildFilename();
 
   if (Platform.OS === 'web') {
+    if (typeof window === 'undefined') return;
     const { downloadReportPdfWeb } = await import('@/services/exportReportPdfWeb');
-    downloadReportPdfWeb(results, filename);
+    await downloadReportPdfWeb(results, filename);
     return;
   }
 
