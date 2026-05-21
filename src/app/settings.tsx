@@ -8,7 +8,7 @@ import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAppContext } from '@/context/AppContext';
-import { getGeminiConfigError } from '@/services/gemini';
+import { getGeminiConfigError, getGeminiModelLabel } from '@/services/gemini';
 import { setOnboardingComplete } from '@/services/appPreferences';
 import { colors, spacing, screenContent } from '@/constants/designTokens';
 
@@ -53,7 +53,7 @@ export default function SettingsScreen() {
           <Typography variant="caption" style={styles.hint}>
             {apiStatus
               ? apiStatus
-              : 'Using gemini-2.5-flash. Set EXPO_PUBLIC_GEMINI_API_KEY in .env'}
+              : `Using ${getGeminiModelLabel()} (auto-fallback if quota is tight). Set EXPO_PUBLIC_GEMINI_API_KEY in .env`}
           </Typography>
         </Card>
 

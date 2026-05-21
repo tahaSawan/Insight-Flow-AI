@@ -8,22 +8,23 @@ import { getUseCaseHint } from '@/constants/useCases';
 const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 
+/** Lite model first — stays within free-tier quota when flash models are exhausted. */
 const GEMINI_MODEL =
-  process.env.EXPO_PUBLIC_GEMINI_MODEL?.trim() || 'gemini-2.0-flash';
+  process.env.EXPO_PUBLIC_GEMINI_MODEL?.trim() || 'gemini-2.5-flash-lite';
 
-/** Ordered by reliability when API traffic is high (503). */
+/** Fallback order when the primary model fails (404, quota, or overload). */
 const MODEL_POOL = [
-  'gemini-2.0-flash',
-  'gemini-2.5-flash',
-  'gemini-flash-latest',
+  'gemini-2.5-flash-lite',
   'gemini-2.0-flash-lite',
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-flash-latest',
 ];
 
 const MAX_RETRIES_PER_MODEL = 3;
 
 const RETRYABLE_HINTS = [
   '503',
-  '429',
   '500',
   '502',
   '504',
@@ -39,16 +40,123 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+export function getGeminiModelLabel(): string {
+  return GEMINI_MODEL;
+}
+
+export function isQuotaExceededError(error: unknown): boolean {
+  const message = errorMessage(error).toLowerCase();
+  return (
+    message.includes('quota') ||
+    message.includes('exceeded your current') ||
+    message.includes('billing')
+  );
+}
+
+export function isInvalidApiKeyError(error: unknown): boolean {
+  const message = errorMessage(error).toLowerCase();
+  return (
+    message.includes('api key not valid') ||
+    message.includes('api_key_invalid') ||
+    message.includes('invalid api key') ||
+    (message.includes('403') && message.includes('key'))
+  );
+}
+
 export function isRetryableGeminiError(error: unknown): boolean {
-  const message = (error instanceof Error ? error.message : String(error)).toLowerCase();
+  if (isQuotaExceededError(error) || isInvalidApiKeyError(error)) {
+    return false;
+  }
+  const message = errorMessage(error).toLowerCase();
+  if (message.includes('429') && !message.includes('quota')) {
+    return true;
+  }
   return RETRYABLE_HINTS.some((hint) => message.includes(hint));
 }
 
 export function toFriendlyGeminiError(error: unknown): string {
-  if (isRetryableGeminiError(error)) {
-    return 'Gemini is temporarily busy (high demand). Tap Retry — we auto-switch models and retry.';
+  if (isInvalidApiKeyError(error)) {
+    return 'Invalid Gemini API key. Check EXPO_PUBLIC_GEMINI_API_KEY in .env and restart Expo (npx expo start).';
   }
-  return error instanceof Error ? error.message : 'Analysis failed. Please try again.';
+  if (isQuotaExceededError(error)) {
+    return 'Gemini quota is used up on the heavy models. Tap Retry — we switch to lighter models automatically. If it still fails, create a new key at aistudio.google.com/apikey.';
+  }
+  if (isRetryableGeminiError(error)) {
+    return 'Gemini is temporarily busy. Tap Retry — we try alternate models automatically.';
+  }
+  const raw = errorMessage(error);
+  if (raw.length > 180) {
+    return 'Analysis failed. Please try again.';
+  }
+  return raw || 'Analysis failed. Please try again.';
+}
+
+function isModelUnavailableError(error: unknown): boolean {
+  const message = errorMessage(error);
+  return message.includes('404') || message.includes('not found');
+}
+
+function orderedModels(): string[] {
+  return [GEMINI_MODEL, ...MODEL_POOL.filter((m) => m !== GEMINI_MODEL)];
+}
+
+type GeminiPart = { text: string } | { inlineData: { mimeType: string; data: string } };
+
+async function invokeGeminiModel(
+  modelName: string,
+  parts: GeminiPart[],
+  jsonMode: boolean,
+): Promise<string> {
+  const model = genAI.getGenerativeModel({
+    model: modelName,
+    ...(jsonMode ? { generationConfig: { responseMimeType: 'application/json' } } : {}),
+  });
+  const result = await model.generateContent({
+    contents: [{ role: 'user', parts }],
+  });
+  return (await result.response).text();
+}
+
+async function generateWithModelPool(
+  parts: GeminiPart[],
+  jsonMode: boolean,
+): Promise<string> {
+  let lastError: unknown;
+
+  for (const modelName of orderedModels()) {
+    for (let attempt = 0; attempt < MAX_RETRIES_PER_MODEL; attempt++) {
+      try {
+        return await invokeGeminiModel(modelName, parts, jsonMode);
+      } catch (error) {
+        lastError = error;
+
+        if (isInvalidApiKeyError(error)) {
+          throw new Error(toFriendlyGeminiError(error));
+        }
+
+        if (isModelUnavailableError(error) || isQuotaExceededError(error)) {
+          break;
+        }
+
+        if (isRetryableGeminiError(error) && attempt < MAX_RETRIES_PER_MODEL - 1) {
+          await sleep(1200 * 2 ** attempt);
+          continue;
+        }
+
+        if (isRetryableGeminiError(error)) {
+          break;
+        }
+
+        throw error;
+      }
+    }
+  }
+
+  throw new Error(toFriendlyGeminiError(lastError));
 }
 
 const INDUSTRY_CONTEXT: Record<IndustryType, string> = {
@@ -112,47 +220,7 @@ export async function generateJson<T>(prompt: string): Promise<T> {
 }
 
 async function generateWithGemini(prompt: string, jsonMode = true): Promise<string> {
-  const modelsToTry = [
-    GEMINI_MODEL,
-    ...MODEL_POOL.filter((m) => m !== GEMINI_MODEL),
-  ];
-  let lastError: unknown;
-
-  for (const modelName of modelsToTry) {
-    for (let attempt = 0; attempt < MAX_RETRIES_PER_MODEL; attempt++) {
-      try {
-        const model = genAI.getGenerativeModel({ model: modelName });
-        const result = await model.generateContent({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          ...(jsonMode
-            ? { generationConfig: { responseMimeType: 'application/json' } }
-            : {}),
-        });
-        return (await result.response).text();
-      } catch (error) {
-        lastError = error;
-        const message = error instanceof Error ? error.message : String(error);
-        const is404 = message.includes('404') || message.includes('not found');
-
-        if (is404) {
-          break;
-        }
-
-        if (isRetryableGeminiError(error) && attempt < MAX_RETRIES_PER_MODEL - 1) {
-          await sleep(1200 * 2 ** attempt);
-          continue;
-        }
-
-        if (isRetryableGeminiError(error)) {
-          break;
-        }
-
-        throw error;
-      }
-    }
-  }
-
-  throw new Error(toFriendlyGeminiError(lastError));
+  return generateWithModelPool([{ text: prompt }], jsonMode);
 }
 
 const CHANNELS: SimulatedAction['channel'][] = ['slack', 'email', 'crm', 'dashboard'];
@@ -344,46 +412,22 @@ export async function extractTextFromPdf(base64Pdf: string): Promise<string> {
   const configError = getGeminiConfigError();
   if (configError) throw new Error(configError);
 
-  const modelsToTry = [GEMINI_MODEL, ...MODEL_POOL.filter((m) => m !== GEMINI_MODEL)];
-  let lastError: unknown;
+  const extracted = (
+    await generateWithModelPool(
+      [
+        { inlineData: { mimeType: 'application/pdf', data: base64Pdf } },
+        {
+          text: 'Extract ALL readable text from this PDF. Return only the extracted text with paragraph breaks. No commentary.',
+        },
+      ],
+      false,
+    )
+  ).trim();
 
-  for (const modelName of modelsToTry) {
-    for (let attempt = 0; attempt < MAX_RETRIES_PER_MODEL; attempt++) {
-      try {
-        const model = genAI.getGenerativeModel({ model: modelName });
-        const result = await model.generateContent({
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                { inlineData: { mimeType: 'application/pdf', data: base64Pdf } },
-                {
-                  text: 'Extract ALL readable text from this PDF. Return only the extracted text with paragraph breaks. No commentary.',
-                },
-              ],
-            },
-          ],
-        });
-        const extracted = (await result.response).text().trim();
-        if (extracted.length < 50) {
-          throw new Error('Could not extract enough text from this PDF.');
-        }
-        return extracted;
-      } catch (error) {
-        lastError = error;
-        const message = error instanceof Error ? error.message : String(error);
-        if (message.includes('404') || message.includes('not found')) break;
-        if (isRetryableGeminiError(error) && attempt < MAX_RETRIES_PER_MODEL - 1) {
-          await sleep(1200 * 2 ** attempt);
-          continue;
-        }
-        if (isRetryableGeminiError(error)) break;
-        throw error;
-      }
-    }
+  if (extracted.length < 50) {
+    throw new Error('Could not extract enough text from this PDF.');
   }
-
-  throw new Error(toFriendlyGeminiError(lastError));
+  return extracted;
 }
 
 export async function generateExecutiveBrief(
