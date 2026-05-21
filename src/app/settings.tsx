@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -8,7 +8,7 @@ import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useAppContext } from '@/context/AppContext';
-import { getGeminiConfigError, getGeminiModelLabel } from '@/services/gemini';
+import { getGeminiConfigError, getGeminiModelLabel, probeGeminiApi } from '@/services/gemini';
 import { setOnboardingComplete } from '@/services/appPreferences';
 import { colors, spacing, screenContent } from '@/constants/designTokens';
 
@@ -19,6 +19,23 @@ export default function SettingsScreen() {
   const [confirmKind, setConfirmKind] = useState<ConfirmKind>(null);
   const { resetSession, clearHistory, history } = useAppContext();
   const apiStatus = getGeminiConfigError();
+  const [apiProbe, setApiProbe] = useState<string | null>(null);
+  const [apiProbeOk, setApiProbeOk] = useState<boolean | null>(null);
+  const [apiProbing, setApiProbing] = useState(false);
+
+  const runApiProbe = () => {
+    if (apiStatus) return;
+    setApiProbing(true);
+    void probeGeminiApi().then((result) => {
+      setApiProbeOk(result.ok);
+      setApiProbe(result.message);
+      setApiProbing(false);
+    });
+  };
+
+  useEffect(() => {
+    runApiProbe();
+  }, [apiStatus]);
 
   const handleReset = () => {
     resetSession();
@@ -47,14 +64,39 @@ export default function SettingsScreen() {
         <Card title="AI Configuration" style={styles.card}>
           <Row
             label="Gemini API"
-            value={apiStatus ? 'Not configured' : 'Connected'}
-            valueColor={apiStatus ? colors.danger : colors.accentSecondary}
+            value={
+              apiStatus
+                ? 'Not configured'
+                : apiProbing
+                  ? 'Checking…'
+                  : apiProbeOk
+                    ? 'Connected'
+                    : 'Not working'
+            }
+            valueColor={
+              apiStatus || apiProbeOk === false
+                ? colors.danger
+                : apiProbeOk
+                  ? colors.accentSecondary
+                  : colors.textMuted
+            }
           />
           <Typography variant="caption" style={styles.hint}>
             {apiStatus
               ? apiStatus
-              : `Using ${getGeminiModelLabel()} (auto-fallback if quota is tight). Set EXPO_PUBLIC_GEMINI_API_KEY in .env`}
+              : apiProbe ||
+                `Using ${getGeminiModelLabel()}. After changing .env run: npx expo start -c`}
           </Typography>
+          {!apiStatus ? (
+            <Button
+              title={apiProbing ? 'Testing API…' : 'Test API again'}
+              variant="secondary"
+              onPress={runApiProbe}
+              isLoading={apiProbing}
+              fullWidth
+              style={styles.btnSpaced}
+            />
+          ) : null}
         </Card>
 
         <Card title="Data" style={styles.card}>

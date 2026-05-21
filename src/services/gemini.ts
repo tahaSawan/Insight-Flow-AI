@@ -8,18 +8,25 @@ import { getUseCaseHint } from '@/constants/useCases';
 const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 
-/** Lite model first — stays within free-tier quota when flash models are exhausted. */
+/** Lite / stable IDs first — best chance on free-tier keys. */
 const GEMINI_MODEL =
-  process.env.EXPO_PUBLIC_GEMINI_MODEL?.trim() || 'gemini-2.5-flash-lite';
+  process.env.EXPO_PUBLIC_GEMINI_MODEL?.trim() || 'gemini-flash-lite-latest';
 
-/** Fallback order when the primary model fails (404, quota, or overload). */
+/** Fallback order when the primary model fails (404, quota, denied, or overload). */
 const MODEL_POOL = [
-  'gemini-2.5-flash-lite',
+  'gemini-flash-lite-latest',
   'gemini-2.0-flash-lite',
-  'gemini-2.5-flash',
+  'gemini-2.0-flash-lite-001',
+  'gemini-2.5-flash-lite',
   'gemini-2.0-flash',
+  'gemini-2.0-flash-001',
+  'gemini-2.5-flash',
   'gemini-flash-latest',
 ];
+
+const MODEL_BLOCKLIST = /tts|image|preview-tts|nano-banana/i;
+
+let cachedAvailableModels: string[] | null = null;
 
 const MAX_RETRIES_PER_MODEL = 3;
 
@@ -53,8 +60,14 @@ export function isQuotaExceededError(error: unknown): boolean {
   return (
     message.includes('quota') ||
     message.includes('exceeded your current') ||
-    message.includes('billing')
+    message.includes('billing') ||
+    message.includes('limit: 0')
   );
+}
+
+export function isAccessDeniedError(error: unknown): boolean {
+  const message = errorMessage(error).toLowerCase();
+  return message.includes('denied access') || message.includes('permission denied');
 }
 
 export function isInvalidApiKeyError(error: unknown): boolean {
@@ -62,13 +75,16 @@ export function isInvalidApiKeyError(error: unknown): boolean {
   return (
     message.includes('api key not valid') ||
     message.includes('api_key_invalid') ||
-    message.includes('invalid api key') ||
-    (message.includes('403') && message.includes('key'))
+    message.includes('invalid api key')
   );
 }
 
 export function isRetryableGeminiError(error: unknown): boolean {
-  if (isQuotaExceededError(error) || isInvalidApiKeyError(error)) {
+  if (
+    isQuotaExceededError(error) ||
+    isInvalidApiKeyError(error) ||
+    isAccessDeniedError(error)
+  ) {
     return false;
   }
   const message = errorMessage(error).toLowerCase();
@@ -80,17 +96,20 @@ export function isRetryableGeminiError(error: unknown): boolean {
 
 export function toFriendlyGeminiError(error: unknown): string {
   if (isInvalidApiKeyError(error)) {
-    return 'Invalid Gemini API key. Check EXPO_PUBLIC_GEMINI_API_KEY in .env and restart Expo (npx expo start).';
+    return 'Invalid Gemini API key. Check EXPO_PUBLIC_GEMINI_API_KEY in .env and restart Expo (npx expo start -c).';
+  }
+  if (isAccessDeniedError(error)) {
+    return 'Google blocked this project from using Gemini models. Create a new API key at aistudio.google.com/apikey (try a different Google account), update .env, then restart Expo.';
   }
   if (isQuotaExceededError(error)) {
-    return 'Gemini quota is used up on the heavy models. Tap Retry — we switch to lighter models automatically. If it still fails, create a new key at aistudio.google.com/apikey.';
+    return 'Gemini free quota is exhausted (limit 0). Create a new key at aistudio.google.com/apikey, use another Google account, or enable billing — then restart Expo with npx expo start -c.';
   }
   if (isRetryableGeminiError(error)) {
     return 'Gemini is temporarily busy. Tap Retry — we try alternate models automatically.';
   }
   const raw = errorMessage(error);
   if (raw.length > 180) {
-    return 'Analysis failed. Please try again.';
+    return 'Analysis failed. Check Settings → Gemini API, then try again.';
   }
   return raw || 'Analysis failed. Please try again.';
 }
@@ -100,8 +119,64 @@ function isModelUnavailableError(error: unknown): boolean {
   return message.includes('404') || message.includes('not found');
 }
 
-function orderedModels(): string[] {
-  return [GEMINI_MODEL, ...MODEL_POOL.filter((m) => m !== GEMINI_MODEL)];
+async function fetchAvailableModelIds(): Promise<string[]> {
+  if (cachedAvailableModels) return cachedAvailableModels;
+  if (!apiKey.trim()) return [];
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+    );
+    const json = (await res.json()) as {
+      models?: { name: string; supportedGenerationMethods?: string[] }[];
+      error?: { message?: string };
+    };
+    if (!res.ok) {
+      throw new Error(json.error?.message || `Models list failed (${res.status})`);
+    }
+    cachedAvailableModels = (json.models || [])
+      .filter((m) => m.supportedGenerationMethods?.includes('generateContent'))
+      .map((m) => m.name.replace('models/', ''))
+      .filter((name) => !MODEL_BLOCKLIST.test(name));
+    return cachedAvailableModels;
+  } catch {
+    return [];
+  }
+}
+
+async function resolveModelsToTry(): Promise<string[]> {
+  const preferred = [GEMINI_MODEL, ...MODEL_POOL.filter((m) => m !== GEMINI_MODEL)];
+  const available = await fetchAvailableModelIds();
+  if (!available.length) return preferred;
+
+  const liteFirst = available.filter((m) => /lite/i.test(m));
+  const rest = available.filter((m) => !/lite/i.test(m));
+  const merged = [...preferred, ...liteFirst, ...rest];
+  return [...new Set(merged)].filter((m) => available.includes(m));
+}
+
+/** Quick health check — used in Settings to show whether the key can generate text. */
+export async function probeGeminiApi(): Promise<{
+  ok: boolean;
+  message: string;
+  workingModel?: string;
+}> {
+  const configError = getGeminiConfigError();
+  if (configError) return { ok: false, message: configError };
+
+  let lastError: unknown;
+  for (const modelName of await resolveModelsToTry()) {
+    try {
+      await invokeGeminiModel(modelName, [{ text: 'Reply with exactly: OK' }], false);
+      return { ok: true, message: `Connected (${modelName})`, workingModel: modelName };
+    } catch (error) {
+      lastError = error;
+      if (isInvalidApiKeyError(error)) {
+        return { ok: false, message: toFriendlyGeminiError(error) };
+      }
+    }
+  }
+  return { ok: false, message: toFriendlyGeminiError(lastError) };
 }
 
 type GeminiPart = { text: string } | { inlineData: { mimeType: string; data: string } };
@@ -127,7 +202,7 @@ async function generateWithModelPool(
 ): Promise<string> {
   let lastError: unknown;
 
-  for (const modelName of orderedModels()) {
+  for (const modelName of await resolveModelsToTry()) {
     for (let attempt = 0; attempt < MAX_RETRIES_PER_MODEL; attempt++) {
       try {
         return await invokeGeminiModel(modelName, parts, jsonMode);
@@ -138,7 +213,11 @@ async function generateWithModelPool(
           throw new Error(toFriendlyGeminiError(error));
         }
 
-        if (isModelUnavailableError(error) || isQuotaExceededError(error)) {
+        if (
+          isModelUnavailableError(error) ||
+          isQuotaExceededError(error) ||
+          isAccessDeniedError(error)
+        ) {
           break;
         }
 

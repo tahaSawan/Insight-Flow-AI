@@ -8,7 +8,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "postinstall": "node scripts/patch-navigation-pointer-events.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

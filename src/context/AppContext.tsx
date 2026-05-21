@@ -54,7 +54,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [uploadedText, setUploadedText] = useState('');
   const [sourceFileName, setSourceFileName] = useState<string | null>(null);
   const [industry, setIndustry] = useState<IndustryType>('general');
-  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('full');
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('fast');
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
