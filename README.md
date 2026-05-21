@@ -202,10 +202,26 @@ Dark **AI operations dashboard** aesthetic: cyan primary (`#22D3EE`), emerald se
 
 ---
 
+## Hackathon — share a live link
+
+**Judges need a normal `https://` URL?** Deploy the web app (recommended):
+
+```bash
+npx expo export -p web   # creates dist/
+# Deploy dist/ to Vercel — set EXPO_PUBLIC_GEMINI_API_KEY in project env
+```
+
+Full guide: **[`HACKATHON_DEPLOY.md`](./HACKATHON_DEPLOY.md)** (Vercel vs Expo tunnel vs QR).
+
+**Tunnel** (`npx expo start --tunnel`) is great for **live phone demos** with Expo Go, but your laptop must stay on—it is not a permanent submission link by itself.
+
+---
+
 ## Documentation
 
 | File | Audience | Contents |
 |------|----------|----------|
+| [`HACKATHON_DEPLOY.md`](./HACKATHON_DEPLOY.md) | Hackathon submit | Public URL, tunnel, QR |
 | [`instructions.md`](./instructions.md) | Anyone running the app locally | Install, configure, run, test |
 | [`walkthrough.md`](./walkthrough.md) | Developers | Code structure, data flow, features |
 | [`DEMO_SCRIPT.md`](./DEMO_SCRIPT.md) | Presenters | 90s / 3min live demo script |
