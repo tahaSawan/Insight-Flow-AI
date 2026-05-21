@@ -8,6 +8,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { colors, radius } from '@/constants/designTokens';
+import { platformShadow } from '@/utils/platformStyles';
 
 interface GlowBorderProps extends ViewProps {
   active?: boolean;
@@ -45,7 +46,6 @@ export function GlowBorder({
     <View style={[styles.wrap, { borderRadius }, style]} {...props}>
       {active ? (
         <Animated.View
-          pointerEvents="none"
           style={[
             styles.ring,
             { borderRadius: borderRadius + 1 },
@@ -66,10 +66,13 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     borderWidth: 1.5,
     borderColor: colors.accent,
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 4,
+    pointerEvents: 'none',
+    ...platformShadow({
+      shadowColor: colors.accent,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.35,
+      shadowRadius: 10,
+      elevation: 4,
+    }),
   },
 });

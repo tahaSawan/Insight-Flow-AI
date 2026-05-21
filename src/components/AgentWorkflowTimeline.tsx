@@ -120,7 +120,7 @@ function TimelineStep({
     <View style={styles.stepRow}>
       <View style={styles.railCol}>
         {isRunning ? (
-          <Animated.View style={[styles.glowRing, glowStyle]} pointerEvents="none" />
+          <Animated.View style={[styles.glowRing, glowStyle]} />
         ) : null}
         <View
           style={[
@@ -215,6 +215,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.accent,
     backgroundColor: colors.accentGlow,
+    pointerEvents: 'none',
   },
   node: {
     width: 24,

@@ -385,16 +385,6 @@ export const UI = {
 
     copy: 'Copy report',
 
-    exportPdf: 'Export PDF',
-
-    exportPdfLoading: 'Creating PDF…',
-
-    exportPdfDone: 'PDF downloaded to your device',
-
-    exportPdfDoneNative: 'PDF ready — save or share from the sheet',
-
-    exportPdfError: 'Could not create PDF. Try again.',
-
     newAnalysis: 'New report',
 
     backHome: 'Back to home',

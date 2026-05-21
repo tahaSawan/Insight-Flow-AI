@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Share, Pressable, Platform } from 'react-native';
+import { View, ScrollView, StyleSheet, Share, Pressable } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppScreen } from '@/components/AppScreen';
@@ -13,9 +13,7 @@ import { AutonomousWorkflowReplay } from '@/components/AutonomousWorkflowReplay'
 import { useAppContext } from '@/context/AppContext';
 import { ANALYSIS_MODE_OPTIONS } from '@/types/analysis';
 import { formatReportAsText } from '@/utils/formatReport';
-import { exportReportPdf } from '@/services/exportReportPdf';
 import { generateExecutiveBrief } from '@/services/gemini';
-import { FileDown } from 'lucide-react-native';
 import { UI, looksLikeResume } from '@/constants/plainLanguage';
 import { ExecutiveAlertHeader } from '@/components/ExecutiveAlertHeader';
 import { ExecutivePathCompare } from '@/components/ExecutivePathCompare';
@@ -47,7 +45,6 @@ export default function ResultsScreen() {
   const modeLabel =
     ANALYSIS_MODE_OPTIONS.find((m) => m.id === analysisMode)?.label ?? 'Analysis';
   const [exportMessage, setExportMessage] = useState('');
-  const [pdfLoading, setPdfLoading] = useState(false);
   const [briefBullets, setBriefBullets] = useState<string[] | null>(null);
   const [briefLoading, setBriefLoading] = useState(false);
   const [activeJump, setActiveJump] = useState<ResultsSectionId>('alert');
@@ -115,22 +112,6 @@ export default function ResultsScreen() {
     await Clipboard.setStringAsync(formatReportAsText(results));
     setExportMessage('Copied to clipboard');
     setTimeout(() => setExportMessage(''), 3000);
-  };
-
-  const handleExportPdf = async () => {
-    setPdfLoading(true);
-    setExportMessage('');
-    try {
-      await exportReportPdf(results);
-      setExportMessage(
-        Platform.OS === 'web' ? UI.results.exportPdfDone : UI.results.exportPdfDoneNative,
-      );
-    } catch {
-      setExportMessage(UI.results.exportPdfError);
-    } finally {
-      setPdfLoading(false);
-      setTimeout(() => setExportMessage(''), 4000);
-    }
   };
 
   const handleExecutiveBrief = async () => {
@@ -351,14 +332,6 @@ export default function ResultsScreen() {
       </ScrollView>
 
       <View style={[styles.stickyBar, { paddingBottom: Math.max(spacing.md, insets.bottom) }]}>
-        <Button
-          title={pdfLoading ? UI.results.exportPdfLoading : UI.results.exportPdf}
-          onPress={handleExportPdf}
-          isLoading={pdfLoading}
-          fullWidth
-          iconLeft={<FileDown size={18} color={colors.white} />}
-          style={styles.exportPdfBtn}
-        />
         <View style={styles.stickyRow}>
           <Button title={UI.results.share} onPress={handleShare} style={styles.stickyBtn} />
           <Button
@@ -416,9 +389,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: colors.surfaceElevated,
-  },
-  exportPdfBtn: {
-    marginBottom: spacing.sm,
   },
   stickyRow: {
     flexDirection: 'row',

@@ -6,6 +6,8 @@
  * Or:     `import { theme } from '@/constants/theme'`
  */
 
+import { platformShadow } from '@/utils/platformStyles';
+
 export const colors = {
   /** Canvas */
   bg: '#050A12',
@@ -109,20 +111,20 @@ export const borders = {
 
 /** Elevation — primary CTA and accent cards only */
 export const shadows = {
-  card: {
+  card: platformShadow({
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 6,
-  },
-  accent: {
+  }),
+  accent: platformShadow({
     shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.28,
     shadowRadius: 14,
     elevation: 8,
-  },
+  }),
 } as const;
 
 export const featureSection = {

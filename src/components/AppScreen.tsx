@@ -17,11 +17,10 @@ export function AppScreen({ children, edges = ['top', 'left', 'right'], style }:
       <LinearGradient
         colors={[colors.bgElevated, colors.bg, colors.bg]}
         locations={[0, 0.5, 1]}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, styles.noPointer]}
       />
-      <View style={[styles.orb, styles.orbTop]} pointerEvents="none" />
-      <View style={[styles.orb, styles.orbBottom]} pointerEvents="none" />
+      <View style={[styles.orb, styles.orbTop, styles.noPointer]} />
+      <View style={[styles.orb, styles.orbBottom, styles.noPointer]} />
       <SafeAreaView style={styles.safe} edges={edges}>
         {children}
       </SafeAreaView>
@@ -55,5 +54,8 @@ const styles = StyleSheet.create({
     bottom: 100,
     left: -70,
     backgroundColor: 'rgba(16, 185, 129, 0.1)',
+  },
+  noPointer: {
+    pointerEvents: 'none',
   },
 });

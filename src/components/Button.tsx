@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { colors, spacing, shadows, buttonMetrics } from '@/constants/designTokens';
 import { hapticMedium } from '@/utils/haptics';
+import { platformShadow } from '@/utils/platformStyles';
 import { pressSpring } from '@/utils/microAnimations';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
@@ -138,7 +139,7 @@ export function Button({
         accessibilityState={{ disabled: isDisabled, busy: isLoading }}
         {...props}
       >
-        <View style={[styles.glowRing, isDisabled && styles.glowDisabled]} pointerEvents="none" />
+        <View style={[styles.glowRing, isDisabled && styles.glowDisabled, styles.noPointer]} />
         <LinearGradient
           colors={
             isDisabled
@@ -180,13 +181,13 @@ const styles = StyleSheet.create({
   fullWidth: {
     width: '100%',
   },
-  primaryShell: {
+  primaryShell: platformShadow({
     shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.45,
     shadowRadius: 14,
     elevation: 10,
-  },
+  }),
   glowRing: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: buttonMetrics.borderRadius,
@@ -196,6 +197,9 @@ const styles = StyleSheet.create({
   },
   glowDisabled: {
     opacity: 0,
+  },
+  noPointer: {
+    pointerEvents: 'none',
   },
   gradient: {
     minHeight: buttonMetrics.minHeight,
